@@ -1,14 +1,16 @@
 const backendApiUrl = process.env.BACKEND_API_URL ?? "http://localhost:8000";
 
-type Params = {
-  params: {
+type RouteContext = {
+  params: Promise<{
     searchId: string;
-  };
+  }>;
 };
 
-export async function GET(_req: Request, { params }: Params) {
+export async function GET(_req: Request, context: RouteContext) {
+  const { searchId } = await context.params;
+
   try {
-    const res = await fetch(`${backendApiUrl}/api/results/${params.searchId}`);
+    const res = await fetch(`${backendApiUrl}/api/results/${searchId}`);
     const payload = await res
       .json()
       .catch(() => ({ error: "Respuesta invalida del backend" }));
@@ -20,4 +22,3 @@ export async function GET(_req: Request, { params }: Params) {
     );
   }
 }
-
