@@ -1,14 +1,33 @@
+const backendApiUrl = process.env.BACKEND_API_URL ?? "http://localhost:8000";
+
 export async function POST(req: Request) {
-  const formData = await req.formData()
-  const file = formData.get('file') as File
+  const formData = await req.formData();
+  const file = formData.get("file");
 
-  const backendFormData = new FormData()
-  backendFormData.append('file', file)
+  if (!(file instanceof File)) {
+    return Response.json(
+      { error: "Archivo invalido o faltante" },
+      { status: 400 },
+    );
+  }
 
-  const res = await fetch('http://localhost:8000/api/search', {
-    method: 'POST',
-    body: backendFormData
-  })
+  const backendFormData = new FormData();
+  backendFormData.append("file", file);
 
-  return Response.json(await res.json())
+  try {
+    const res = await fetch(`${backendApiUrl}/api/search`, {
+      method: "POST",
+      body: backendFormData,
+    });
+
+    const payload = await res
+      .json()
+      .catch(() => ({ error: "Respuesta invalida del backend" }));
+    return Response.json(payload, { status: res.status });
+  } catch {
+    return Response.json(
+      { error: "No se pudo conectar con el backend FastAPI" },
+      { status: 502 },
+    );
+  }
 }
