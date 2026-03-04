@@ -1,4 +1,4 @@
-/docs
+/guide
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
@@ -112,7 +112,7 @@ instance/
 .scrapy
 
 # Sphinx documentation
-docs/_build/
+guide/_build/
 
 # PyBuilder
 .pybuilder/
