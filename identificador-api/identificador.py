@@ -1,9 +1,18 @@
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 from typing import Dict, List
+from datetime import timezone
 
 from scraper_estatico import obtener_candidatas_estaticas
-from scraper_dinamico import obtener_candidatas_dinamicas
+# from scraper_dinamico import obtener_candidatas_dinamicas
 from modelos import DateCandidate
+
+def _to_naive_utc(dt):
+    """Convierte cualquier datetime a naive UTC."""
+    if dt is None:
+        return None
+    if dt.tzinfo is not None:
+        return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt
 
 TRACKING_PARAMS = {
     "utm_source",
@@ -149,18 +158,19 @@ def get_sorted_dates(results):
             c.flags.update(flags)
             c.score = score_candidate(c, platform, flags)
 
-        best_static = select_best_candidate(candidates)
-        if not best_static or best_static.score < 0.55:
-            print("Fecha estatica poco confiable; buscando dinamica...")
-            dynamic = obtener_candidatas_dinamicas(url)
-            for c in dynamic:
-                c.flags.update(flags)
-                c.score = score_candidate(c, platform, flags)
-            candidates += dynamic
+        # MVP: desactivar scraper dinámico por lentitud (Selenium). Usar solo estático.
+        # best_static = select_best_candidate(candidates)
+        # if not best_static or best_static.score < 0.55:
+        #     print("Fecha estatica poco confiable; buscando dinamica...")
+        #     dynamic = obtener_candidatas_dinamicas(url)
+        #     for c in dynamic:
+        #         c.flags.update(flags)
+        #         c.score = score_candidate(c, platform, flags)
+        #     candidates += dynamic
 
         best = select_best_candidate(candidates)
         if best:
-            result["created_utc"] = best.date
+            result["created_utc"] = _to_naive_utc(best.date)
             result["score"] = best.score
             result["link"] = url
             result["platform"] = platform

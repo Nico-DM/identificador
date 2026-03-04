@@ -11,6 +11,14 @@ from typing import List
 
 from modelos import DateCandidate
 
+def _to_naive_utc(dt):
+    """Convierte cualquier datetime a naive UTC."""
+    if dt is None:
+        return None
+    if dt.tzinfo is not None:
+        return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt
+
 ISO_DATETIME_RE = re.compile(
     r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|[+\-]\d{2}:?\d{2})?"
 )
@@ -43,9 +51,10 @@ def _try_parse_date(text):
 def _add_candidate(candidates, date_obj, source, raw, url):
     if date_obj is None:
         return
+    date_naive = _to_naive_utc(date_obj)
     candidates.append(
         DateCandidate(
-            date=date_obj,
+            date=date_naive,
             source=source,
             raw=raw,
             extractor="dynamic",
@@ -201,16 +210,19 @@ def seleccionar_mejor_fecha(candidates: List[DateCandidate]):
     if not candidates:
         return None
 
-    hoy = datetime.now()
+    hoy = datetime.now(timezone.utc).replace(tzinfo=None)
     # filtrar rango razonable
     filtered = []
     for c in candidates:
         d = c.date
         if d is None:
             continue
-        if d.year < 2000:
+        d_naive = _to_naive_utc(d)
+        if d_naive is None:
             continue
-        if d > hoy:
+        if d_naive.year < 2000:
+            continue
+        if d_naive > hoy:
             # ignorar fechas futuras
             continue
         filtered.append(c)
@@ -219,7 +231,8 @@ def seleccionar_mejor_fecha(candidates: List[DateCandidate]):
 
     # ordenar por (prioridad, distancia_dias)
     for c in filtered:
-        c_distance = abs((hoy - c.date).days)
+        d_naive = _to_naive_utc(c.date)
+        c_distance = abs((hoy - d_naive).days) if d_naive else 999999
         c.flags["distance_days"] = c_distance
 
     filtered.sort(key=lambda x: (SOURCE_PRIORITY.get(x.source, 99), x.flags.get("distance_days", 0)))
@@ -281,10 +294,6 @@ def obtener_candidatas_dinamicas(url, headless=True, timeout=20, wait_for=8) -> 
         # 3) texto visible
         candidates += extract_from_visible_text(driver, url)
 
-        # removemos la informacion de zona horaria
-        for c in candidates:
-            if c.date.tzinfo:
-                c.date = c.date.astimezone(timezone.utc).replace(tzinfo=None)
 
         return candidates
 

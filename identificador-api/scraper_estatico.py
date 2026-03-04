@@ -7,6 +7,14 @@ from typing import List
 
 from modelos import DateCandidate
 
+def _to_naive_utc(dt):
+    """Convierte cualquier datetime a naive UTC."""
+    if dt is None:
+        return None
+    if dt.tzinfo is not None:
+        return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt
+
 def obtener_fechas_candidatas(html):
     soup = BeautifulSoup(html, "html.parser")
     fechas = []
@@ -44,10 +52,11 @@ def obtener_fechas_candidatas(html):
 
 def seleccionar_mejor_fecha(candidates: List[DateCandidate]):
     puntuadas = []
+    now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
     for c in candidates:
         fecha = c.date
-        fecha_sin_tz = fecha.astimezone(timezone.utc).replace(tzinfo=None) if fecha.tzinfo else fecha
-        if fecha_sin_tz <= datetime.now():
+        fecha_sin_tz = _to_naive_utc(fecha)
+        if fecha_sin_tz and fecha_sin_tz <= now_naive:
             puntaje = 0
             if "published" in c.source or "datePublished" in c.source:
                 puntaje += 3
@@ -72,9 +81,10 @@ def obtener_candidatas_estaticas(url: str) -> List[DateCandidate]:
             fecha = dateparser.parse(texto)
             if not fecha:
                 continue
+            fecha_naive = _to_naive_utc(fecha)
             candidates.append(
                 DateCandidate(
-                    date=fecha,
+                    date=fecha_naive,
                     source=fuente,
                     raw=texto,
                     extractor="static",
