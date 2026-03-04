@@ -1,10 +1,13 @@
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 from typing import Dict, List
 from datetime import timezone
+import logging
 
 from scraper_estatico import obtener_candidatas_estaticas
-# from scraper_dinamico import obtener_candidatas_dinamicas
+from scraper_dinamico import obtener_candidatas_dinamicas
 from modelos import DateCandidate
+
+logger = logging.getLogger(__name__)
 
 def _to_naive_utc(dt):
     """Convierte cualquier datetime a naive UTC."""
@@ -141,16 +144,15 @@ def get_sorted_dates(results):
     i = 0
     for result in results:
         i += 1
-        print(f"----- {i}/{len(results)} -----")
+        logger.info(f"Procesando resultado {i}/{len(results)}")
         url = normalize_url(result["link"])
         if url in seen_urls:
-            print("URL duplicada; ignorando")
+            logger.debug(f"URL duplicada, ignorando: {url}")
             continue
         seen_urls.add(url)
 
         platform = detect_platform(url)
-        print(f"Source: {result['source']}")
-        print(f"Link: {url}")
+        logger.info(f"Procesando URL - Source: {result['source']}, Platform: {platform}, Link: {url}")
 
         candidates = obtener_candidatas_estaticas(url)
         flags = classify_context(url, platform)
@@ -161,7 +163,7 @@ def get_sorted_dates(results):
         # MVP: desactivar scraper dinámico por lentitud (Selenium). Usar solo estático.
         # best_static = select_best_candidate(candidates)
         # if not best_static or best_static.score < 0.55:
-        #     print("Fecha estatica poco confiable; buscando dinamica...")
+        #     logger.info("Fecha estatica poco confiable; buscando dinamica...")
         #     dynamic = obtener_candidatas_dinamicas(url)
         #     for c in dynamic:
         #         c.flags.update(flags)
@@ -175,9 +177,9 @@ def get_sorted_dates(results):
             result["link"] = url
             result["platform"] = platform
             publicaciones.append(result)
-            print(f"Fecha y hora: {best.date} (score={best.score:.2f})")
+            logger.info(f"Fecha encontrada: {best.date} (score={best.score:.2f})")
         else:
-            print("No se encontro fecha; ignorando resultado")
+            logger.debug(f"No se encontró fecha para: {url}")
 
     publicaciones.sort(key=lambda x: x["created_utc"])
 

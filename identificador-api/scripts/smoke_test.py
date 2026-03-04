@@ -1,6 +1,10 @@
 import argparse
 import time
 import requests
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 def main():
@@ -15,7 +19,7 @@ def main():
         timeout=30,
     )
 
-    print("POST /api/search:", resp.status_code, resp.text)
+    logger.info(f"POST /api/search: {resp.status_code} - {resp.text}")
     resp.raise_for_status()
     data = resp.json()
     search_id = data.get("search_id")
@@ -27,13 +31,13 @@ def main():
         time.sleep(2)
         res = requests.get(f"{args.base_url}/api/results/{search_id}", timeout=30)
         elapsed = (attempt + 1) * 2
-        print(f"GET /api/results ({elapsed}s): {res.status_code}", end=" ")
         res.raise_for_status()
         payload = res.json()
         status = payload.get("status")
         result_count = len(payload.get("results") or [])
-        print(f"status={status}, results={result_count}")
+        logger.info(f"GET /api/results ({elapsed}s): {res.status_code} - status={status}, results={result_count}")
         if status in {"done", "error"}:
+            logger.info(f"Procesamiento completado con status: {status}")
             return
 
     raise SystemExit("Timeout esperando resultados (120s)")

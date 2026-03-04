@@ -8,10 +8,18 @@ import os
 import threading
 import uuid
 import requests
+import logging
 
 from identificador import get_sorted_dates
 
 load_dotenv()
+
+# Configurar logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY", "")
 SERPAPI_ENDPOINT = os.getenv("SERPAPI_ENDPOINT", "https://serpapi.com/search.json")
@@ -32,7 +40,7 @@ ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
     # Agregar dominio de Vercel en producción:
-    # "https://identificador-web-production.vercel.app",
+    "https://identificador-web-production.vercel.app",
 ]
 
 app.add_middleware(
@@ -140,9 +148,14 @@ def _set_search(search_id: str, status: str, results=None, error: str | None = N
 
 def _process_search(search_id: str, image_url: str) -> None:
     try:
+        logger.info(f"Iniciando búsqueda {search_id} para imagen: {image_url}")
         urls = _serpapi_lens_search(image_url)
+        logger.info(f"SerpApi devolvió {len(urls)} URLs para búsqueda {search_id}")
+
         search_inputs = [{"link": url, "source": "serpapi"} for url in urls]
         sorted_results = get_sorted_dates(search_inputs)
+
+        logger.info(f"Procesamiento completado: {len(sorted_results)} resultados con fecha para búsqueda {search_id}")
 
         formatted = []
         for item in sorted_results:
@@ -158,7 +171,9 @@ def _process_search(search_id: str, image_url: str) -> None:
             )
 
         _set_search(search_id, "done", results=formatted, error=None)
+        logger.info(f"Búsqueda {search_id} completada exitosamente")
     except Exception as exc:
+        logger.error(f"Error procesando búsqueda {search_id}: {str(exc)}", exc_info=True)
         _set_search(search_id, "error", results=None, error=str(exc))
 
 
@@ -174,9 +189,11 @@ async def search(background_tasks: BackgroundTasks, payload: SearchRequest):
     try:
         image_url = _validate_image_url(payload.image_url)
     except ValueError as exc:
+        logger.warning(f"URL de imagen inválida: {payload.image_url}")
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     search_id = str(uuid.uuid4())
+    logger.info(f"Nueva búsqueda iniciada - ID: {search_id}, URL: {image_url}")
     now = _now_utc()
     with _searches_lock:
         _searches_db[search_id] = {

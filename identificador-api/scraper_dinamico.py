@@ -6,10 +6,12 @@ from selenium.webdriver.support import expected_conditions as EC
 from dateutil import parser
 from datetime import datetime, timezone
 from bs4 import BeautifulSoup
-import re, json, time
+import re, json, time, logging
 from typing import List
 
 from modelos import DateCandidate
+
+logger = logging.getLogger(__name__)
 
 def _to_naive_utc(dt):
     """Convierte cualquier datetime a naive UTC."""
@@ -313,6 +315,7 @@ def obtener_fecha_dinamica(url, headless=True, timeout=20, wait_for=8):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     url = "https://x.com/_Woong_Bi_/status/1940043620599603367"
     fecha = obtener_fecha_dinamica(url)
-    print("Fecha extraída:", fecha)
+    logger.info(f"Fecha extraída: {fecha}")

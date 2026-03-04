@@ -2,10 +2,13 @@ import requests
 from bs4 import BeautifulSoup
 import re
 import dateparser
+import logging
 from datetime import datetime, timezone
 from typing import List
 
 from modelos import DateCandidate
+
+logger = logging.getLogger(__name__)
 
 def _to_naive_utc(dt):
     """Convierte cualquier datetime a naive UTC."""
@@ -101,6 +104,7 @@ def obtener_fecha_estatica(url):
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     url = "https://www.deviantart.com/qoentari/art/Dnd-gunslinger-character-1061655719"
     fecha = obtener_fecha_estatica(url)
-    print("Fecha extraída:", fecha)
+    logger.info(f"Fecha extraída: {fecha}")
