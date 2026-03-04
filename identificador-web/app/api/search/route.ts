@@ -1,9 +1,14 @@
 export async function POST(req: Request) {
-  // Mock: devolver resultados hardcodeados
-  return Response.json({
-    status: 'done',
-    results: [
-      { date: '2023-01-15', platform: 'instagram', url: 'https://...', score: 0.95 }
-    ]
+  const formData = await req.formData()
+  const file = formData.get('file') as File
+
+  const backendFormData = new FormData()
+  backendFormData.append('file', file)
+
+  const res = await fetch('http://localhost:8000/api/search', {
+    method: 'POST',
+    body: backendFormData
   })
+
+  return Response.json(await res.json())
 }
