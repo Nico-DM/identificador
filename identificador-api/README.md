@@ -53,6 +53,4 @@ Espera ~2 minutos (procesa hasta 120 URLs con scraper estático).
 ## Próximos pasos
 - [ ] Fase 2: Limitar a primeras 30 URLs de SerpApi.
 - [ ] Fase 2: Agregar Supabase para persistencia.
-- [ ] Despliegue: Railway (backend) + Vercel (frontend).
-
-
+- [ ] Despliegue: Render (backend) + Vercel (frontend).
