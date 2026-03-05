@@ -177,6 +177,11 @@ def _process_search(search_id: str, image_url: str) -> None:
         _set_search(search_id, "error", results=None, error=str(exc))
 
 
+@app.get("/")
+async def root():
+    return {"status": "ok"}
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}
