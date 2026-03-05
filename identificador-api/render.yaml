@@ -2,11 +2,10 @@ services:
   - type: web
     name: identificador-api
     env: python
-    pythonVersion: 3.11
     region: oregon
     plan: free
     branch: main
-    buildCommand: bash build.sh
+    buildCommand: pip install --no-build-isolation --only-binary :all: -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
