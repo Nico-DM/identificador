@@ -1,3 +1,5 @@
+import { clientImageUrlRejectionMessage } from "@/lib/imageUrl";
+
 const backendApiUrl = process.env.BACKEND_API_URL ?? "http://localhost:8000";
 
 export async function POST(req: Request) {
@@ -6,6 +8,11 @@ export async function POST(req: Request) {
 
   if (typeof imageUrl !== "string" || !imageUrl.trim()) {
     return Response.json({ error: "image_url invalida o faltante" }, { status: 400 });
+  }
+
+  const rejectMsg = clientImageUrlRejectionMessage(imageUrl);
+  if (rejectMsg) {
+    return Response.json({ detail: rejectMsg }, { status: 400 });
   }
 
   try {

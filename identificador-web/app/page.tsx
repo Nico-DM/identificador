@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { clientImageUrlRejectionMessage } from "@/lib/imageUrl";
 
 export default function Home() {
   const [imageUrl, setImageUrl] = useState("");
@@ -48,6 +49,13 @@ export default function Home() {
     e.preventDefault();
     if (!imageUrl.trim()) return;
 
+    const clientMsg = clientImageUrlRejectionMessage(imageUrl);
+    if (clientMsg) {
+      setError(clientMsg);
+      setStatus("error");
+      return;
+    }
+
     setLoading(true);
     setResults(null);
     setError(null);
@@ -63,7 +71,14 @@ export default function Home() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data?.detail ?? data?.error ?? "Error iniciando busqueda");
+        const detail = data?.detail;
+        const msg =
+          typeof detail === "string"
+            ? detail
+            : Array.isArray(detail)
+              ? detail.map((d: { msg?: string }) => d?.msg).filter(Boolean).join(" ")
+              : (data?.error ?? "Error iniciando busqueda");
+        setError(msg);
         setStatus("error");
         return;
       }

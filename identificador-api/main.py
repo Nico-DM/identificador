@@ -26,6 +26,26 @@ SERPAPI_ENDPOINT = os.getenv("SERPAPI_ENDPOINT", "https://serpapi.com/search.jso
 SERPAPI_ENGINE = os.getenv("SERPAPI_ENGINE", "google_lens")
 SEARCH_TTL_SECONDS = int(os.getenv("SEARCH_TTL_SECONDS", "900"))
 
+IMAGE_EXTENSIONS = frozenset(
+    {
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".gif",
+        ".webp",
+        ".avif",
+        ".svg",
+        ".bmp",
+        ".ico",
+        ".heic",
+        ".heif",
+    }
+)
+
+# (connect timeout, read timeout) para verificar Content-Type sin descargar el cuerpo completo
+IMAGE_URL_VERIFY_TIMEOUT = (5, 10)
+IMAGE_VERIFY_USER_AGENT = "Mozilla/5.0 (compatible; Identificador/1.0)"
+
 
 class SearchRequest(BaseModel):
     image_url: str
@@ -67,11 +87,75 @@ def _prune_searches() -> None:
             _searches_db.pop(key, None)
 
 
+def _path_image_extension(parsed) -> str:
+    path = parsed.path or ""
+    segment = path.rstrip("/").split("/")[-1] if path else ""
+    return os.path.splitext(segment)[1].lower()
+
+
+def _response_content_type(resp: requests.Response) -> str | None:
+    raw = resp.headers.get("Content-Type")
+    if not raw:
+        return None
+    return raw.split(";")[0].strip().lower()
+
+
+def _verify_url_returns_image(url: str) -> None:
+    """Comprueba Content-Type image/* con HEAD; si no basta, GET en stream (solo cabeceras)."""
+    try:
+        head = requests.head(
+            url,
+            allow_redirects=True,
+            timeout=IMAGE_URL_VERIFY_TIMEOUT,
+            headers={"User-Agent": IMAGE_VERIFY_USER_AGENT},
+        )
+        try:
+            if head.ok:
+                ct = _response_content_type(head)
+                if ct and ct.startswith("image/"):
+                    return
+        finally:
+            head.close()
+    except requests.RequestException:
+        pass
+
+    try:
+        get = requests.get(
+            url,
+            stream=True,
+            allow_redirects=True,
+            timeout=IMAGE_URL_VERIFY_TIMEOUT,
+            headers={"User-Agent": IMAGE_VERIFY_USER_AGENT},
+        )
+        try:
+            ct = _response_content_type(get)
+            if ct and ct.startswith("image/"):
+                return
+        finally:
+            get.close()
+    except requests.RequestException as exc:
+        raise ValueError(
+            "No se pudo verificar la URL como imagen (error de red, tiempo agotado o acceso denegado)"
+        ) from exc
+
+    raise ValueError("La URL no es una imagen: el servidor no devolvio Content-Type image/*")
+
+
 def _validate_image_url(image_url: str) -> str:
     parsed = urlparse(image_url.strip())
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         raise ValueError("image_url debe ser una URL http(s) valida")
-    return image_url.strip()
+    url = image_url.strip()
+    parsed = urlparse(url)
+    ext = _path_image_extension(parsed)
+    if ext:
+        if ext not in IMAGE_EXTENSIONS:
+            raise ValueError(
+                "La URL debe ser un enlace directo a imagen (extension no permitida)"
+            )
+        return url
+    _verify_url_returns_image(url)
+    return url
 
 
 def _is_http_url(value: str) -> bool:

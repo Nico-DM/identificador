@@ -11,6 +11,12 @@ def main():
     parser = argparse.ArgumentParser(description="Smoke test para el API de identificador")
     parser.add_argument("--image-url", required=True, help="URL publica de imagen")
     parser.add_argument("--base-url", default="http://localhost:8000", help="Base URL del backend")
+    parser.add_argument(
+        "--expect-status",
+        type=int,
+        default=None,
+        help="Si se indica (p. ej. 400), solo se comprueba el codigo HTTP y no se hace polling",
+    )
     args = parser.parse_args()
 
     resp = requests.post(
@@ -20,6 +26,20 @@ def main():
     )
 
     logger.info(f"POST /api/search: {resp.status_code} - {resp.text}")
+
+    if args.expect_status is not None:
+        if resp.status_code != args.expect_status:
+            raise SystemExit(
+                f"Se esperaba HTTP {args.expect_status}, se obtuvo {resp.status_code}"
+            )
+        if resp.status_code >= 400:
+            data = resp.json() if resp.text else {}
+            detail = data.get("detail")
+            if not detail:
+                raise SystemExit("Respuesta de error sin campo detail")
+            logger.info("Rechazo esperado confirmado: %s", detail)
+        return
+
     resp.raise_for_status()
     data = resp.json()
     search_id = data.get("search_id")
