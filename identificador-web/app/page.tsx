@@ -45,7 +45,7 @@ function SearchProgressBar({ progress }: { progress: SearchProgress }) {
     : "Buscando coincidencias en la imagen...";
 
   return (
-    <div className="mt-4 max-w-xl" role="status" aria-live="polite">
+    <div className="mt-4 w-full" role="status" aria-live="polite">
       <div className="flex items-center justify-between gap-3 mb-2">
         <p className="text-sm text-neutral-600 dark:text-neutral-400">{label}</p>
         {hasTotal && (
@@ -281,21 +281,21 @@ export default function Home() {
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="p-8 max-w-5xl mx-auto w-full flex flex-col items-center text-center">
       <h1 className="text-3xl font-bold mb-4">Identificador de Artistas</h1>
-      <form onSubmit={handleSearch} className="flex gap-2 flex-wrap">
+      <form onSubmit={handleSearch} className="flex w-full gap-2">
         <input
           type="url"
           placeholder="https://..."
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
-          className="border px-3 py-2 min-w-[320px] rounded"
+          className="flex-1 min-w-0 border px-3 py-2 rounded"
           required
         />
         <button
           type="submit"
           disabled={!imageUrl.trim() || loading}
-          className="px-4 py-2 rounded bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 disabled:opacity-50"
+          className="shrink-0 px-4 py-2 rounded bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 disabled:opacity-50"
         >
           {loading ? "Buscando..." : "Buscar"}
         </button>
@@ -304,11 +304,11 @@ export default function Home() {
         <p className="mt-2 text-sm text-neutral-500">Busqueda ID: {searchId}</p>
       )}
       {searchedImageUrl && (
-        <section className="mt-4">
+        <section className="mt-4 w-full flex flex-col items-center">
           <h2 className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">
             Imagen buscada
           </h2>
-          <div className="inline-block overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800">
+          <div className="overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800">
             {!queryImageError ? (
               // biome-ignore lint/performance/noImgElement: user-provided external image URL
               <img
@@ -328,7 +328,9 @@ export default function Home() {
         </section>
       )}
       {(loading || status === "processing") && (
-        <SearchProgressBar progress={progress} />
+        <div className="w-full">
+          <SearchProgressBar progress={progress} />
+        </div>
       )}
       {error && <p className="mt-2 text-red-600">{error}</p>}
       {status === "partial" && !error && (
@@ -347,7 +349,7 @@ export default function Home() {
       {(status === "done" || status === "partial") &&
         results &&
         results.length > 0 && (
-        <section className="mt-6">
+        <section className="mt-6 w-full">
           <h2 className="text-lg font-semibold mb-4">
             {results.length} resultado{results.length !== 1 ? "s" : ""}
             {status === "partial" ? " (parciales)" : ""}
