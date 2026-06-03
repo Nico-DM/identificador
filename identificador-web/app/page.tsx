@@ -641,6 +641,8 @@ export default function Home() {
   const visibleResults =
     results?.filter((result) => result.date !== null && result.date !== "") ?? [];
 
+  const showIntro = !searchedImageUrl && !showProgress && !showResults;
+
   return (
     <div className="p-8 max-w-5xl mx-auto w-full flex flex-col items-center text-center">
       <h1 className="text-3xl font-bold mb-4">Identificador de Artistas</h1>
@@ -697,6 +699,37 @@ export default function Home() {
           </label>
         </div>
       </form>
+      {showIntro && (
+        <section className="mt-8 w-full max-w-2xl text-left text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
+          <p>
+            Esta herramienta ayuda a estimar cuándo se publicó una obra artística
+            buscando coincidencias visuales en la web y extrayendo fechas de las
+            publicaciones encontradas.
+          </p>
+          <ol className="mt-4 list-decimal list-inside space-y-2">
+            <li>
+              Pegá la URL pública de la imagen que querés analizar en el campo
+              de arriba.
+            </li>
+            <li>
+              Presioná <span className="font-medium text-neutral-800 dark:text-neutral-200">Buscar</span>{" "}
+              y esperá a que termine el análisis inicial.
+            </li>
+            <li>
+              Revisá los resultados con fecha; cada tarjeta enlaza a la fuente
+              original.
+            </li>
+            <li>
+              Si hace falta, podés usar{" "}
+              <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                Búsqueda profunda
+              </span>{" "}
+              para intentar completar fechas faltantes o mejorar las poco
+              fiables (tarda más).
+            </li>
+          </ol>
+        </section>
+      )}
       {searchId && (
         <p className="mt-2 text-sm text-neutral-500">Busqueda ID: {searchId}</p>
       )}
@@ -792,6 +825,39 @@ export default function Home() {
           </div>
         </section>
       )}
+      <footer className="mt-12 w-full max-w-2xl border-t border-neutral-200 dark:border-neutral-800 pt-6 text-xs leading-relaxed text-neutral-500 dark:text-neutral-400">
+        <p className="font-medium text-neutral-600 dark:text-neutral-300 mb-1">
+          Aviso legal
+        </p>
+        <p>
+          Este sitio no es propietario de ninguna de las imágenes mostradas. Las
+          miniaturas y vistas previas pertenecen a sus respectivos autores y
+          titulares de derechos de autor; se enlazan a las fuentes originales
+          únicamente con fines informativos e identificación.
+        </p>
+        <p className="mt-4 font-medium text-neutral-600 dark:text-neutral-300 mb-1">
+          Contacto
+        </p>
+        <p>
+          Para reportar errores o enviar sugerencias:{" "}
+          <a
+            href="mailto:nicomgaletto@gmail.com"
+            className="underline hover:text-neutral-700 dark:hover:text-neutral-200"
+          >
+            nicomgaletto@gmail.com
+          </a>
+        </p>
+        <p className="mt-4">
+          <a
+            href="https://github.com/Nico-DM/identificador"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-neutral-700 dark:hover:text-neutral-200"
+          >
+            Repositorio en GitHub
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }
