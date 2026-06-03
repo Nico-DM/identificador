@@ -79,6 +79,8 @@ function ResultCard({ result }: { result: SearchResult }) {
 
 export default function Home() {
   const [imageUrl, setImageUrl] = useState("");
+  const [searchedImageUrl, setSearchedImageUrl] = useState<string | null>(null);
+  const [queryImageError, setQueryImageError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<SearchResult[] | null>(null);
   const [status, setStatus] = useState<string | null>(null);
@@ -171,6 +173,8 @@ export default function Home() {
     setError(null);
     setStatus("processing");
     setSearchId(null);
+    setSearchedImageUrl(imageUrl.trim());
+    setQueryImageError(false);
 
     try {
       const res = await fetch("/api/search", {
@@ -232,6 +236,30 @@ export default function Home() {
       </form>
       {searchId && (
         <p className="mt-2 text-sm text-neutral-500">Busqueda ID: {searchId}</p>
+      )}
+      {searchedImageUrl && (
+        <section className="mt-4">
+          <h2 className="text-sm font-medium text-neutral-600 dark:text-neutral-400 mb-2">
+            Imagen buscada
+          </h2>
+          <div className="inline-block overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800">
+            {!queryImageError ? (
+              // biome-ignore lint/performance/noImgElement: user-provided external image URL
+              <img
+                src={searchedImageUrl}
+                alt="Imagen buscada"
+                width={240}
+                height={240}
+                className="max-w-[240px] max-h-[240px] w-auto h-auto object-contain"
+                onError={() => setQueryImageError(true)}
+              />
+            ) : (
+              <div className="w-[240px] h-[240px] flex items-center justify-center px-4 text-center text-sm text-neutral-500 dark:text-neutral-400">
+                No se pudo cargar la imagen
+              </div>
+            )}
+          </div>
+        </section>
       )}
       {status && <p className="mt-2">Estado: {status}</p>}
       {error && <p className="mt-2 text-red-600">{error}</p>}
