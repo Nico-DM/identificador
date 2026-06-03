@@ -47,10 +47,10 @@ Espera ~2 minutos (procesa hasta 120 URLs con scraper estático).
 ## Arquitectura MVP
 - **Búsqueda:** SerpApi Google Lens (sin upload de imagen).
 - **Procesamiento:** Scraper estático (BeautifulSoup) para extraer fechas.
-- **Estado:** En memoria (se pierde al reiniciar servidor).
+- **Estado:** En memoria por defecto; con `DATABASE_URL` (Supabase) persiste en Postgres.
 - **Scraper dinámico:** Desactivado en MVP (Selenium es lento).
 
 ## Próximos pasos
 - [ ] Fase 2: Limitar a primeras 30 URLs de SerpApi.
-- [ ] Fase 2: Agregar Supabase para persistencia.
+- [x] Fase 2: Supabase para persistencia y caché (ver [guide/SUPABASE.md](../guide/SUPABASE.md)).
 - [ ] Despliegue: Render (backend) + Vercel (frontend).

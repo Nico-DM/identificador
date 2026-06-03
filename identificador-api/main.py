@@ -1,11 +1,13 @@
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from dotenv import load_dotenv
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 import os
-import threading
 import uuid
 import requests
 import logging
@@ -19,8 +21,9 @@ from identificador import (
     serialize_pending_outcome,
 )
 from scrape_config import SCRAPE_DYNAMIC_ENABLED
-
-load_dotenv()
+from db.cache import get_lens_cache, set_lens_cache
+from db.config import db_enabled
+from db.repository import prune_searches, search_create, search_get, search_session
 
 # Configurar logging
 logging.basicConfig(
@@ -80,20 +83,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-_searches_lock = threading.Lock()
-_searches_db = {}
-
-
 def _now_utc() -> datetime:
     return datetime.now(timezone.utc)
 
 
 def _prune_searches() -> None:
     cutoff = _now_utc().timestamp() - SEARCH_TTL_SECONDS
-    with _searches_lock:
-        stale = [key for key, value in _searches_db.items() if value["created_at"].timestamp() < cutoff]
-        for key in stale:
-            _searches_db.pop(key, None)
+    prune_searches(cutoff)
 
 
 def _path_image_extension(parsed) -> str:
@@ -252,6 +248,11 @@ def _serpapi_lens_search(image_url: str, *, safe_search: bool = True) -> dict:
     if not SERPAPI_API_KEY:
         raise RuntimeError("SERPAPI_API_KEY no configurada")
 
+    cached = get_lens_cache(image_url)
+    if cached is not None:
+        logger.info("SerpApi: respuesta desde caché Supabase")
+        return cached
+
     params = {
         "engine": SERPAPI_ENGINE,
         "url": image_url,
@@ -270,6 +271,7 @@ def _serpapi_lens_search(image_url: str, *, safe_search: bool = True) -> dict:
             return {}
         raise RuntimeError(str(error_value))
 
+    set_lens_cache(image_url, payload)
     return payload
 
 
@@ -281,8 +283,7 @@ def _set_search(
     error: str | None = None,
     phase: str | None = None,
 ) -> None:
-    with _searches_lock:
-        current = _searches_db.get(search_id)
+    with search_session(search_id) as current:
         if not current:
             return
         current["status"] = status
@@ -301,8 +302,7 @@ def _update_search_progress(
     processed: int | None = None,
     total: int | None = None,
 ) -> None:
-    with _searches_lock:
-        current = _searches_db.get(search_id)
+    with search_session(search_id) as current:
         if not current:
             return
         if current["status"] not in {"processing", "deep_processing"}:
@@ -390,8 +390,7 @@ def _process_search(search_id: str, image_url: str, *, safe_search: bool = True)
         pending_serialized = [serialize_pending_outcome(item) for item in pending_outcomes]
         deep_available = SCRAPE_DYNAMIC_ENABLED and len(pending_outcomes) > 0
 
-        with _searches_lock:
-            current = _searches_db.get(search_id)
+        with search_session(search_id) as current:
             if not current:
                 return
             current["match_metadata"] = match_metadata
@@ -419,14 +418,13 @@ def _process_search(search_id: str, image_url: str, *, safe_search: bool = True)
 
 def _process_deep_search(search_id: str) -> None:
     try:
-        with _searches_lock:
-            current = _searches_db.get(search_id)
-            if not current:
-                return
-            pending_data = list(current.get("pending_dynamic") or [])
-            match_metadata = dict(current.get("match_metadata") or {})
-            existing_raw = list(current.get("raw_results") or [])
-            static_total = current.get("static_total_urls", 0)
+        current = search_get(search_id)
+        if not current:
+            return
+        pending_data = list(current.get("pending_dynamic") or [])
+        match_metadata = dict(current.get("match_metadata") or {})
+        existing_raw = list(current.get("raw_results") or [])
+        static_total = current.get("static_total_urls", 0)
 
         pending_outcomes = [deserialize_pending_outcome(item) for item in pending_data]
         deep_total = len(pending_outcomes)
@@ -456,8 +454,7 @@ def _process_deep_search(search_id: str) -> None:
         merged_raw = merge_publications(existing_raw, updates)
         formatted = _format_results(merged_raw, match_metadata)
 
-        with _searches_lock:
-            current = _searches_db.get(search_id)
+        with search_session(search_id) as current:
             if not current:
                 return
             current["raw_results"] = merged_raw
@@ -466,15 +463,16 @@ def _process_deep_search(search_id: str) -> None:
             current["pending_dynamic"] = []
             current["processed_urls"] = static_total + deep_total
             current["total_urls"] = static_total + deep_total
+            current["updated_at"] = _now_utc()
 
         _set_search(search_id, "done", results=formatted, error=None, phase="complete")
         logger.info(f"Búsqueda profunda {search_id} completada: {len(formatted)} resultados")
     except Exception as exc:
         logger.error(f"Error en búsqueda profunda {search_id}: {str(exc)}", exc_info=True)
-        with _searches_lock:
-            current = _searches_db.get(search_id)
+        with search_session(search_id) as current:
             if current:
                 current["deep_search_available"] = False
+                current["updated_at"] = _now_utc()
         _set_search(
             search_id,
             "error",
@@ -490,7 +488,7 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "ok"}
+    return {"status": "ok", "persistence": "supabase" if db_enabled() else "memory"}
 
 
 @app.post("/api/search")
@@ -506,8 +504,9 @@ async def search(background_tasks: BackgroundTasks, payload: SearchRequest):
     search_id = str(uuid.uuid4())
     logger.info(f"Nueva búsqueda iniciada - ID: {search_id}, URL: {image_url}")
     now = _now_utc()
-    with _searches_lock:
-        _searches_db[search_id] = {
+    search_create(
+        search_id,
+        {
             "status": "processing",
             "phase": "static",
             "results": None,
@@ -522,7 +521,8 @@ async def search(background_tasks: BackgroundTasks, payload: SearchRequest):
             "deep_search_available": False,
             "created_at": now,
             "updated_at": now,
-        }
+        },
+    )
 
     background_tasks.add_task(
         _process_search,
@@ -538,8 +538,7 @@ async def search(background_tasks: BackgroundTasks, payload: SearchRequest):
 async def deep_search(search_id: str, background_tasks: BackgroundTasks):
     _prune_searches()
 
-    with _searches_lock:
-        data = _searches_db.get(search_id)
+    data = search_get(search_id)
 
     if not data:
         raise HTTPException(status_code=404, detail="Busqueda no encontrada")
@@ -556,8 +555,7 @@ async def deep_search(search_id: str, background_tasks: BackgroundTasks):
     if not data.get("deep_search_available"):
         raise HTTPException(status_code=400, detail="Busqueda profunda no disponible")
 
-    with _searches_lock:
-        current = _searches_db.get(search_id)
+    with search_session(search_id) as current:
         if not current or current["status"] != "static_done":
             raise HTTPException(status_code=409, detail="Estado de busqueda invalido")
         current["status"] = "deep_processing"
@@ -577,8 +575,7 @@ async def deep_search(search_id: str, background_tasks: BackgroundTasks):
 async def get_results(search_id: str):
     _prune_searches()
 
-    with _searches_lock:
-        data = _searches_db.get(search_id)
+    data = search_get(search_id)
 
     if not data:
         raise HTTPException(status_code=404, detail="Busqueda no encontrada")

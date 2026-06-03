@@ -21,4 +21,8 @@ services:
         value: 900
       - key: ENVIRONMENT
         value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: CACHE_TTL_SECONDS
+        value: 604800
 

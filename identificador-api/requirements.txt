@@ -7,3 +7,4 @@ beautifulsoup4==4.12.3
 selenium==4.15.2
 python-dateutil==2.9.0
 dateparser==1.2.0
+psycopg[binary]==3.2.13

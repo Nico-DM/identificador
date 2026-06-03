@@ -16,6 +16,7 @@ from scrape_config import (
     SCRAPE_STATIC_CONFIDENCE_THRESHOLD,
     SCRAPE_STATIC_MAX_WORKERS,
 )
+from db.cache import get_url_scrape_cache, set_url_scrape_cache
 
 logger = logging.getLogger(__name__)
 
@@ -210,13 +211,43 @@ def _confidence_for_score(score: float | None) -> str:
     return "provisional"
 
 
+def _candidate_from_cache(entry: dict, url: str) -> DateCandidate:
+    date_value = entry["date_utc"]
+    if isinstance(date_value, str):
+        date_value = datetime.fromisoformat(date_value.replace("Z", "+00:00"))
+    return DateCandidate(
+        date=_to_naive_utc(date_value),
+        source=entry.get("source") or "cache",
+        raw="",
+        extractor=entry.get("extractor") or "static",
+        url=url,
+        score=float(entry.get("score") or 0.0),
+    )
+
+
 def _score_static_candidates(url: str, platform: str) -> tuple[List[DateCandidate], Optional[DateCandidate]]:
+    cached = get_url_scrape_cache(url)
+    if cached and cached.get("date_utc") is not None:
+        best = _candidate_from_cache(cached, url)
+        logger.info(f"Scrape estatico desde caché: {url}")
+        return [best], best
+
     candidates = obtener_candidatas_estaticas(url)
     flags = classify_context(url, platform)
     for candidate in candidates:
         candidate.flags.update(flags)
         candidate.score = score_candidate(candidate, platform, flags)
     best_static = select_best_candidate(candidates)
+    if best_static:
+        set_url_scrape_cache(
+            url,
+            platform=platform,
+            date_utc=best_static.date,
+            score=best_static.score,
+            source=best_static.source,
+            extractor=best_static.extractor,
+            confidence=_confidence_for_score(best_static.score),
+        )
     return candidates, best_static
 
 

@@ -1,4 +1,4 @@
--- Fase 2: caché compartida (Supabase/Postgres). Ejecutar en el SQL Editor del proyecto.
+-- Deprecado: usar schema/001_init.sql (incluye searches + cachés + RLS).
 
 CREATE TABLE IF NOT EXISTS url_scrape_cache (
   url_normalized TEXT PRIMARY KEY,
