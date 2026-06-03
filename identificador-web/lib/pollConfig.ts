@@ -24,3 +24,26 @@ export const POLL_DELAY_MS = parsePositiveInt(
 export const POLL_TIMEOUT_SECONDS = Math.ceil(
   (POLL_MAX_ATTEMPTS * POLL_DELAY_MS) / 1000,
 );
+
+export const POLL_TIMEOUT_OPTIONS = [
+  { label: "30 s", seconds: 30 },
+  { label: "1 min", seconds: 60 },
+  { label: "2 min", seconds: 120 },
+  { label: "5 min", seconds: 300 },
+  { label: "10 min", seconds: 600 },
+] as const;
+
+export const DEFAULT_POLL_TIMEOUT_SECONDS = 120;
+
+export function pollAttemptsForTimeout(timeoutSeconds: number): number {
+  return Math.max(1, Math.ceil((timeoutSeconds * 1000) / POLL_DELAY_MS));
+}
+
+export function formatPollDuration(totalSeconds: number): string {
+  const seconds = Math.max(0, Math.round(totalSeconds));
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  if (minutes === 0) return `${remainder} s`;
+  if (remainder === 0) return `${minutes} min`;
+  return `${minutes} min ${remainder} s`;
+}

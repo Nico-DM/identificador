@@ -2,9 +2,11 @@
 import { useEffect, useRef, useState } from "react";
 import { clientImageUrlRejectionMessage } from "@/lib/imageUrl";
 import {
+  DEFAULT_POLL_TIMEOUT_SECONDS,
+  formatPollDuration,
   POLL_DELAY_MS,
-  POLL_MAX_ATTEMPTS,
-  POLL_TIMEOUT_SECONDS,
+  POLL_TIMEOUT_OPTIONS,
+  pollAttemptsForTimeout,
 } from "@/lib/pollConfig";
 
 type ResultConfidence = "confirmed" | "provisional" | "pending";
@@ -110,7 +112,7 @@ function SearchProgressBar({
         <div className="flex items-center gap-3 shrink-0">
           {secondsRemaining !== null && (
             <span className="text-sm tabular-nums text-neutral-500 dark:text-neutral-400">
-              {secondsRemaining}s restantes
+              {formatPollDuration(secondsRemaining)} restantes
             </span>
           )}
           {hasTotal && (
@@ -227,6 +229,9 @@ export default function Home() {
     total: 0,
   });
   const [safeSearchEnabled, setSafeSearchEnabled] = useState(true);
+  const [pollTimeoutSeconds, setPollTimeoutSeconds] = useState(
+    DEFAULT_POLL_TIMEOUT_SECONDS,
+  );
   const [canRetryPoll, setCanRetryPoll] = useState(false);
   const [pollTarget, setPollTarget] = useState<PollTarget>("static");
   const [retryingPoll, setRetryingPoll] = useState(false);
@@ -284,7 +289,7 @@ export default function Home() {
     pollAbortRef.current?.abort();
     const controller = new AbortController();
     pollAbortRef.current = controller;
-    setPollSecondsRemaining(POLL_TIMEOUT_SECONDS);
+    setPollSecondsRemaining(pollTimeoutSeconds);
     setPollStoppedByUser(false);
     return controller.signal;
   };
@@ -331,7 +336,7 @@ export default function Home() {
       signal?: AbortSignal;
     },
   ): Promise<"done" | "error" | "timeout" | "partial"> => {
-    const maxAttempts = POLL_MAX_ATTEMPTS;
+    const maxAttempts = pollAttemptsForTimeout(pollTimeoutSeconds);
     const delayMs = POLL_DELAY_MS;
     let lastResults: SearchResult[] = [];
 
@@ -649,16 +654,35 @@ export default function Home() {
             {loading ? "Buscando..." : "Buscar"}
           </button>
         </div>
-        <label className="flex items-center justify-center gap-2 text-sm text-neutral-600 dark:text-neutral-400 cursor-pointer select-none">
-          <input
-            type="checkbox"
-            checked={safeSearchEnabled}
-            onChange={(e) => setSafeSearchEnabled(e.target.checked)}
-            disabled={loading || deepLoading || retryingPoll}
-            className="rounded border-neutral-300 dark:border-neutral-600"
-          />
-          SafeSearch (filtrar contenido explícito en Google Lens)
-        </label>
+        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-neutral-600 dark:text-neutral-400">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={safeSearchEnabled}
+              onChange={(e) => setSafeSearchEnabled(e.target.checked)}
+              disabled={loading || deepLoading || retryingPoll}
+              className="rounded border-neutral-300 dark:border-neutral-600"
+            />
+            SafeSearch (filtrar contenido explícito en Google Lens)
+          </label>
+          <label className="flex items-center gap-2 select-none">
+            <span>Tiempo máximo de espera</span>
+            <select
+              value={pollTimeoutSeconds}
+              onChange={(e) =>
+                setPollTimeoutSeconds(Number.parseInt(e.target.value, 10))
+              }
+              disabled={loading || deepLoading || retryingPoll}
+              className="rounded border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-2 py-1 text-sm"
+            >
+              {POLL_TIMEOUT_OPTIONS.map((option) => (
+                <option key={option.seconds} value={option.seconds}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
       </form>
       {searchId && (
         <p className="mt-2 text-sm text-neutral-500">Busqueda ID: {searchId}</p>
