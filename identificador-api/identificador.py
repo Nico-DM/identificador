@@ -138,7 +138,7 @@ def select_best_candidate(candidates: List[DateCandidate], threshold: float = 0.
     return filtered[0]
 
 
-def get_sorted_dates(results):
+def get_sorted_dates(results, on_progress=None):
     publicaciones = []
     seen_urls = set()
     i = 0
@@ -177,10 +177,11 @@ def get_sorted_dates(results):
             result["link"] = url
             result["platform"] = platform
             publicaciones.append(result)
+            publicaciones.sort(key=lambda x: x["created_utc"])
+            if on_progress:
+                on_progress(list(publicaciones))
             logger.info(f"Fecha encontrada: {best.date} (score={best.score:.2f})")
         else:
             logger.debug(f"No se encontró fecha para: {url}")
-
-    publicaciones.sort(key=lambda x: x["created_utc"])
 
     return publicaciones

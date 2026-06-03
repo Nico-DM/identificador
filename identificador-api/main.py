@@ -10,7 +10,7 @@ import uuid
 import requests
 import logging
 
-from identificador import get_sorted_dates
+from identificador import get_sorted_dates, normalize_url
 
 load_dotenv()
 
@@ -166,6 +166,50 @@ def _is_http_url(value: str) -> bool:
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
+def extract_match_metadata(payload: dict) -> dict[str, dict]:
+    metadata: dict[str, dict] = {}
+
+    def _upsert(link: str, thumbnail: str | None, site_name: str | None) -> None:
+        if not _is_http_url(link):
+            return
+        key = normalize_url(link)
+        entry = metadata.setdefault(key, {})
+        if thumbnail and _is_http_url(thumbnail):
+            entry.setdefault("thumbnail", thumbnail)
+        if site_name and site_name.strip():
+            entry.setdefault("site_name", site_name.strip())
+
+    for match in payload.get("visual_matches", []) or []:
+        link = match.get("link")
+        if not isinstance(link, str):
+            continue
+        thumbnail = match.get("thumbnail")
+        site_name = match.get("source")
+        thumb = thumbnail if isinstance(thumbnail, str) and _is_http_url(thumbnail) else None
+        name = site_name if isinstance(site_name, str) else None
+        _upsert(link, thumb, name)
+
+    for image in payload.get("inline_images", []) or []:
+        link = image.get("link")
+        if not isinstance(link, str):
+            continue
+        thumbnail = image.get("thumbnail")
+        thumb = thumbnail if isinstance(thumbnail, str) and _is_http_url(thumbnail) else None
+        _upsert(link, thumb, None)
+
+    return metadata
+
+
+def _site_name_fallback(url: str, platform: str | None) -> str:
+    try:
+        host = urlparse(url).netloc
+        if host:
+            return host.removeprefix("www.")
+    except Exception:
+        pass
+    return platform or "unknown"
+
+
 def extract_urls_from_serpapi(payload: dict) -> list[str]:
     urls: list[str] = []
 
@@ -195,7 +239,7 @@ def extract_urls_from_serpapi(payload: dict) -> list[str]:
     return unique_urls
 
 
-def _serpapi_lens_search(image_url: str) -> list[str]:
+def _serpapi_lens_search(image_url: str) -> dict:
     if not SERPAPI_API_KEY:
         raise RuntimeError("SERPAPI_API_KEY no configurada")
 
@@ -213,10 +257,10 @@ def _serpapi_lens_search(image_url: str) -> list[str]:
         error_text = str(error_value).lower()
         # Google Lens puede devolver este mensaje cuando no hay coincidencias; no es fallo tecnico.
         if "returned any results" in error_text:
-            return []
+            return {}
         raise RuntimeError(str(error_value))
 
-    return extract_urls_from_serpapi(payload)
+    return payload
 
 
 def _set_search(search_id: str, status: str, results=None, error: str | None = None) -> None:
@@ -230,29 +274,50 @@ def _set_search(search_id: str, status: str, results=None, error: str | None = N
         current["updated_at"] = _now_utc()
 
 
+def _set_partial_results(search_id: str, results: list) -> None:
+    with _searches_lock:
+        current = _searches_db.get(search_id)
+        if not current or current["status"] != "processing":
+            return
+        current["results"] = results
+        current["updated_at"] = _now_utc()
+
+
+def _format_result_item(item: dict, match_metadata: dict) -> dict:
+    created = item.get("created_utc")
+    url = item.get("link")
+    platform = item.get("platform")
+    meta = match_metadata.get(normalize_url(url), {}) if url else {}
+    return {
+        "date": created.isoformat() if isinstance(created, datetime) else None,
+        "platform": platform,
+        "url": url,
+        "score": item.get("score"),
+        "source": item.get("source"),
+        "thumbnail": meta.get("thumbnail"),
+        "site_name": meta.get("site_name") or _site_name_fallback(url, platform),
+    }
+
+
 def _process_search(search_id: str, image_url: str) -> None:
     try:
         logger.info(f"Iniciando búsqueda {search_id} para imagen: {image_url}")
-        urls = _serpapi_lens_search(image_url)
+        payload = _serpapi_lens_search(image_url)
+        urls = extract_urls_from_serpapi(payload)
+        match_metadata = extract_match_metadata(payload)
         logger.info(f"SerpApi devolvió {len(urls)} URLs para búsqueda {search_id}")
 
         search_inputs = [{"link": url, "source": "serpapi"} for url in urls]
-        sorted_results = get_sorted_dates(search_inputs)
+
+        def _on_progress(partial: list) -> None:
+            formatted_partial = [_format_result_item(item, match_metadata) for item in partial]
+            _set_partial_results(search_id, formatted_partial)
+
+        sorted_results = get_sorted_dates(search_inputs, on_progress=_on_progress)
 
         logger.info(f"Procesamiento completado: {len(sorted_results)} resultados con fecha para búsqueda {search_id}")
 
-        formatted = []
-        for item in sorted_results:
-            created = item.get("created_utc")
-            formatted.append(
-                {
-                    "date": created.isoformat() if isinstance(created, datetime) else None,
-                    "platform": item.get("platform"),
-                    "url": item.get("link"),
-                    "score": item.get("score"),
-                    "source": item.get("source"),
-                }
-            )
+        formatted = [_format_result_item(item, match_metadata) for item in sorted_results]
 
         _set_search(search_id, "done", results=formatted, error=None)
         logger.info(f"Búsqueda {search_id} completada exitosamente")
