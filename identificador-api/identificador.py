@@ -1,6 +1,6 @@
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 from typing import Dict, List, Optional
-from datetime import timezone
+from datetime import datetime, timezone
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 import copy
@@ -193,6 +193,23 @@ def _dedupe_results(results) -> list:
     return deduped
 
 
+def _sort_publications(publications: List[dict]) -> None:
+    publications.sort(
+        key=lambda x: (
+            x.get("created_utc") is None,
+            x.get("created_utc") or datetime.max,
+        )
+    )
+
+
+def _confidence_for_score(score: float | None) -> str:
+    if score is None:
+        return "pending"
+    if score >= SCRAPE_STATIC_CONFIDENCE_THRESHOLD:
+        return "confirmed"
+    return "provisional"
+
+
 def _score_static_candidates(url: str, platform: str) -> tuple[List[DateCandidate], Optional[DateCandidate]]:
     candidates = obtener_candidatas_estaticas(url)
     flags = classify_context(url, platform)
@@ -203,12 +220,41 @@ def _score_static_candidates(url: str, platform: str) -> tuple[List[DateCandidat
     return candidates, best_static
 
 
-def _build_publication(result: dict, url: str, platform: str, best: DateCandidate) -> dict:
+def _build_publication(
+    result: dict,
+    url: str,
+    platform: str,
+    best: DateCandidate,
+    *,
+    confidence: str | None = None,
+) -> dict:
     publication = copy.copy(result)
     publication["created_utc"] = _to_naive_utc(best.date)
     publication["score"] = best.score
     publication["link"] = url
     publication["platform"] = platform
+    publication["confidence"] = confidence or _confidence_for_score(best.score)
+    return publication
+
+
+def _build_pending_publication(
+    result: dict,
+    url: str,
+    platform: str,
+    *,
+    confidence: str = "pending",
+    best_static: Optional[DateCandidate] = None,
+) -> dict:
+    publication = copy.copy(result)
+    publication["link"] = url
+    publication["platform"] = platform
+    publication["confidence"] = confidence
+    if best_static:
+        publication["created_utc"] = _to_naive_utc(best_static.date)
+        publication["score"] = best_static.score
+    else:
+        publication["created_utc"] = None
+        publication["score"] = None
     return publication
 
 
@@ -222,7 +268,7 @@ def _static_phase(result: dict) -> _StaticPhaseOutcome:
 
     publication = None
     if best_static and not needs_dynamic:
-        publication = _build_publication(result, url, platform, best_static)
+        publication = _build_publication(result, url, platform, best_static, confidence="confirmed")
         logger.info(f"Fecha estatica: {best_static.date} (score={best_static.score:.2f})")
     elif needs_dynamic:
         static_score = best_static.score if best_static else 0.0
@@ -282,14 +328,80 @@ def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> Optional[dict]:
         logger.debug(f"No se encontro fecha para: {url}")
         return None
 
-    return _build_publication(outcome.result, url, platform, best)
+    return _build_publication(
+        outcome.result,
+        url,
+        platform,
+        best,
+        confidence=_confidence_for_score(best.score),
+    )
 
 
-def get_sorted_dates(results, on_progress=None):
+def _apply_static_outcome(
+    outcome: _StaticPhaseOutcome,
+    publicaciones: List[dict],
+    pending_dynamic: List[_StaticPhaseOutcome],
+) -> None:
+    if outcome.publication:
+        publicaciones.append(outcome.publication)
+        _sort_publications(publicaciones)
+        return
+
+    if outcome.needs_dynamic and SCRAPE_DYNAMIC_ENABLED:
+        pending_dynamic.append(outcome)
+        if outcome.best_static:
+            publicaciones.append(
+                _build_pending_publication(
+                    outcome.result,
+                    outcome.url,
+                    outcome.platform,
+                    confidence="provisional",
+                    best_static=outcome.best_static,
+                )
+            )
+        else:
+            publicaciones.append(
+                _build_pending_publication(
+                    outcome.result,
+                    outcome.url,
+                    outcome.platform,
+                    confidence="pending",
+                )
+            )
+        _sort_publications(publicaciones)
+        return
+
+    if outcome.best_static:
+        publication = _build_publication(
+            outcome.result,
+            outcome.url,
+            outcome.platform,
+            outcome.best_static,
+        )
+        logger.info(
+            f"Fecha estatica (dinamico desactivado): "
+            f"{outcome.best_static.date} (score={outcome.best_static.score:.2f})"
+        )
+        publicaciones.append(publication)
+        _sort_publications(publicaciones)
+        return
+
+    publicaciones.append(
+        _build_pending_publication(
+            outcome.result,
+            outcome.url,
+            outcome.platform,
+            confidence="pending",
+        )
+    )
+    _sort_publications(publicaciones)
+
+
+def run_static_phase(results, on_progress=None) -> tuple[List[dict], List[_StaticPhaseOutcome]]:
     deduped = _dedupe_results(results)
     total = len(deduped)
     if total == 0:
-        return []
+        return [], []
 
     publicaciones: List[dict] = []
     processed = 0
@@ -308,38 +420,140 @@ def get_sorted_dates(results, on_progress=None):
             outcome = future.result()
             with lock:
                 processed += 1
-                if outcome.publication:
-                    publicaciones.append(outcome.publication)
-                    publicaciones.sort(key=lambda x: x["created_utc"])
-                elif outcome.needs_dynamic and SCRAPE_DYNAMIC_ENABLED:
-                    pending_dynamic.append(outcome)
-                elif outcome.best_static:
-                    publication = _build_publication(
-                        outcome.result, outcome.url, outcome.platform, outcome.best_static
-                    )
-                    logger.info(
-                        f"Fecha estatica (dinamico desactivado): "
-                        f"{outcome.best_static.date} (score={outcome.best_static.score:.2f})"
-                    )
-                    publicaciones.append(publication)
-                    publicaciones.sort(key=lambda x: x["created_utc"])
+                _apply_static_outcome(outcome, publicaciones, pending_dynamic)
                 if on_progress:
                     on_progress(processed, total, list(publicaciones))
 
-    if pending_dynamic and SCRAPE_DYNAMIC_ENABLED:
-        dynamic_workers = min(SCRAPE_DYNAMIC_MAX_WORKERS, len(pending_dynamic))
-        logger.info(
-            f"Iniciando fase dinamica: {len(pending_dynamic)} URLs, workers={dynamic_workers}"
-        )
-        with ThreadPoolExecutor(max_workers=dynamic_workers) as pool:
-            futures = [pool.submit(_resolve_with_dynamic, item) for item in pending_dynamic]
-            for future in as_completed(futures):
-                publication = future.result()
-                with lock:
-                    if publication:
-                        publicaciones.append(publication)
-                        publicaciones.sort(key=lambda x: x["created_utc"])
-                    if on_progress:
-                        on_progress(processed, total, list(publicaciones))
+    return publicaciones, pending_dynamic
 
+
+def run_dynamic_phase(
+    pending_outcomes: List[_StaticPhaseOutcome],
+    on_progress=None,
+    *,
+    static_processed: int = 0,
+    static_total: int = 0,
+) -> List[dict]:
+    if not pending_outcomes:
+        return []
+
+    updates: List[dict] = []
+    processed = 0
+    total = len(pending_outcomes)
+    lock = threading.Lock()
+
+    dynamic_workers = min(SCRAPE_DYNAMIC_MAX_WORKERS, total)
+    logger.info(
+        f"Iniciando fase dinamica: {total} URLs, workers={dynamic_workers}"
+    )
+
+    with ThreadPoolExecutor(max_workers=dynamic_workers) as pool:
+        futures = [pool.submit(_resolve_with_dynamic, item) for item in pending_outcomes]
+        for future in as_completed(futures):
+            publication = future.result()
+            with lock:
+                processed += 1
+                if publication:
+                    updates.append(publication)
+                if on_progress:
+                    on_progress(
+                        static_processed + processed,
+                        static_total + total,
+                        list(updates),
+                    )
+
+    return updates
+
+
+def merge_publications(existing: List[dict], updates: List[dict]) -> List[dict]:
+    by_url: Dict[str, dict] = {}
+    for item in existing:
+        link = item.get("link")
+        if link:
+            by_url[normalize_url(link)] = copy.copy(item)
+
+    for update in updates:
+        link = update.get("link")
+        if not link:
+            continue
+        key = normalize_url(link)
+        current = by_url.get(key)
+        if current is None:
+            by_url[key] = copy.copy(update)
+            continue
+
+        current_score = current.get("score") or 0.0
+        update_score = update.get("score") or 0.0
+        current_confidence = current.get("confidence", "pending")
+        update_has_date = update.get("created_utc") is not None
+
+        if update_has_date and (
+            current.get("created_utc") is None
+            or update_score > current_score
+            or current_confidence in {"pending", "provisional"}
+        ):
+            by_url[key] = copy.copy(update)
+
+    merged = list(by_url.values())
+    _sort_publications(merged)
+    return merged
+
+
+def serialize_pending_outcome(outcome: _StaticPhaseOutcome) -> dict:
+    best = outcome.best_static
+    best_data = None
+    if best:
+        best_data = {
+            "date": best.date.isoformat(),
+            "source": best.source,
+            "raw": best.raw,
+            "extractor": best.extractor,
+            "url": best.url,
+            "score": best.score,
+            "flags": dict(best.flags),
+        }
+    return {
+        "result": dict(outcome.result),
+        "url": outcome.url,
+        "platform": outcome.platform,
+        "needs_dynamic": outcome.needs_dynamic,
+        "best_static": best_data,
+    }
+
+
+def deserialize_pending_outcome(data: dict) -> _StaticPhaseOutcome:
+    best_data = data.get("best_static")
+    best_static = None
+    if best_data:
+        best_static = DateCandidate(
+            date=datetime.fromisoformat(best_data["date"]),
+            source=best_data["source"],
+            raw=best_data["raw"],
+            extractor=best_data["extractor"],
+            url=best_data["url"],
+            score=best_data.get("score", 0.0),
+            flags=dict(best_data.get("flags") or {}),
+        )
+    return _StaticPhaseOutcome(
+        result=data["result"],
+        url=data["url"],
+        platform=data["platform"],
+        static_candidates=[],
+        best_static=best_static,
+        needs_dynamic=data.get("needs_dynamic", True),
+        publication=None,
+    )
+
+
+def get_sorted_dates(results, on_progress=None):
+    """Compatibilidad: fase estatica seguida de dinamica automatica si esta habilitada."""
+    publicaciones, pending = run_static_phase(results, on_progress=on_progress)
+    if pending and SCRAPE_DYNAMIC_ENABLED:
+        updates = run_dynamic_phase(
+            pending,
+            on_progress=on_progress,
+            static_processed=len(results),
+            static_total=len(results),
+        )
+        return merge_publications(publicaciones, updates)
     return publicaciones

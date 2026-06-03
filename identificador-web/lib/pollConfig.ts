@@ -19,3 +19,8 @@ export const POLL_DELAY_MS = parsePositiveInt(
   process.env.NEXT_PUBLIC_POLL_DELAY_MS,
   DEFAULT_POLL_DELAY_MS,
 );
+
+/** Tiempo máximo de espera del polling (s), derivado de intentos × intervalo. */
+export const POLL_TIMEOUT_SECONDS = Math.ceil(
+  (POLL_MAX_ATTEMPTS * POLL_DELAY_MS) / 1000,
+);

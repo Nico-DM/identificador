@@ -10,7 +10,15 @@ import uuid
 import requests
 import logging
 
-from identificador import get_sorted_dates, normalize_url
+from identificador import (
+    deserialize_pending_outcome,
+    merge_publications,
+    normalize_url,
+    run_dynamic_phase,
+    run_static_phase,
+    serialize_pending_outcome,
+)
+from scrape_config import SCRAPE_DYNAMIC_ENABLED
 
 load_dotenv()
 
@@ -49,6 +57,7 @@ IMAGE_VERIFY_USER_AGENT = "Mozilla/5.0 (compatible; Identificador/1.0)"
 
 class SearchRequest(BaseModel):
     image_url: str
+    safe_search: bool = True
 
 
 app = FastAPI()
@@ -239,7 +248,7 @@ def extract_urls_from_serpapi(payload: dict) -> list[str]:
     return unique_urls
 
 
-def _serpapi_lens_search(image_url: str) -> dict:
+def _serpapi_lens_search(image_url: str, *, safe_search: bool = True) -> dict:
     if not SERPAPI_API_KEY:
         raise RuntimeError("SERPAPI_API_KEY no configurada")
 
@@ -247,6 +256,7 @@ def _serpapi_lens_search(image_url: str) -> dict:
         "engine": SERPAPI_ENGINE,
         "url": image_url,
         "api_key": SERPAPI_API_KEY,
+        "safe": "active" if safe_search else "off",
     }
     response = requests.get(SERPAPI_ENDPOINT, params=params, timeout=30)
     response.raise_for_status()
@@ -263,14 +273,24 @@ def _serpapi_lens_search(image_url: str) -> dict:
     return payload
 
 
-def _set_search(search_id: str, status: str, results=None, error: str | None = None) -> None:
+def _set_search(
+    search_id: str,
+    status: str,
+    *,
+    results=None,
+    error: str | None = None,
+    phase: str | None = None,
+) -> None:
     with _searches_lock:
         current = _searches_db.get(search_id)
         if not current:
             return
         current["status"] = status
-        current["results"] = results
+        if results is not None:
+            current["results"] = results
         current["error"] = error
+        if phase is not None:
+            current["phase"] = phase
         current["updated_at"] = _now_utc()
 
 
@@ -283,7 +303,9 @@ def _update_search_progress(
 ) -> None:
     with _searches_lock:
         current = _searches_db.get(search_id)
-        if not current or current["status"] != "processing":
+        if not current:
+            return
+        if current["status"] not in {"processing", "deep_processing"}:
             return
         if results is not None:
             current["results"] = results
@@ -305,15 +327,43 @@ def _format_result_item(item: dict, match_metadata: dict) -> dict:
         "url": url,
         "score": item.get("score"),
         "source": item.get("source"),
+        "confidence": item.get("confidence", "pending" if created is None else "confirmed"),
         "thumbnail": meta.get("thumbnail"),
         "site_name": meta.get("site_name") or _site_name_fallback(url, platform),
     }
 
 
-def _process_search(search_id: str, image_url: str) -> None:
+def _format_results(raw_results: list, match_metadata: dict) -> list:
+    return [_format_result_item(item, match_metadata) for item in raw_results]
+
+
+def _build_results_response(search_id: str, data: dict) -> dict:
+    deep_available = data.get("deep_search_available", False)
+    pending_count = len(data.get("pending_dynamic") or [])
+    return {
+        "search_id": search_id,
+        "status": data["status"],
+        "phase": data.get("phase", "complete"),
+        "results": data["results"],
+        "error": data["error"],
+        "progress": {
+            "processed": data.get("processed_urls", 0),
+            "total": data.get("total_urls", 0),
+        },
+        "deep_search": {
+            "available": deep_available,
+            "pending_urls": pending_count if deep_available else 0,
+        },
+    }
+
+
+def _process_search(search_id: str, image_url: str, *, safe_search: bool = True) -> None:
     try:
-        logger.info(f"Iniciando búsqueda {search_id} para imagen: {image_url}")
-        payload = _serpapi_lens_search(image_url)
+        logger.info(
+            f"Iniciando búsqueda {search_id} para imagen: {image_url} "
+            f"(safe_search={'active' if safe_search else 'off'})"
+        )
+        payload = _serpapi_lens_search(image_url, safe_search=safe_search)
         urls = extract_urls_from_serpapi(payload)
         match_metadata = extract_match_metadata(payload)
         logger.info(f"SerpApi devolvió {len(urls)} URLs para búsqueda {search_id}")
@@ -322,8 +372,8 @@ def _process_search(search_id: str, image_url: str) -> None:
         total_urls = len(search_inputs)
         _update_search_progress(search_id, results=[], processed=0, total=total_urls)
 
-        def _on_progress(processed: int, total: int, partial: list) -> None:
-            formatted_partial = [_format_result_item(item, match_metadata) for item in partial]
+        def _on_static_progress(processed: int, total: int, partial: list) -> None:
+            formatted_partial = _format_results(partial, match_metadata)
             _update_search_progress(
                 search_id,
                 results=formatted_partial,
@@ -331,17 +381,106 @@ def _process_search(search_id: str, image_url: str) -> None:
                 total=total,
             )
 
-        sorted_results = get_sorted_dates(search_inputs, on_progress=_on_progress)
+        static_results, pending_outcomes = run_static_phase(
+            search_inputs,
+            on_progress=_on_static_progress,
+        )
 
-        logger.info(f"Procesamiento completado: {len(sorted_results)} resultados con fecha para búsqueda {search_id}")
+        formatted = _format_results(static_results, match_metadata)
+        pending_serialized = [serialize_pending_outcome(item) for item in pending_outcomes]
+        deep_available = SCRAPE_DYNAMIC_ENABLED and len(pending_outcomes) > 0
 
-        formatted = [_format_result_item(item, match_metadata) for item in sorted_results]
+        with _searches_lock:
+            current = _searches_db.get(search_id)
+            if not current:
+                return
+            current["match_metadata"] = match_metadata
+            current["pending_dynamic"] = pending_serialized
+            current["deep_search_available"] = deep_available
+            current["static_total_urls"] = total_urls
+            current["raw_results"] = static_results
+            current["results"] = formatted
+            current["updated_at"] = _now_utc()
 
-        _set_search(search_id, "done", results=formatted, error=None)
-        logger.info(f"Búsqueda {search_id} completada exitosamente")
+        logger.info(
+            f"Fase estatica completada: {len(static_results)} resultados, "
+            f"{len(pending_outcomes)} pendientes de busqueda profunda"
+        )
+
+        if deep_available:
+            _set_search(search_id, "static_done", phase="static")
+        else:
+            _set_search(search_id, "done", phase="complete")
+        logger.info(f"Búsqueda {search_id} fase estatica completada")
     except Exception as exc:
         logger.error(f"Error procesando búsqueda {search_id}: {str(exc)}", exc_info=True)
-        _set_search(search_id, "error", results=None, error=str(exc))
+        _set_search(search_id, "error", results=None, error=str(exc), phase="complete")
+
+
+def _process_deep_search(search_id: str) -> None:
+    try:
+        with _searches_lock:
+            current = _searches_db.get(search_id)
+            if not current:
+                return
+            pending_data = list(current.get("pending_dynamic") or [])
+            match_metadata = dict(current.get("match_metadata") or {})
+            existing_raw = list(current.get("raw_results") or [])
+            static_total = current.get("static_total_urls", 0)
+
+        pending_outcomes = [deserialize_pending_outcome(item) for item in pending_data]
+        deep_total = len(pending_outcomes)
+        _update_search_progress(
+            search_id,
+            processed=static_total,
+            total=static_total + deep_total,
+        )
+
+        def _on_deep_progress(processed: int, total: int, partial_updates: list) -> None:
+            merged_raw = merge_publications(existing_raw, partial_updates)
+            formatted = _format_results(merged_raw, match_metadata)
+            _update_search_progress(
+                search_id,
+                results=formatted,
+                processed=processed,
+                total=total,
+            )
+
+        updates = run_dynamic_phase(
+            pending_outcomes,
+            on_progress=_on_deep_progress,
+            static_processed=static_total,
+            static_total=static_total,
+        )
+
+        merged_raw = merge_publications(existing_raw, updates)
+        formatted = _format_results(merged_raw, match_metadata)
+
+        with _searches_lock:
+            current = _searches_db.get(search_id)
+            if not current:
+                return
+            current["raw_results"] = merged_raw
+            current["results"] = formatted
+            current["deep_search_available"] = False
+            current["pending_dynamic"] = []
+            current["processed_urls"] = static_total + deep_total
+            current["total_urls"] = static_total + deep_total
+
+        _set_search(search_id, "done", results=formatted, error=None, phase="complete")
+        logger.info(f"Búsqueda profunda {search_id} completada: {len(formatted)} resultados")
+    except Exception as exc:
+        logger.error(f"Error en búsqueda profunda {search_id}: {str(exc)}", exc_info=True)
+        with _searches_lock:
+            current = _searches_db.get(search_id)
+            if current:
+                current["deep_search_available"] = False
+        _set_search(
+            search_id,
+            "error",
+            error=str(exc),
+            phase="complete",
+        )
 
 
 @app.get("/")
@@ -370,17 +509,68 @@ async def search(background_tasks: BackgroundTasks, payload: SearchRequest):
     with _searches_lock:
         _searches_db[search_id] = {
             "status": "processing",
+            "phase": "static",
             "results": None,
+            "raw_results": None,
             "error": None,
             "processed_urls": 0,
             "total_urls": 0,
+            "static_total_urls": 0,
+            "image_url": image_url,
+            "match_metadata": {},
+            "pending_dynamic": [],
+            "deep_search_available": False,
             "created_at": now,
             "updated_at": now,
         }
 
-    background_tasks.add_task(_process_search, search_id, image_url)
+    background_tasks.add_task(
+        _process_search,
+        search_id,
+        image_url,
+        safe_search=payload.safe_search,
+    )
 
     return {"search_id": search_id, "status": "processing"}
+
+
+@app.post("/api/search/{search_id}/deep")
+async def deep_search(search_id: str, background_tasks: BackgroundTasks):
+    _prune_searches()
+
+    with _searches_lock:
+        data = _searches_db.get(search_id)
+
+    if not data:
+        raise HTTPException(status_code=404, detail="Busqueda no encontrada")
+
+    if data["status"] == "deep_processing":
+        raise HTTPException(status_code=409, detail="Busqueda profunda ya en curso")
+
+    if data["status"] != "static_done":
+        raise HTTPException(
+            status_code=400,
+            detail="La busqueda profunda solo esta disponible tras completar la fase estatica",
+        )
+
+    if not data.get("deep_search_available"):
+        raise HTTPException(status_code=400, detail="Busqueda profunda no disponible")
+
+    with _searches_lock:
+        current = _searches_db.get(search_id)
+        if not current or current["status"] != "static_done":
+            raise HTTPException(status_code=409, detail="Estado de busqueda invalido")
+        current["status"] = "deep_processing"
+        current["phase"] = "deep"
+        deep_total = len(current.get("pending_dynamic") or [])
+        static_total = current.get("static_total_urls", 0)
+        current["processed_urls"] = static_total
+        current["total_urls"] = static_total + deep_total
+        current["updated_at"] = _now_utc()
+
+    background_tasks.add_task(_process_deep_search, search_id)
+
+    return {"search_id": search_id, "status": "deep_processing"}
 
 
 @app.get("/api/results/{search_id}")
@@ -393,16 +583,7 @@ async def get_results(search_id: str):
     if not data:
         raise HTTPException(status_code=404, detail="Busqueda no encontrada")
 
-    return {
-        "search_id": search_id,
-        "status": data["status"],
-        "results": data["results"],
-        "error": data["error"],
-        "progress": {
-            "processed": data.get("processed_urls", 0),
-            "total": data.get("total_urls", 0),
-        },
-    }
+    return _build_results_response(search_id, data)
 
 
 if __name__ == "__main__":

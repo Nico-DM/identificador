@@ -6,6 +6,30 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+TERMINAL_STATUSES = {"done", "error"}
+STATIC_TERMINAL_STATUSES = {"static_done", "done", "error"}
+
+
+def poll_results(base_url: str, search_id: str, *, until_statuses: set[str], label: str) -> dict:
+    for attempt in range(60):
+        time.sleep(2)
+        res = requests.get(f"{base_url}/api/results/{search_id}", timeout=30)
+        elapsed = (attempt + 1) * 2
+        res.raise_for_status()
+        payload = res.json()
+        status = payload.get("status")
+        result_count = len(payload.get("results") or [])
+        deep = payload.get("deep_search") or {}
+        logger.info(
+            f"GET /api/results ({label}, {elapsed}s): status={status}, "
+            f"results={result_count}, deep_available={deep.get('available')}"
+        )
+        if status in until_statuses:
+            logger.info(f"{label} completado con status: {status}")
+            return payload
+
+    raise SystemExit(f"Timeout esperando resultados ({label}, 120s)")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Smoke test para el API de identificador")
@@ -16,6 +40,11 @@ def main():
         type=int,
         default=None,
         help="Si se indica (p. ej. 400), solo se comprueba el codigo HTTP y no se hace polling",
+    )
+    parser.add_argument(
+        "--deep",
+        action="store_true",
+        help="Tras la fase estatica, lanzar busqueda profunda si esta disponible",
     )
     args = parser.parse_args()
 
@@ -47,20 +76,32 @@ def main():
     if not search_id:
         raise SystemExit("No se obtuvo search_id")
 
-    for attempt in range(60):
-        time.sleep(2)
-        res = requests.get(f"{args.base_url}/api/results/{search_id}", timeout=30)
-        elapsed = (attempt + 1) * 2
-        res.raise_for_status()
-        payload = res.json()
-        status = payload.get("status")
-        result_count = len(payload.get("results") or [])
-        logger.info(f"GET /api/results ({elapsed}s): {res.status_code} - status={status}, results={result_count}")
-        if status in {"done", "error"}:
-            logger.info(f"Procesamiento completado con status: {status}")
+    static_payload = poll_results(
+        args.base_url,
+        search_id,
+        until_statuses=STATIC_TERMINAL_STATUSES,
+        label="fase estatica",
+    )
+
+    if args.deep and static_payload.get("status") == "static_done":
+        deep_info = static_payload.get("deep_search") or {}
+        if not deep_info.get("available"):
+            logger.info("Busqueda profunda no disponible; omitiendo --deep")
             return
 
-    raise SystemExit("Timeout esperando resultados (120s)")
+        deep_resp = requests.post(
+            f"{args.base_url}/api/search/{search_id}/deep",
+            timeout=30,
+        )
+        logger.info(f"POST /api/search/{search_id}/deep: {deep_resp.status_code}")
+        deep_resp.raise_for_status()
+
+        poll_results(
+            args.base_url,
+            search_id,
+            until_statuses=TERMINAL_STATUSES,
+            label="busqueda profunda",
+        )
 
 
 if __name__ == "__main__":
