@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import re
+import json
 import dateparser
 import logging
 from datetime import datetime, timezone
@@ -18,16 +19,48 @@ def _to_naive_utc(dt):
         return dt.astimezone(timezone.utc).replace(tzinfo=None)
     return dt
 
+def _extract_ld_json_dates(soup):
+    fechas = []
+    for script in soup.find_all("script", type="application/ld+json"):
+        text = script.string if script.string is not None else script.get_text()
+        if not text or not text.strip():
+            continue
+        try:
+            parsed = json.loads(text)
+        except json.JSONDecodeError:
+            try:
+                parsed = json.loads("[" + text + "]")
+            except json.JSONDecodeError:
+                continue
+        stack = [parsed]
+        while stack:
+            node = stack.pop()
+            if isinstance(node, dict):
+                for key, value in node.items():
+                    if isinstance(value, (dict, list)):
+                        stack.append(value)
+                    elif isinstance(value, str) and key.lower() in (
+                        "datepublished", "uploaddate", "datecreated",
+                    ):
+                        fechas.append((value, "ld+json"))
+            elif isinstance(node, list):
+                for item in node:
+                    if isinstance(item, (dict, list)):
+                        stack.append(item)
+    return fechas
+
 def obtener_fechas_candidatas(html):
     soup = BeautifulSoup(html, "html.parser")
     fechas = []
 
+    fechas.extend(_extract_ld_json_dates(soup))
+
     # 1. Etiquetas <time>
     for time_tag in soup.find_all("time"):
         if time_tag.get("datetime"): # type: ignore
-            fechas.append((time_tag["datetime"], "time-datetime")) # type: ignore
+            fechas.append((time_tag["datetime"], "time")) # type: ignore
         elif time_tag.text:
-            fechas.append((time_tag.text.strip(), "time-text"))
+            fechas.append((time_tag.text.strip(), "time"))
 
     # 2. Metadatos comunes
     metas = [
@@ -40,7 +73,7 @@ def obtener_fechas_candidatas(html):
         value = meta.get("content") or meta.get("value") # type: ignore
         if value:
             if name in metas or prop in metas:
-                fechas.append((value, f"meta:{name or prop}"))
+                fechas.append((value, "meta"))
 
     # 3. Texto plano
     texto = soup.get_text()

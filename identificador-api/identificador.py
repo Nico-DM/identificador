@@ -62,6 +62,12 @@ EXTRACTOR_SCORE = {
     "dynamic": 0.2,
 }
 
+# Plataformas cuyo HTML inicial suele incluir fechas fiables en meta/time/ld+json.
+PLATFORM_STATIC_BONUS = {"youtube", "reddit", "deviantart"}
+
+# Fuentes estructuradas presentes en HTML sin JS; merecen confianza en fase estatica.
+STATIC_STRUCTURED_SOURCES = {"meta", "ld+json", "time"}
+
 
 @dataclass
 class _StaticPhaseOutcome:
@@ -126,13 +132,25 @@ def classify_context(url: str, platform: str) -> Dict[str, bool]:
     return flags
 
 
+def _normalize_source(source: str) -> str:
+    if source.startswith("meta:"):
+        return "meta"
+    if source in {"time-datetime", "time-text"}:
+        return "time"
+    return source
+
+
 def score_candidate(candidate: DateCandidate, platform: str, flags: Dict[str, bool]) -> float:
+    normalized = _normalize_source(candidate.source)
     score = 0.0
-    score += SOURCE_SCORE.get(candidate.source, 0.05)
+    score += SOURCE_SCORE.get(normalized, SOURCE_SCORE.get(candidate.source, 0.05))
     score += EXTRACTOR_SCORE.get(candidate.extractor, 0.0)
 
-    if platform in {"youtube", "reddit", "deviantart"} and candidate.source in {"ld+json", "meta"}:
+    if platform in PLATFORM_STATIC_BONUS and normalized in STATIC_STRUCTURED_SOURCES:
         score += 0.2
+
+    if candidate.extractor == "static" and normalized in {"meta", "ld+json"}:
+        score += 0.1
 
     if flags.get("is_comment"):
         score -= 0.5
@@ -207,7 +225,10 @@ def _static_phase(result: dict) -> _StaticPhaseOutcome:
         publication = _build_publication(result, url, platform, best_static)
         logger.info(f"Fecha estatica: {best_static.date} (score={best_static.score:.2f})")
     elif needs_dynamic:
-        logger.info(f"Fecha estatica poco confiable; pendiente dinamico: {url}")
+        static_score = best_static.score if best_static else 0.0
+        logger.info(
+            f"Fecha estatica provisional (score={static_score:.2f}); pendiente dinamico: {url}"
+        )
     else:
         logger.debug(f"No se encontro fecha estatica para: {url}")
 
@@ -225,22 +246,42 @@ def _static_phase(result: dict) -> _StaticPhaseOutcome:
 def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> Optional[dict]:
     url = outcome.url
     platform = outcome.platform
+    best_static = outcome.best_static
     logger.info(f"Fase dinamica - Platform: {platform}, Link: {url}")
 
-    candidates = list(outcome.static_candidates)
     dynamic = obtener_candidatas_dinamicas(url)
     flags = classify_context(url, platform)
+    dynamic_scored: List[DateCandidate] = []
     for candidate in dynamic:
         candidate.flags.update(flags)
         candidate.score = score_candidate(candidate, platform, flags)
-    candidates += dynamic
+        dynamic_scored.append(candidate)
 
-    best = select_best_candidate(candidates)
-    if not best:
-        logger.debug(f"No se encontro fecha dinamica para: {url}")
+    best_dynamic = select_best_candidate(dynamic_scored) if dynamic_scored else None
+
+    if best_dynamic and best_static:
+        if best_dynamic.score > best_static.score:
+            best = best_dynamic
+            logger.info(
+                f"Fecha dinamica (mejora estatica): {best.date} (score={best.score:.2f})"
+            )
+        else:
+            best = best_static
+            logger.info(
+                f"Fecha estatica conservada: {best.date} (score={best.score:.2f})"
+            )
+    elif best_dynamic:
+        best = best_dynamic
+        logger.info(f"Fecha dinamica: {best.date} (score={best.score:.2f})")
+    elif best_static:
+        best = best_static
+        logger.info(
+            f"Fecha estatica (fallback): {best.date} (score={best.score:.2f})"
+        )
+    else:
+        logger.debug(f"No se encontro fecha para: {url}")
         return None
 
-    logger.info(f"Fecha dinamica: {best.date} (score={best.score:.2f})")
     return _build_publication(outcome.result, url, platform, best)
 
 
@@ -272,6 +313,16 @@ def get_sorted_dates(results, on_progress=None):
                     publicaciones.sort(key=lambda x: x["created_utc"])
                 elif outcome.needs_dynamic and SCRAPE_DYNAMIC_ENABLED:
                     pending_dynamic.append(outcome)
+                elif outcome.best_static:
+                    publication = _build_publication(
+                        outcome.result, outcome.url, outcome.platform, outcome.best_static
+                    )
+                    logger.info(
+                        f"Fecha estatica (dinamico desactivado): "
+                        f"{outcome.best_static.date} (score={outcome.best_static.score:.2f})"
+                    )
+                    publicaciones.append(publication)
+                    publicaciones.sort(key=lambda x: x["created_utc"])
                 if on_progress:
                     on_progress(processed, total, list(publicaciones))
 
