@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime, timezone
@@ -32,6 +32,7 @@ from db.repository import (
     search_session,
 )
 from rate_limit import rate_limit_deep, rate_limit_results, rate_limit_search
+from storage import delete_search_image, storage_enabled, upload_search_image
 
 # Configurar logging
 logging.basicConfig(
@@ -390,7 +391,13 @@ def _build_results_response(search_id: str, data: dict) -> dict:
     }
 
 
-def _process_search(search_id: str, image_url: str, *, safe_search: bool = True) -> None:
+def _process_search(
+    search_id: str,
+    image_url: str,
+    *,
+    safe_search: bool = True,
+    upload_object_path: str | None = None,
+) -> None:
     try:
         logger.info(
             f"Iniciando búsqueda {search_id} para imagen: {image_url} "
@@ -451,6 +458,9 @@ def _process_search(search_id: str, image_url: str, *, safe_search: bool = True)
     except Exception as exc:
         logger.error(f"Error procesando búsqueda {search_id}: {str(exc)}", exc_info=True)
         _set_search(search_id, "error", results=None, error=str(exc), phase="complete")
+    finally:
+        if upload_object_path:
+            delete_search_image(upload_object_path)
 
 
 def _process_deep_search(search_id: str) -> None:
@@ -533,31 +543,43 @@ async def root():
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "persistence": "supabase" if db_enabled() else "memory"}
+    return {
+        "status": "ok",
+        "persistence": "supabase" if db_enabled() else "memory",
+        "file_upload": storage_enabled(),
+    }
 
 
-@app.post("/api/search")
-async def search(
+def _parse_safe_search(value) -> bool:
+    if value is None:
+        return True
+    if isinstance(value, bool):
+        return value
+    normalized = str(value).strip().lower()
+    if normalized in {"1", "true", "yes", "on"}:
+        return True
+    if normalized in {"0", "false", "no", "off"}:
+        return False
+    return True
+
+
+def _start_search(
     background_tasks: BackgroundTasks,
-    payload: SearchRequest,
-    _: None = Depends(rate_limit_search),
-):
-    _prune_searches()
-
-    try:
-        image_url = _validate_image_url(payload.image_url)
-    except ValueError as exc:
-        logger.warning(f"URL de imagen inválida: {payload.image_url}")
-        raise HTTPException(status_code=400, detail=str(exc)) from exc
-
+    image_url: str,
+    safe_search: bool,
+    *,
+    upload_object_path: str | None = None,
+) -> dict:
     search_id = str(uuid.uuid4())
     now = _now_utc()
 
-    cached = get_analysis_cache(image_url, safe_search=payload.safe_search)
+    cached = get_analysis_cache(image_url, safe_search=safe_search)
     if cached is not None:
+        if upload_object_path:
+            delete_search_image(upload_object_path)
         data = copy.deepcopy(cached)
         data["image_url"] = image_url
-        data["safe_search"] = payload.safe_search
+        data["safe_search"] = safe_search
         data["created_at"] = now
         data["updated_at"] = now
         search_create(search_id, data)
@@ -580,7 +602,8 @@ async def search(
             "total_urls": 0,
             "static_total_urls": 0,
             "image_url": image_url,
-            "safe_search": payload.safe_search,
+            "safe_search": safe_search,
+            "upload_object_path": upload_object_path,
             "match_metadata": {},
             "pending_dynamic": [],
             "deep_search_available": False,
@@ -593,10 +616,66 @@ async def search(
         _process_search,
         search_id,
         image_url,
-        safe_search=payload.safe_search,
+        safe_search=safe_search,
+        upload_object_path=upload_object_path,
     )
 
     return {"search_id": search_id, "status": "processing"}
+
+
+@app.post("/api/search")
+async def search(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    _: None = Depends(rate_limit_search),
+):
+    _prune_searches()
+
+    content_type = request.headers.get("content-type", "")
+
+    if "multipart/form-data" in content_type:
+        if not storage_enabled():
+            raise HTTPException(
+                status_code=503,
+                detail="Subida por archivo no disponible: configurá Supabase Storage",
+            )
+        form = await request.form()
+        upload = form.get("file")
+        safe_search = _parse_safe_search(form.get("safe_search"))
+
+        if upload is None or not hasattr(upload, "read"):
+            raise HTTPException(status_code=400, detail="Falta el archivo de imagen")
+
+        filename = getattr(upload, "filename", None) or "upload.jpg"
+        content = await upload.read()
+
+        try:
+            image_url, object_path = upload_search_image(content, filename)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+        return _start_search(
+            background_tasks,
+            image_url,
+            safe_search,
+            upload_object_path=object_path,
+        )
+
+    try:
+        body = await request.json()
+        payload = SearchRequest(**body)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail="JSON invalido") from exc
+
+    try:
+        image_url = _validate_image_url(payload.image_url)
+    except ValueError as exc:
+        logger.warning(f"URL de imagen inválida: {payload.image_url}")
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    return _start_search(background_tasks, image_url, payload.safe_search)
 
 
 @app.post("/api/search/{search_id}/deep")

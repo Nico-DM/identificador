@@ -23,6 +23,14 @@ services:
         value: production
       - key: DATABASE_URL
         sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: STORAGE_BUCKET
+        value: search-uploads
+      - key: UPLOAD_MAX_BYTES
+        value: "5242880"
       - key: CACHE_TTL_SECONDS
         value: 604800
       - key: RATE_LIMIT_ENABLED

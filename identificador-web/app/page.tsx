@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { clientImageFileRejectionMessage, IMAGE_ACCEPT } from "@/lib/imageFile";
 import { clientImageUrlRejectionMessage } from "@/lib/imageUrl";
 import {
   DEFAULT_POLL_TIMEOUT_SECONDS,
@@ -212,8 +213,13 @@ function ResultCard({ result }: { result: SearchResult }) {
 }
 
 
+type InputMode = "url" | "file";
+
 export default function Home() {
+  const [inputMode, setInputMode] = useState<InputMode>("url");
   const [imageUrl, setImageUrl] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [filePreviewUrl, setFilePreviewUrl] = useState<string | null>(null);
   const [searchedImageUrl, setSearchedImageUrl] = useState<string | null>(null);
   const [queryImageError, setQueryImageError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -240,6 +246,28 @@ export default function Home() {
   );
   const [pollStoppedByUser, setPollStoppedByUser] = useState(false);
   const pollAbortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (filePreviewUrl) {
+        URL.revokeObjectURL(filePreviewUrl);
+      }
+    };
+  }, [filePreviewUrl]);
+
+  const handleFileChange = (file: File | null) => {
+    if (filePreviewUrl) {
+      URL.revokeObjectURL(filePreviewUrl);
+    }
+    setSelectedFile(file);
+    setFilePreviewUrl(file ? URL.createObjectURL(file) : null);
+    setError(null);
+  };
+
+  const handleInputModeChange = (mode: InputMode) => {
+    setInputMode(mode);
+    setError(null);
+  };
 
   const clearStaleFormState = () => {
     setImageUrl("");
@@ -496,13 +524,23 @@ export default function Home() {
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!imageUrl.trim()) return;
 
-    const clientMsg = clientImageUrlRejectionMessage(imageUrl);
-    if (clientMsg) {
-      setError(clientMsg);
-      setStatus("error");
-      return;
+    if (inputMode === "url") {
+      if (!imageUrl.trim()) return;
+      const clientMsg = clientImageUrlRejectionMessage(imageUrl);
+      if (clientMsg) {
+        setError(clientMsg);
+        setStatus("error");
+        return;
+      }
+    } else {
+      if (!selectedFile) return;
+      const clientMsg = clientImageFileRejectionMessage(selectedFile);
+      if (clientMsg) {
+        setError(clientMsg);
+        setStatus("error");
+        return;
+      }
     }
 
     setLoading(true);
@@ -517,18 +555,31 @@ export default function Home() {
     setCanRetryPoll(false);
     setPollTarget("static");
     setPollStoppedByUser(false);
-    setSearchedImageUrl(imageUrl.trim());
+    setSearchedImageUrl(
+      inputMode === "url" ? imageUrl.trim() : filePreviewUrl,
+    );
     setQueryImageError(false);
 
     try {
-      const res = await fetch("/api/search", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          image_url: imageUrl.trim(),
-          safe_search: safeSearchEnabled,
-        }),
-      });
+      let res: Response;
+      if (inputMode === "url") {
+        res = await fetch("/api/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            image_url: imageUrl.trim(),
+            safe_search: safeSearchEnabled,
+          }),
+        });
+      } else {
+        const formData = new FormData();
+        formData.append("file", selectedFile!);
+        formData.append("safe_search", safeSearchEnabled ? "true" : "false");
+        res = await fetch("/api/search", {
+          method: "POST",
+          body: formData,
+        });
+      }
       const data = await res.json();
 
       if (!res.ok) {
@@ -641,6 +692,11 @@ export default function Home() {
   const visibleResults =
     results?.filter((result) => result.date !== null && result.date !== "") ?? [];
 
+  const canSubmit =
+    inputMode === "url"
+      ? Boolean(imageUrl.trim())
+      : selectedFile !== null;
+
   const showIntro = !searchedImageUrl && !showProgress && !showResults;
 
   return (
@@ -651,24 +707,78 @@ export default function Home() {
         className="flex w-full flex-col gap-3"
         autoComplete="off"
       >
+        <div
+          className="flex w-full justify-center gap-1 rounded-lg border border-neutral-200 dark:border-neutral-700 p-1"
+          role="tablist"
+          aria-label="Modo de entrada"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={inputMode === "url"}
+            disabled={loading || deepLoading || retryingPoll}
+            onClick={() => handleInputModeChange("url")}
+            className={`flex-1 rounded-md px-3 py-1.5 text-sm transition-colors ${
+              inputMode === "url"
+                ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
+                : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+            } disabled:opacity-50`}
+          >
+            URL
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={inputMode === "file"}
+            disabled={loading || deepLoading || retryingPoll}
+            onClick={() => handleInputModeChange("file")}
+            className={`flex-1 rounded-md px-3 py-1.5 text-sm transition-colors ${
+              inputMode === "file"
+                ? "bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900"
+                : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
+            } disabled:opacity-50`}
+          >
+            Archivo
+          </button>
+        </div>
         <div className="flex w-full gap-2">
-          <input
-            type="url"
-            placeholder="https://..."
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            className="flex-1 min-w-0 border px-3 py-2 rounded"
-            autoComplete="off"
-            required
-          />
+          {inputMode === "url" ? (
+            <input
+              key="url-input"
+              type="url"
+              placeholder="https://..."
+              value={imageUrl ?? ""}
+              onChange={(e) => setImageUrl(e.target.value)}
+              className="flex-1 min-w-0 border px-3 py-2 rounded"
+              autoComplete="off"
+              required
+            />
+          ) : (
+            <input
+              key="file-input"
+              type="file"
+              accept={IMAGE_ACCEPT}
+              onChange={(e) => {
+                const file = e.target.files?.[0] ?? null;
+                handleFileChange(file);
+              }}
+              className="flex-1 min-w-0 border px-3 py-2 rounded file:mr-3 file:rounded file:border-0 file:bg-neutral-100 file:px-3 file:py-1 file:text-sm dark:file:bg-neutral-800"
+              required
+            />
+          )}
           <button
             type="submit"
-            disabled={!imageUrl.trim() || loading || deepLoading || retryingPoll}
+            disabled={!canSubmit || loading || deepLoading || retryingPoll}
             className="shrink-0 px-4 py-2 rounded bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900 disabled:opacity-50"
           >
             {loading ? "Buscando..." : "Buscar"}
           </button>
         </div>
+        {inputMode === "file" && selectedFile && (
+          <p className="text-left text-sm text-neutral-500 dark:text-neutral-400">
+            {selectedFile.name} ({Math.round(selectedFile.size / 1024)} KB)
+          </p>
+        )}
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-neutral-600 dark:text-neutral-400">
           <label className="flex items-center gap-2 cursor-pointer select-none">
             <input
@@ -708,8 +818,8 @@ export default function Home() {
           </p>
           <ol className="mt-4 list-decimal list-inside space-y-2">
             <li>
-              Pegá la URL pública de la imagen que querés analizar en el campo
-              de arriba.
+              Pegá la URL pública de la imagen o subí un archivo desde tu
+              dispositivo (máx. 5 MB).
             </li>
             <li>
               Presioná <span className="font-medium text-neutral-800 dark:text-neutral-200">Buscar</span>{" "}
