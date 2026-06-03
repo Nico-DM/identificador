@@ -1,13 +1,24 @@
 from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
-from typing import Dict, List
+from typing import Dict, List, Optional
 from datetime import timezone
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
+import copy
 import logging
+import threading
 
 from scraper_estatico import obtener_candidatas_estaticas
 from scraper_dinamico import obtener_candidatas_dinamicas
 from modelos import DateCandidate
+from scrape_config import (
+    SCRAPE_DYNAMIC_ENABLED,
+    SCRAPE_DYNAMIC_MAX_WORKERS,
+    SCRAPE_STATIC_CONFIDENCE_THRESHOLD,
+    SCRAPE_STATIC_MAX_WORKERS,
+)
 
 logger = logging.getLogger(__name__)
+
 
 def _to_naive_utc(dt):
     """Convierte cualquier datetime a naive UTC."""
@@ -50,6 +61,18 @@ EXTRACTOR_SCORE = {
     "static": 0.1,
     "dynamic": 0.2,
 }
+
+
+@dataclass
+class _StaticPhaseOutcome:
+    result: dict
+    url: str
+    platform: str
+    static_candidates: List[DateCandidate]
+    best_static: Optional[DateCandidate]
+    needs_dynamic: bool
+    publication: Optional[dict]
+
 
 def normalize_url(url: str) -> str:
     parsed = urlparse(url.strip())
@@ -96,7 +119,6 @@ def classify_context(url: str, platform: str) -> Dict[str, bool]:
     if any(token in path for token in ("/share", "/repost", "/retweet", "/shares")):
         flags["is_share"] = True
 
-    # heuristica simple de perfil: path corto sin segmentos conocidos
     segments = [s for s in path.split("/") if s]
     if len(segments) == 1 and platform in {"instagram", "x", "tiktok"}:
         flags["is_profile"] = True
@@ -138,53 +160,135 @@ def select_best_candidate(candidates: List[DateCandidate], threshold: float = 0.
     return filtered[0]
 
 
-def get_sorted_dates(results, on_progress=None):
-    publicaciones = []
+def _dedupe_results(results) -> list:
+    deduped = []
     seen_urls = set()
-    i = 0
     for result in results:
-        i += 1
-        logger.info(f"Procesando resultado {i}/{len(results)}")
         url = normalize_url(result["link"])
         if url in seen_urls:
             logger.debug(f"URL duplicada, ignorando: {url}")
-            if on_progress:
-                on_progress(i, len(results), list(publicaciones))
             continue
         seen_urls.add(url)
+        item = copy.copy(result)
+        item["link"] = url
+        deduped.append(item)
+    return deduped
 
-        platform = detect_platform(url)
-        logger.info(f"Procesando URL - Source: {result['source']}, Platform: {platform}, Link: {url}")
 
-        candidates = obtener_candidatas_estaticas(url)
-        flags = classify_context(url, platform)
-        for c in candidates:
-            c.flags.update(flags)
-            c.score = score_candidate(c, platform, flags)
+def _score_static_candidates(url: str, platform: str) -> tuple[List[DateCandidate], Optional[DateCandidate]]:
+    candidates = obtener_candidatas_estaticas(url)
+    flags = classify_context(url, platform)
+    for candidate in candidates:
+        candidate.flags.update(flags)
+        candidate.score = score_candidate(candidate, platform, flags)
+    best_static = select_best_candidate(candidates)
+    return candidates, best_static
 
-        # MVP: desactivar scraper dinámico por lentitud (Selenium). Usar solo estático.
-        # best_static = select_best_candidate(candidates)
-        # if not best_static or best_static.score < 0.55:
-        #     logger.info("Fecha estatica poco confiable; buscando dinamica...")
-        #     dynamic = obtener_candidatas_dinamicas(url)
-        #     for c in dynamic:
-        #         c.flags.update(flags)
-        #         c.score = score_candidate(c, platform, flags)
-        #     candidates += dynamic
 
-        best = select_best_candidate(candidates)
-        if best:
-            result["created_utc"] = _to_naive_utc(best.date)
-            result["score"] = best.score
-            result["link"] = url
-            result["platform"] = platform
-            publicaciones.append(result)
-            publicaciones.sort(key=lambda x: x["created_utc"])
-            logger.info(f"Fecha encontrada: {best.date} (score={best.score:.2f})")
-        else:
-            logger.debug(f"No se encontró fecha para: {url}")
+def _build_publication(result: dict, url: str, platform: str, best: DateCandidate) -> dict:
+    publication = copy.copy(result)
+    publication["created_utc"] = _to_naive_utc(best.date)
+    publication["score"] = best.score
+    publication["link"] = url
+    publication["platform"] = platform
+    return publication
 
-        if on_progress:
-            on_progress(i, len(results), list(publicaciones))
+
+def _static_phase(result: dict) -> _StaticPhaseOutcome:
+    url = result["link"]
+    platform = detect_platform(url)
+    logger.info(f"Fase estatica - Source: {result['source']}, Platform: {platform}, Link: {url}")
+
+    static_candidates, best_static = _score_static_candidates(url, platform)
+    needs_dynamic = not best_static or best_static.score < SCRAPE_STATIC_CONFIDENCE_THRESHOLD
+
+    publication = None
+    if best_static and not needs_dynamic:
+        publication = _build_publication(result, url, platform, best_static)
+        logger.info(f"Fecha estatica: {best_static.date} (score={best_static.score:.2f})")
+    elif needs_dynamic:
+        logger.info(f"Fecha estatica poco confiable; pendiente dinamico: {url}")
+    else:
+        logger.debug(f"No se encontro fecha estatica para: {url}")
+
+    return _StaticPhaseOutcome(
+        result=result,
+        url=url,
+        platform=platform,
+        static_candidates=static_candidates,
+        best_static=best_static,
+        needs_dynamic=needs_dynamic,
+        publication=publication,
+    )
+
+
+def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> Optional[dict]:
+    url = outcome.url
+    platform = outcome.platform
+    logger.info(f"Fase dinamica - Platform: {platform}, Link: {url}")
+
+    candidates = list(outcome.static_candidates)
+    dynamic = obtener_candidatas_dinamicas(url)
+    flags = classify_context(url, platform)
+    for candidate in dynamic:
+        candidate.flags.update(flags)
+        candidate.score = score_candidate(candidate, platform, flags)
+    candidates += dynamic
+
+    best = select_best_candidate(candidates)
+    if not best:
+        logger.debug(f"No se encontro fecha dinamica para: {url}")
+        return None
+
+    logger.info(f"Fecha dinamica: {best.date} (score={best.score:.2f})")
+    return _build_publication(outcome.result, url, platform, best)
+
+
+def get_sorted_dates(results, on_progress=None):
+    deduped = _dedupe_results(results)
+    total = len(deduped)
+    if total == 0:
+        return []
+
+    publicaciones: List[dict] = []
+    processed = 0
+    lock = threading.Lock()
+    pending_dynamic: List[_StaticPhaseOutcome] = []
+
+    static_workers = min(SCRAPE_STATIC_MAX_WORKERS, total)
+    logger.info(
+        f"Iniciando fase estatica: {total} URLs, workers={static_workers}, "
+        f"umbral={SCRAPE_STATIC_CONFIDENCE_THRESHOLD}"
+    )
+
+    with ThreadPoolExecutor(max_workers=static_workers) as pool:
+        futures = [pool.submit(_static_phase, item) for item in deduped]
+        for future in as_completed(futures):
+            outcome = future.result()
+            with lock:
+                processed += 1
+                if outcome.publication:
+                    publicaciones.append(outcome.publication)
+                    publicaciones.sort(key=lambda x: x["created_utc"])
+                elif outcome.needs_dynamic and SCRAPE_DYNAMIC_ENABLED:
+                    pending_dynamic.append(outcome)
+                if on_progress:
+                    on_progress(processed, total, list(publicaciones))
+
+    if pending_dynamic and SCRAPE_DYNAMIC_ENABLED:
+        dynamic_workers = min(SCRAPE_DYNAMIC_MAX_WORKERS, len(pending_dynamic))
+        logger.info(
+            f"Iniciando fase dinamica: {len(pending_dynamic)} URLs, workers={dynamic_workers}"
+        )
+        with ThreadPoolExecutor(max_workers=dynamic_workers) as pool:
+            futures = [pool.submit(_resolve_with_dynamic, item) for item in pending_dynamic]
+            for future in as_completed(futures):
+                publication = future.result()
+                with lock:
+                    if publication:
+                        publicaciones.append(publication)
+                        publicaciones.sort(key=lambda x: x["created_utc"])
+                    if on_progress:
+                        on_progress(processed, total, list(publicaciones))
 
     return publicaciones

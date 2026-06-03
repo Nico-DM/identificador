@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { clientImageUrlRejectionMessage } from "@/lib/imageUrl";
+import { POLL_DELAY_MS, POLL_MAX_ATTEMPTS } from "@/lib/pollConfig";
 
 type SearchResult = {
   date: string | null;
@@ -138,6 +139,32 @@ export default function Home() {
     processed: 0,
     total: 0,
   });
+  /** Firefox restaura el input tras F5; el valor en DOM queda desincronizado del estado controlado. */
+  const clearStaleFormState = () => {
+    setImageUrl("");
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    clearStaleFormState();
+    const raf = requestAnimationFrame(clearStaleFormState);
+    const t0 = window.setTimeout(clearStaleFormState, 0);
+    const t1 = window.setTimeout(clearStaleFormState, 100);
+
+    const onPageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        clearStaleFormState();
+      }
+    };
+    window.addEventListener("pageshow", onPageShow);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.clearTimeout(t0);
+      window.clearTimeout(t1);
+      window.removeEventListener("pageshow", onPageShow);
+    };
+  }, []);
 
   const updateProgressFromPayload = (data: {
     progress?: { processed?: number; total?: number };
@@ -152,8 +179,8 @@ export default function Home() {
   const pollResults = async (id: string) => {
     const delay = (ms: number) =>
       new Promise((resolve) => setTimeout(resolve, ms));
-    const maxAttempts = 30;
-    const delayMs = 2000;
+    const maxAttempts = POLL_MAX_ATTEMPTS;
+    const delayMs = POLL_DELAY_MS;
     let lastResults: SearchResult[] = [];
 
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
@@ -283,13 +310,18 @@ export default function Home() {
   return (
     <div className="p-8 max-w-5xl mx-auto w-full flex flex-col items-center text-center">
       <h1 className="text-3xl font-bold mb-4">Identificador de Artistas</h1>
-      <form onSubmit={handleSearch} className="flex w-full gap-2">
+      <form
+        onSubmit={handleSearch}
+        className="flex w-full gap-2"
+        autoComplete="off"
+      >
         <input
           type="url"
           placeholder="https://..."
           value={imageUrl}
           onChange={(e) => setImageUrl(e.target.value)}
           className="flex-1 min-w-0 border px-3 py-2 rounded"
+          autoComplete="off"
           required
         />
         <button
