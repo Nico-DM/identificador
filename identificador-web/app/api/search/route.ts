@@ -1,6 +1,5 @@
+import { proxyToBackend } from "@/lib/backendFetch";
 import { clientImageUrlRejectionMessage } from "@/lib/imageUrl";
-
-const backendApiUrl = process.env.BACKEND_API_URL ?? "http://localhost:8000";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => null);
@@ -9,7 +8,10 @@ export async function POST(req: Request) {
     typeof body?.safe_search === "boolean" ? body.safe_search : true;
 
   if (typeof imageUrl !== "string" || !imageUrl.trim()) {
-    return Response.json({ error: "image_url invalida o faltante" }, { status: 400 });
+    return Response.json(
+      { error: "image_url invalida o faltante" },
+      { status: 400 },
+    );
   }
 
   const rejectMsg = clientImageUrlRejectionMessage(imageUrl);
@@ -17,24 +19,12 @@ export async function POST(req: Request) {
     return Response.json({ detail: rejectMsg }, { status: 400 });
   }
 
-  try {
-    const res = await fetch(`${backendApiUrl}/api/search`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        image_url: imageUrl.trim(),
-        safe_search: safeSearch,
-      }),
-    });
-
-    const payload = await res
-      .json()
-      .catch(() => ({ error: "Respuesta invalida del backend" }));
-    return Response.json(payload, { status: res.status });
-  } catch {
-    return Response.json(
-      { error: "No se pudo conectar con el backend FastAPI" },
-      { status: 502 },
-    );
-  }
+  return proxyToBackend(req, "/api/search", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      image_url: imageUrl.trim(),
+      safe_search: safeSearch,
+    }),
+  });
 }

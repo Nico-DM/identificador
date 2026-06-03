@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import FastAPI, BackgroundTasks, HTTPException
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from datetime import datetime, timezone
@@ -31,6 +31,7 @@ from db.repository import (
     search_persist,
     search_session,
 )
+from rate_limit import rate_limit_deep, rate_limit_results, rate_limit_search
 
 # Configurar logging
 logging.basicConfig(
@@ -536,7 +537,11 @@ async def health():
 
 
 @app.post("/api/search")
-async def search(background_tasks: BackgroundTasks, payload: SearchRequest):
+async def search(
+    background_tasks: BackgroundTasks,
+    payload: SearchRequest,
+    _: None = Depends(rate_limit_search),
+):
     _prune_searches()
 
     try:
@@ -595,7 +600,11 @@ async def search(background_tasks: BackgroundTasks, payload: SearchRequest):
 
 
 @app.post("/api/search/{search_id}/deep")
-async def deep_search(search_id: str, background_tasks: BackgroundTasks):
+async def deep_search(
+    search_id: str,
+    background_tasks: BackgroundTasks,
+    _: None = Depends(rate_limit_deep),
+):
     _prune_searches()
 
     data = search_get(search_id)
@@ -633,7 +642,7 @@ async def deep_search(search_id: str, background_tasks: BackgroundTasks):
 
 
 @app.get("/api/results/{search_id}")
-async def get_results(search_id: str):
+async def get_results(search_id: str, _: None = Depends(rate_limit_results)):
     _prune_searches()
 
     data = search_get(search_id)

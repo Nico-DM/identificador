@@ -25,4 +25,12 @@ services:
         sync: false
       - key: CACHE_TTL_SECONDS
         value: 604800
+      - key: RATE_LIMIT_ENABLED
+        value: "true"
+      - key: RATE_LIMIT_SEARCH_PER_HOUR
+        value: "10"
+      - key: RATE_LIMIT_DEEP_PER_HOUR
+        value: "5"
+      - key: RATE_LIMIT_RESULTS_PER_MINUTE
+        value: "300"
 
