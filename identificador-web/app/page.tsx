@@ -552,7 +552,20 @@ export default function Home() {
       setPollTarget("static");
 
       if (data.search_id) {
-        const outcome = await runPollForTarget(data.search_id, "static");
+        const terminal = data.status === "done" || data.status === "static_done";
+        const outcome = terminal
+          ? await (async () => {
+              const res = await fetch(`/api/results/${data.search_id}`);
+              const payload: ResultsPayload = await res.json();
+              if (!res.ok) {
+                setError(payload?.detail ?? payload?.error ?? "Error consultando resultados");
+                setStatus("error");
+                return "error" as const;
+              }
+              applyResultsPayload(payload);
+              return payload.status === "error" ? ("error" as const) : ("done" as const);
+            })()
+          : await runPollForTarget(data.search_id, "static");
         if (outcome === "timeout" || outcome === "partial") {
           setCanRetryPoll(true);
         }

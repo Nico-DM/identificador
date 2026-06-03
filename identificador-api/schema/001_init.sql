@@ -47,7 +47,19 @@ CREATE TABLE IF NOT EXISTS image_lens_cache (
 
 CREATE INDEX IF NOT EXISTS idx_image_lens_created_at ON image_lens_cache (created_at);
 
+-- Caché de análisis completo por URL de imagen (evita re-scrapear todo)
+CREATE TABLE IF NOT EXISTS image_analysis_cache (
+  cache_key TEXT PRIMARY KEY,
+  image_url TEXT NOT NULL,
+  safe_search BOOLEAN NOT NULL DEFAULT true,
+  snapshot JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_image_analysis_created_at ON image_analysis_cache (created_at);
+
 -- RLS: tablas no expuestas al cliente web; el backend usa DATABASE_URL (rol postgres).
 ALTER TABLE searches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE url_scrape_cache ENABLE ROW LEVEL SECURITY;
 ALTER TABLE image_lens_cache ENABLE ROW LEVEL SECURITY;
+ALTER TABLE image_analysis_cache ENABLE ROW LEVEL SECURITY;

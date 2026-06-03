@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from urllib.parse import urlparse
 import os
 import uuid
+import copy
 import requests
 import logging
 
@@ -21,9 +22,15 @@ from identificador import (
     serialize_pending_outcome,
 )
 from scrape_config import SCRAPE_DYNAMIC_ENABLED
-from db.cache import get_lens_cache, set_lens_cache
+from db.cache import get_analysis_cache, get_lens_cache, set_analysis_cache, set_lens_cache
 from db.config import db_enabled
-from db.repository import prune_searches, search_create, search_get, search_session
+from db.repository import (
+    prune_searches,
+    search_create,
+    search_get,
+    search_persist,
+    search_session,
+)
 
 # Configurar logging
 logging.basicConfig(
@@ -275,6 +282,29 @@ def _serpapi_lens_search(image_url: str, *, safe_search: bool = True) -> dict:
     return payload
 
 
+def _analysis_snapshot(data: dict) -> dict:
+    return {
+        "status": data["status"],
+        "phase": data.get("phase", "complete"),
+        "results": data.get("results"),
+        "raw_results": data.get("raw_results"),
+        "error": data.get("error"),
+        "processed_urls": data.get("processed_urls", 0),
+        "total_urls": data.get("total_urls", 0),
+        "static_total_urls": data.get("static_total_urls", 0),
+        "match_metadata": data.get("match_metadata") or {},
+        "pending_dynamic": data.get("pending_dynamic") or [],
+        "deep_search_available": bool(data.get("deep_search_available", False)),
+    }
+
+
+def _save_analysis_cache(image_url: str, safe_search: bool, data: dict) -> None:
+    if data.get("status") not in {"done", "static_done"}:
+        return
+    set_analysis_cache(image_url, _analysis_snapshot(data), safe_search=safe_search)
+    logger.info(f"Análisis cacheado para imagen (safe_search={'active' if safe_search else 'off'})")
+
+
 def _set_search(
     search_id: str,
     status: str,
@@ -293,6 +323,7 @@ def _set_search(
         if phase is not None:
             current["phase"] = phase
         current["updated_at"] = _now_utc()
+    search_persist(search_id, force=True)
 
 
 def _update_search_progress(
@@ -314,6 +345,7 @@ def _update_search_progress(
         if total is not None:
             current["total_urls"] = total
         current["updated_at"] = _now_utc()
+    search_persist(search_id)
 
 
 def _format_result_item(item: dict, match_metadata: dict) -> dict:
@@ -400,6 +432,7 @@ def _process_search(search_id: str, image_url: str, *, safe_search: bool = True)
             current["raw_results"] = static_results
             current["results"] = formatted
             current["updated_at"] = _now_utc()
+        search_persist(search_id, force=True)
 
         logger.info(
             f"Fase estatica completada: {len(static_results)} resultados, "
@@ -410,6 +443,9 @@ def _process_search(search_id: str, image_url: str, *, safe_search: bool = True)
             _set_search(search_id, "static_done", phase="static")
         else:
             _set_search(search_id, "done", phase="complete")
+        current = search_get(search_id)
+        if current:
+            _save_analysis_cache(image_url, safe_search, current)
         logger.info(f"Búsqueda {search_id} fase estatica completada")
     except Exception as exc:
         logger.error(f"Error procesando búsqueda {search_id}: {str(exc)}", exc_info=True)
@@ -464,8 +500,16 @@ def _process_deep_search(search_id: str) -> None:
             current["processed_urls"] = static_total + deep_total
             current["total_urls"] = static_total + deep_total
             current["updated_at"] = _now_utc()
+        search_persist(search_id, force=True)
 
         _set_search(search_id, "done", results=formatted, error=None, phase="complete")
+        current = search_get(search_id)
+        if current:
+            _save_analysis_cache(
+                current["image_url"],
+                current.get("safe_search", True),
+                current,
+            )
         logger.info(f"Búsqueda profunda {search_id} completada: {len(formatted)} resultados")
     except Exception as exc:
         logger.error(f"Error en búsqueda profunda {search_id}: {str(exc)}", exc_info=True)
@@ -502,8 +546,23 @@ async def search(background_tasks: BackgroundTasks, payload: SearchRequest):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     search_id = str(uuid.uuid4())
-    logger.info(f"Nueva búsqueda iniciada - ID: {search_id}, URL: {image_url}")
     now = _now_utc()
+
+    cached = get_analysis_cache(image_url, safe_search=payload.safe_search)
+    if cached is not None:
+        data = copy.deepcopy(cached)
+        data["image_url"] = image_url
+        data["safe_search"] = payload.safe_search
+        data["created_at"] = now
+        data["updated_at"] = now
+        search_create(search_id, data)
+        logger.info(
+            f"Búsqueda {search_id} restaurada desde caché "
+            f"(status={data['status']}, resultados={len(data.get('results') or [])})"
+        )
+        return {"search_id": search_id, "status": data["status"], "cached": True}
+
+    logger.info(f"Nueva búsqueda iniciada - ID: {search_id}, URL: {image_url}")
     search_create(
         search_id,
         {
@@ -516,6 +575,7 @@ async def search(background_tasks: BackgroundTasks, payload: SearchRequest):
             "total_urls": 0,
             "static_total_urls": 0,
             "image_url": image_url,
+            "safe_search": payload.safe_search,
             "match_metadata": {},
             "pending_dynamic": [],
             "deep_search_available": False,
@@ -565,6 +625,7 @@ async def deep_search(search_id: str, background_tasks: BackgroundTasks):
         current["processed_urls"] = static_total
         current["total_urls"] = static_total + deep_total
         current["updated_at"] = _now_utc()
+    search_persist(search_id, force=True)
 
     background_tasks.add_task(_process_deep_search, search_id)
 

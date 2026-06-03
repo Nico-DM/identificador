@@ -27,11 +27,11 @@ def _parse_datetime(value: str) -> datetime:
 
 def _decode_value(value: Any) -> Any:
     if isinstance(value, str):
-        if len(value) >= 10 and value[4] == "-" and value[10] in "T ":
+        if len(value) >= 10 and value[4] == "-":
             try:
                 return _parse_datetime(value)
             except ValueError:
-                return value
+                pass
         return value
     if isinstance(value, dict):
         return {k: _decode_value(v) for k, v in value.items()}

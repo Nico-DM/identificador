@@ -1,9 +1,12 @@
 import hashlib
 import json
+import threading
+import time
 from datetime import datetime, timezone
 
 from db.config import cache_ttl_seconds, db_enabled
 from db.connection import db_cursor
+from db.json_util import from_jsonable, to_jsonable
 
 
 def _normalize_url(url: str) -> str:
@@ -22,6 +25,72 @@ WHERE url_normalized = %s
 def image_url_hash(image_url: str) -> str:
     normalized = image_url.strip()
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+
+def analysis_cache_key(image_url: str, *, safe_search: bool = True) -> str:
+    material = f"{image_url.strip()}\0safe={int(safe_search)}"
+    return hashlib.sha256(material.encode("utf-8")).hexdigest()
+
+
+_analysis_memory: dict[str, tuple[float, dict]] = {}
+_analysis_lock = threading.Lock()
+
+
+def get_analysis_cache(image_url: str, *, safe_search: bool = True) -> dict | None:
+    key = analysis_cache_key(image_url, safe_search=safe_search)
+    cutoff = time.time() - cache_ttl_seconds()
+
+    if db_enabled():
+        cutoff_dt = datetime.fromtimestamp(cutoff, tz=timezone.utc)
+        with db_cursor() as cur:
+            cur.execute(
+                """
+                SELECT snapshot
+                FROM image_analysis_cache
+                WHERE cache_key = %s AND created_at >= %s
+                """,
+                (key, cutoff_dt),
+            )
+            row = cur.fetchone()
+        if not row:
+            return None
+        snapshot = row["snapshot"]
+        if isinstance(snapshot, str):
+            snapshot = json.loads(snapshot)
+        return from_jsonable(snapshot)
+
+    with _analysis_lock:
+        entry = _analysis_memory.get(key)
+        if not entry or entry[0] < cutoff:
+            return None
+        return from_jsonable(entry[1])
+
+
+def set_analysis_cache(image_url: str, snapshot: dict, *, safe_search: bool = True) -> None:
+    key = analysis_cache_key(image_url, safe_search=safe_search)
+    encoded = to_jsonable(snapshot)
+    now = time.time()
+
+    if db_enabled():
+        from psycopg.types.json import Jsonb
+
+        with db_cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO image_analysis_cache (cache_key, image_url, safe_search, snapshot)
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT (cache_key) DO UPDATE SET
+                  image_url = EXCLUDED.image_url,
+                  safe_search = EXCLUDED.safe_search,
+                  snapshot = EXCLUDED.snapshot,
+                  created_at = now()
+                """,
+                (key, image_url.strip(), safe_search, Jsonb(encoded)),
+            )
+        return
+
+    with _analysis_lock:
+        _analysis_memory[key] = (now, encoded)
 
 
 def get_lens_cache(image_url: str) -> dict | None:
