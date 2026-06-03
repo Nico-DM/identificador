@@ -28,6 +28,54 @@ function siteInitials(siteName: string): string {
   return cleaned.slice(0, 2).toUpperCase();
 }
 
+type SearchProgress = {
+  processed: number;
+  total: number;
+};
+
+function SearchProgressBar({ progress }: { progress: SearchProgress }) {
+  const { processed, total } = progress;
+  const hasTotal = total > 0;
+  const percent = hasTotal
+    ? Math.min(100, Math.round((processed / total) * 100))
+    : 0;
+
+  const label = hasTotal
+    ? `Analizando publicaciones (${processed}/${total})`
+    : "Buscando coincidencias en la imagen...";
+
+  return (
+    <div className="mt-4 max-w-xl" role="status" aria-live="polite">
+      <div className="flex items-center justify-between gap-3 mb-2">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">{label}</p>
+        {hasTotal && (
+          <span className="text-sm font-medium tabular-nums">{percent}%</span>
+        )}
+      </div>
+      <div
+        className="h-2 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800"
+        role="progressbar"
+        aria-valuemin={0}
+        aria-valuemax={hasTotal ? total : undefined}
+        aria-valuenow={hasTotal ? processed : undefined}
+        aria-label={label}
+      >
+        {hasTotal ? (
+          <div
+            className="h-full rounded-full bg-neutral-900 dark:bg-neutral-100 transition-[width] duration-300 ease-out"
+            style={{ width: `${percent}%` }}
+          />
+        ) : (
+          <div
+            className="h-full w-1/4 rounded-full bg-neutral-900 dark:bg-neutral-100"
+            style={{ animation: "progress-indeterminate 1.4s ease-in-out infinite" }}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ResultCard({ result }: { result: SearchResult }) {
   const [imageError, setImageError] = useState(false);
   const siteName = result.site_name ?? result.platform ?? result.url;
@@ -86,6 +134,20 @@ export default function Home() {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchId, setSearchId] = useState<string | null>(null);
+  const [progress, setProgress] = useState<SearchProgress>({
+    processed: 0,
+    total: 0,
+  });
+
+  const updateProgressFromPayload = (data: {
+    progress?: { processed?: number; total?: number };
+  }) => {
+    if (!data.progress) return;
+    setProgress({
+      processed: data.progress.processed ?? 0,
+      total: data.progress.total ?? 0,
+    });
+  };
 
   const pollResults = async (id: string) => {
     const delay = (ms: number) =>
@@ -104,6 +166,8 @@ export default function Home() {
         setStatus("error");
         return;
       }
+
+      updateProgressFromPayload(data);
 
       if (Array.isArray(data.results) && data.results.length > 0) {
         lastResults = data.results;
@@ -136,6 +200,7 @@ export default function Home() {
     const finalRes = await fetch(`/api/results/${id}`);
     const finalData = await finalRes.json();
     if (finalRes.ok) {
+      updateProgressFromPayload(finalData);
       if (finalData.status === "done") {
         setResults(finalData.results ?? []);
         setStatus("done");
@@ -173,6 +238,7 @@ export default function Home() {
     setError(null);
     setStatus("processing");
     setSearchId(null);
+    setProgress({ processed: 0, total: 0 });
     setSearchedImageUrl(imageUrl.trim());
     setQueryImageError(false);
 
@@ -261,7 +327,9 @@ export default function Home() {
           </div>
         </section>
       )}
-      {status && <p className="mt-2">Estado: {status}</p>}
+      {(loading || status === "processing") && (
+        <SearchProgressBar progress={progress} />
+      )}
       {error && <p className="mt-2 text-red-600">{error}</p>}
       {status === "partial" && !error && (
         <p className="mt-2 text-amber-700 dark:text-amber-400">

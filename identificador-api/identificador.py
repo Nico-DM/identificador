@@ -148,6 +148,8 @@ def get_sorted_dates(results, on_progress=None):
         url = normalize_url(result["link"])
         if url in seen_urls:
             logger.debug(f"URL duplicada, ignorando: {url}")
+            if on_progress:
+                on_progress(i, len(results), list(publicaciones))
             continue
         seen_urls.add(url)
 
@@ -178,10 +180,11 @@ def get_sorted_dates(results, on_progress=None):
             result["platform"] = platform
             publicaciones.append(result)
             publicaciones.sort(key=lambda x: x["created_utc"])
-            if on_progress:
-                on_progress(list(publicaciones))
             logger.info(f"Fecha encontrada: {best.date} (score={best.score:.2f})")
         else:
             logger.debug(f"No se encontró fecha para: {url}")
+
+        if on_progress:
+            on_progress(i, len(results), list(publicaciones))
 
     return publicaciones

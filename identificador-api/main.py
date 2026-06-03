@@ -274,12 +274,23 @@ def _set_search(search_id: str, status: str, results=None, error: str | None = N
         current["updated_at"] = _now_utc()
 
 
-def _set_partial_results(search_id: str, results: list) -> None:
+def _update_search_progress(
+    search_id: str,
+    *,
+    results: list | None = None,
+    processed: int | None = None,
+    total: int | None = None,
+) -> None:
     with _searches_lock:
         current = _searches_db.get(search_id)
         if not current or current["status"] != "processing":
             return
-        current["results"] = results
+        if results is not None:
+            current["results"] = results
+        if processed is not None:
+            current["processed_urls"] = processed
+        if total is not None:
+            current["total_urls"] = total
         current["updated_at"] = _now_utc()
 
 
@@ -308,10 +319,17 @@ def _process_search(search_id: str, image_url: str) -> None:
         logger.info(f"SerpApi devolvió {len(urls)} URLs para búsqueda {search_id}")
 
         search_inputs = [{"link": url, "source": "serpapi"} for url in urls]
+        total_urls = len(search_inputs)
+        _update_search_progress(search_id, results=[], processed=0, total=total_urls)
 
-        def _on_progress(partial: list) -> None:
+        def _on_progress(processed: int, total: int, partial: list) -> None:
             formatted_partial = [_format_result_item(item, match_metadata) for item in partial]
-            _set_partial_results(search_id, formatted_partial)
+            _update_search_progress(
+                search_id,
+                results=formatted_partial,
+                processed=processed,
+                total=total,
+            )
 
         sorted_results = get_sorted_dates(search_inputs, on_progress=_on_progress)
 
@@ -354,6 +372,8 @@ async def search(background_tasks: BackgroundTasks, payload: SearchRequest):
             "status": "processing",
             "results": None,
             "error": None,
+            "processed_urls": 0,
+            "total_urls": 0,
             "created_at": now,
             "updated_at": now,
         }
@@ -378,6 +398,10 @@ async def get_results(search_id: str):
         "status": data["status"],
         "results": data["results"],
         "error": data["error"],
+        "progress": {
+            "processed": data.get("processed_urls", 0),
+            "total": data.get("total_urls", 0),
+        },
     }
 
 
