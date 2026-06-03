@@ -1,8 +1,10 @@
-# Identificador
+# Identificador de Artistas
 
 **Proyecto universitario** — herramienta web para rastrear el origen y la difusión de imágenes en internet.
 
 **Autor:** Nicolás Galetto
+
+**Universidad:** Universidad Tecnológica Nacional
 
 ---
 
