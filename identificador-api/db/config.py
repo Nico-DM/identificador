@@ -38,4 +38,6 @@ def connection_string() -> str:
 
 
 def db_enabled() -> bool:
+    if _env("DISABLE_DATABASE").lower() in ("1", "true", "yes"):
+        return False
     return bool(database_url())

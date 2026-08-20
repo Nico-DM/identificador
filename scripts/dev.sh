@@ -39,6 +39,13 @@ if [[ ! -x "$PYTHON" ]]; then
   PYTHON="$(command -v python3 || command -v python)"
 fi
 
+if [[ "${DEV_USE_DATABASE:-}" == "1" ]]; then
+  echo "Persistence: Supabase/Postgres (DATABASE_URL from .env)"
+else
+  export DISABLE_DATABASE=1
+  echo "Persistence: in-memory (set DEV_USE_DATABASE=1 to use DATABASE_URL from .env)"
+fi
+
 echo "Starting backend on http://localhost:8000"
 (
   cd "$API_DIR"
