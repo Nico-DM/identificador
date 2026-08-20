@@ -1,11 +1,11 @@
 import threading
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Iterator
 
-from db.config import db_enabled
 from db import searches as pg
+from db.config import db_enabled
 
 _searches_lock = threading.Lock()
 _searches_db: dict[str, dict] = {}
@@ -35,7 +35,10 @@ def search_persist(search_id: str, *, force: bool = False) -> None:
         if not data:
             return
         now = time.monotonic()
-        if not force and now - _last_persist.get(search_id, 0) < _PROGRESS_PERSIST_INTERVAL:
+        if (
+            not force
+            and now - _last_persist.get(search_id, 0) < _PROGRESS_PERSIST_INTERVAL
+        ):
             return
         _last_persist[search_id] = now
     pg.pg_save(search_id, data)

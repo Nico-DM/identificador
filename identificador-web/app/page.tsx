@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { clientImageFileRejectionMessage, IMAGE_ACCEPT } from "@/lib/imageFile";
 import { clientImageUrlRejectionMessage } from "@/lib/imageUrl";
 import {
@@ -107,9 +107,11 @@ function SearchProgressBar({
         : "Buscando coincidencias en la imagen...";
 
   return (
-    <div className="mt-4 w-full" role="status" aria-live="polite">
+    <div className="mt-4 w-full" aria-live="polite">
       <div className="flex items-center justify-between gap-3 mb-2">
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">{label}</p>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">
+          {label}
+        </p>
         <div className="flex items-center gap-3 shrink-0">
           {secondsRemaining !== null && (
             <span className="text-sm tabular-nums text-neutral-500 dark:text-neutral-400">
@@ -137,7 +139,9 @@ function SearchProgressBar({
         ) : (
           <div
             className="h-full w-1/4 rounded-full bg-neutral-900 dark:bg-neutral-100"
-            style={{ animation: "progress-indeterminate 1.4s ease-in-out infinite" }}
+            style={{
+              animation: "progress-indeterminate 1.4s ease-in-out infinite",
+            }}
           />
         )}
       </div>
@@ -158,7 +162,8 @@ function ResultCard({ result }: { result: SearchResult }) {
   const [imageError, setImageError] = useState(false);
   const siteName = result.site_name ?? result.platform ?? result.url;
   const showThumbnail = result.thumbnail && !imageError;
-  const confidence = result.confidence ?? (result.date ? "confirmed" : "pending");
+  const confidence =
+    result.confidence ?? (result.date ? "confirmed" : "pending");
   const formattedDate = formatDate(result.date);
 
   return (
@@ -212,7 +217,6 @@ function ResultCard({ result }: { result: SearchResult }) {
   );
 }
 
-
 type InputMode = "url" | "file";
 
 export default function Home() {
@@ -241,9 +245,9 @@ export default function Home() {
   const [canRetryPoll, setCanRetryPoll] = useState(false);
   const [pollTarget, setPollTarget] = useState<PollTarget>("static");
   const [retryingPoll, setRetryingPoll] = useState(false);
-  const [pollSecondsRemaining, setPollSecondsRemaining] = useState<number | null>(
-    null,
-  );
+  const [pollSecondsRemaining, setPollSecondsRemaining] = useState<
+    number | null
+  >(null);
   const [pollStoppedByUser, setPollStoppedByUser] = useState(false);
   const pollAbortRef = useRef<AbortController | null>(null);
 
@@ -269,10 +273,10 @@ export default function Home() {
     setError(null);
   };
 
-  const clearStaleFormState = () => {
+  const clearStaleFormState = useCallback(() => {
     setImageUrl("");
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     clearStaleFormState();
@@ -293,7 +297,7 @@ export default function Home() {
       window.clearTimeout(t1);
       window.removeEventListener("pageshow", onPageShow);
     };
-  }, []);
+  }, [clearStaleFormState]);
 
   const applyResultsPayload = (data: ResultsPayload) => {
     if (data.progress) {
@@ -387,7 +391,12 @@ export default function Home() {
           if (Array.isArray(data.results) && data.results.length > 0) {
             lastResults = data.results;
           }
-          return resolveEarlyPoll(data, lastResults, options.untilStatuses, true);
+          return resolveEarlyPoll(
+            data,
+            lastResults,
+            options.untilStatuses,
+            true,
+          );
         }
         setError(data?.detail ?? data?.error ?? "Error consultando resultados");
         setStatus("error");
@@ -447,7 +456,10 @@ export default function Home() {
     const finalData: ResultsPayload = await finalRes.json();
     if (finalRes.ok) {
       applyResultsPayload(finalData);
-      if (finalData.status && options.untilStatuses.includes(finalData.status)) {
+      if (
+        finalData.status &&
+        options.untilStatuses.includes(finalData.status)
+      ) {
         return finalData.status === "error" ? "error" : "done";
       }
       if (Array.isArray(finalData.results) && finalData.results.length > 0) {
@@ -555,9 +567,7 @@ export default function Home() {
     setCanRetryPoll(false);
     setPollTarget("static");
     setPollStoppedByUser(false);
-    setSearchedImageUrl(
-      inputMode === "url" ? imageUrl.trim() : filePreviewUrl,
-    );
+    setSearchedImageUrl(inputMode === "url" ? imageUrl.trim() : filePreviewUrl);
     setQueryImageError(false);
 
     try {
@@ -571,14 +581,16 @@ export default function Home() {
             safe_search: safeSearchEnabled,
           }),
         });
-      } else {
+      } else if (selectedFile) {
         const formData = new FormData();
-        formData.append("file", selectedFile!);
+        formData.append("file", selectedFile);
         formData.append("safe_search", safeSearchEnabled ? "true" : "false");
         res = await fetch("/api/search", {
           method: "POST",
           body: formData,
         });
+      } else {
+        return;
       }
       const data = await res.json();
 
@@ -603,18 +615,25 @@ export default function Home() {
       setPollTarget("static");
 
       if (data.search_id) {
-        const terminal = data.status === "done" || data.status === "static_done";
+        const terminal =
+          data.status === "done" || data.status === "static_done";
         const outcome = terminal
           ? await (async () => {
               const res = await fetch(`/api/results/${data.search_id}`);
               const payload: ResultsPayload = await res.json();
               if (!res.ok) {
-                setError(payload?.detail ?? payload?.error ?? "Error consultando resultados");
+                setError(
+                  payload?.detail ??
+                    payload?.error ??
+                    "Error consultando resultados",
+                );
                 setStatus("error");
                 return "error" as const;
               }
               applyResultsPayload(payload);
-              return payload.status === "error" ? ("error" as const) : ("done" as const);
+              return payload.status === "error"
+                ? ("error" as const)
+                : ("done" as const);
             })()
           : await runPollForTarget(data.search_id, "static");
         if (outcome === "timeout" || outcome === "partial") {
@@ -640,7 +659,9 @@ export default function Home() {
     setPollStoppedByUser(false);
 
     try {
-      const res = await fetch(`/api/search/${searchId}/deep`, { method: "POST" });
+      const res = await fetch(`/api/search/${searchId}/deep`, {
+        method: "POST",
+      });
       const data = await res.json();
 
       if (!res.ok) {
@@ -667,9 +688,7 @@ export default function Home() {
   };
 
   const showResults =
-    (status === "done" ||
-      status === "static_done" ||
-      status === "partial") &&
+    (status === "done" || status === "static_done" || status === "partial") &&
     results;
 
   const showProgress =
@@ -690,12 +709,11 @@ export default function Home() {
     !retryingPoll;
 
   const visibleResults =
-    results?.filter((result) => result.date !== null && result.date !== "") ?? [];
+    results?.filter((result) => result.date !== null && result.date !== "") ??
+    [];
 
   const canSubmit =
-    inputMode === "url"
-      ? Boolean(imageUrl.trim())
-      : selectedFile !== null;
+    inputMode === "url" ? Boolean(imageUrl.trim()) : selectedFile !== null;
 
   const showIntro = !searchedImageUrl && !showProgress && !showResults;
 
@@ -812,9 +830,9 @@ export default function Home() {
       {showIntro && (
         <section className="mt-8 w-full max-w-2xl text-left text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
           <p>
-            Esta herramienta ayuda a estimar cuándo se publicó una obra artística
-            buscando coincidencias visuales en la web y extrayendo fechas de las
-            publicaciones encontradas.
+            Esta herramienta ayuda a estimar cuándo se publicó una obra
+            artística buscando coincidencias visuales en la web y extrayendo
+            fechas de las publicaciones encontradas.
           </p>
           <ol className="mt-4 list-decimal list-inside space-y-2">
             <li>
@@ -822,7 +840,10 @@ export default function Home() {
               dispositivo (máx. 5 MB).
             </li>
             <li>
-              Presioná <span className="font-medium text-neutral-800 dark:text-neutral-200">Buscar</span>{" "}
+              Presioná{" "}
+              <span className="font-medium text-neutral-800 dark:text-neutral-200">
+                Buscar
+              </span>{" "}
               y esperá a que termine el análisis inicial.
             </li>
             <li>
@@ -856,11 +877,11 @@ export default function Home() {
                 alt="Imagen buscada"
                 width={240}
                 height={240}
-                className="max-w-[240px] max-h-[240px] w-auto h-auto object-contain"
+                className="max-w-60 max-h-60 w-auto h-auto object-contain"
                 onError={() => setQueryImageError(true)}
               />
             ) : (
-              <div className="w-[240px] h-[240px] flex items-center justify-center px-4 text-center text-sm text-neutral-500 dark:text-neutral-400">
+              <div className="w-60 h-60 flex items-center justify-center px-4 text-center text-sm text-neutral-500 dark:text-neutral-400">
                 No se pudo cargar la imagen
               </div>
             )}
@@ -911,8 +932,8 @@ export default function Home() {
             Búsqueda profunda
           </button>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Puede encontrar fechas faltantes o mejorar fechas poco fiables. Tarda
-            más que el análisis inicial.
+            Puede encontrar fechas faltantes o mejorar fechas poco fiables.
+            Tarda más que el análisis inicial.
           </p>
         </section>
       )}
@@ -924,7 +945,8 @@ export default function Home() {
       {showResults && visibleResults.length > 0 && (
         <section className="mt-6 w-full">
           <h2 className="text-lg font-semibold mb-4">
-            {visibleResults.length} resultado{visibleResults.length !== 1 ? "s" : ""}
+            {visibleResults.length} resultado
+            {visibleResults.length !== 1 ? "s" : ""}
             {status === "partial" ? " (parciales)" : ""}
             {status === "static_done" ? " (análisis inicial)" : ""}
           </h2>

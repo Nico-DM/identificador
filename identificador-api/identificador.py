@@ -1,14 +1,12 @@
-from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
-from typing import Dict, List, Optional
-from datetime import datetime, timezone
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from dataclasses import dataclass
 import copy
 import logging
 import threading
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
-from scraper_estatico import obtener_candidatas_estaticas
-from scraper_dinamico import obtener_candidatas_dinamicas
+from db.cache import get_url_scrape_cache, set_url_scrape_cache
 from modelos import DateCandidate
 from scrape_config import (
     SCRAPE_DYNAMIC_ENABLED,
@@ -16,7 +14,8 @@ from scrape_config import (
     SCRAPE_STATIC_CONFIDENCE_THRESHOLD,
     SCRAPE_STATIC_MAX_WORKERS,
 )
-from db.cache import get_url_scrape_cache, set_url_scrape_cache
+from scraper_dinamico import obtener_candidatas_dinamicas
+from scraper_estatico import obtener_candidatas_estaticas
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +27,7 @@ def _to_naive_utc(dt):
     if dt.tzinfo is not None:
         return dt.astimezone(timezone.utc).replace(tzinfo=None)
     return dt
+
 
 TRACKING_PARAMS = {
     "utm_source",
@@ -75,15 +75,19 @@ class _StaticPhaseOutcome:
     result: dict
     url: str
     platform: str
-    static_candidates: List[DateCandidate]
-    best_static: Optional[DateCandidate]
+    static_candidates: list[DateCandidate]
+    best_static: DateCandidate | None
     needs_dynamic: bool
-    publication: Optional[dict]
+    publication: dict | None
 
 
 def normalize_url(url: str) -> str:
     parsed = urlparse(url.strip())
-    query = [(k, v) for k, v in parse_qsl(parsed.query, keep_blank_values=True) if k not in TRACKING_PARAMS]
+    query = [
+        (k, v)
+        for k, v in parse_qsl(parsed.query, keep_blank_values=True)
+        if k not in TRACKING_PARAMS
+    ]
     clean = parsed._replace(query=urlencode(query), fragment="")
     return urlunparse(clean)
 
@@ -107,7 +111,7 @@ def detect_platform(url: str) -> str:
     return "unknown"
 
 
-def classify_context(url: str, platform: str) -> Dict[str, bool]:
+def classify_context(url: str, platform: str) -> dict[str, bool]:
     path = urlparse(url).path.lower()
     flags = {
         "is_comment": False,
@@ -141,7 +145,9 @@ def _normalize_source(source: str) -> str:
     return source
 
 
-def score_candidate(candidate: DateCandidate, platform: str, flags: Dict[str, bool]) -> float:
+def score_candidate(
+    candidate: DateCandidate, platform: str, flags: dict[str, bool]
+) -> float:
     normalized = _normalize_source(candidate.source)
     score = 0.0
     score += SOURCE_SCORE.get(normalized, SOURCE_SCORE.get(candidate.source, 0.05))
@@ -167,7 +173,7 @@ def score_candidate(candidate: DateCandidate, platform: str, flags: Dict[str, bo
     return max(score, 0.0)
 
 
-def select_best_candidate(candidates: List[DateCandidate], threshold: float = 0.45):
+def select_best_candidate(candidates: list[DateCandidate], threshold: float = 0.45):
     if not candidates:
         return None
 
@@ -194,13 +200,15 @@ def _dedupe_results(results) -> list:
     return deduped
 
 
-def _sort_publications(publications: List[dict]) -> None:
-    publications.sort(
-        key=lambda x: (
-            x.get("created_utc") is None,
-            x.get("created_utc") or datetime.max,
-        )
-    )
+def _created_utc_sort_key(item: dict) -> tuple[bool, float]:
+    created = item.get("created_utc")
+    if created is None:
+        return (True, float("inf"))
+    return (False, created.timestamp())
+
+
+def _sort_publications(publications: list[dict]) -> None:
+    publications.sort(key=_created_utc_sort_key)
 
 
 def _confidence_for_score(score: float | None) -> str:
@@ -215,8 +223,11 @@ def _candidate_from_cache(entry: dict, url: str) -> DateCandidate:
     date_value = entry["date_utc"]
     if isinstance(date_value, str):
         date_value = datetime.fromisoformat(date_value.replace("Z", "+00:00"))
+    date_naive = _to_naive_utc(date_value)
+    if date_naive is None:
+        raise ValueError(f"Invalid cached date for {url}")
     return DateCandidate(
-        date=_to_naive_utc(date_value),
+        date=date_naive,
         source=entry.get("source") or "cache",
         raw="",
         extractor=entry.get("extractor") or "static",
@@ -225,7 +236,9 @@ def _candidate_from_cache(entry: dict, url: str) -> DateCandidate:
     )
 
 
-def _score_static_candidates(url: str, platform: str) -> tuple[List[DateCandidate], Optional[DateCandidate]]:
+def _score_static_candidates(
+    url: str, platform: str
+) -> tuple[list[DateCandidate], DateCandidate | None]:
     cached = get_url_scrape_cache(url)
     if cached and cached.get("date_utc") is not None:
         best = _candidate_from_cache(cached, url)
@@ -274,7 +287,7 @@ def _build_pending_publication(
     platform: str,
     *,
     confidence: str = "pending",
-    best_static: Optional[DateCandidate] = None,
+    best_static: DateCandidate | None = None,
 ) -> dict:
     publication = copy.copy(result)
     publication["link"] = url
@@ -292,15 +305,23 @@ def _build_pending_publication(
 def _static_phase(result: dict) -> _StaticPhaseOutcome:
     url = result["link"]
     platform = detect_platform(url)
-    logger.info(f"Fase estatica - Source: {result['source']}, Platform: {platform}, Link: {url}")
+    logger.info(
+        f"Fase estatica - Source: {result['source']}, Platform: {platform}, Link: {url}"
+    )
 
     static_candidates, best_static = _score_static_candidates(url, platform)
-    needs_dynamic = not best_static or best_static.score < SCRAPE_STATIC_CONFIDENCE_THRESHOLD
+    needs_dynamic = (
+        not best_static or best_static.score < SCRAPE_STATIC_CONFIDENCE_THRESHOLD
+    )
 
     publication = None
     if best_static and not needs_dynamic:
-        publication = _build_publication(result, url, platform, best_static, confidence="confirmed")
-        logger.info(f"Fecha estatica: {best_static.date} (score={best_static.score:.2f})")
+        publication = _build_publication(
+            result, url, platform, best_static, confidence="confirmed"
+        )
+        logger.info(
+            f"Fecha estatica: {best_static.date} (score={best_static.score:.2f})"
+        )
     elif needs_dynamic:
         static_score = best_static.score if best_static else 0.0
         logger.info(
@@ -320,7 +341,7 @@ def _static_phase(result: dict) -> _StaticPhaseOutcome:
     )
 
 
-def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> Optional[dict]:
+def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> dict | None:
     url = outcome.url
     platform = outcome.platform
     best_static = outcome.best_static
@@ -328,7 +349,7 @@ def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> Optional[dict]:
 
     dynamic = obtener_candidatas_dinamicas(url)
     flags = classify_context(url, platform)
-    dynamic_scored: List[DateCandidate] = []
+    dynamic_scored: list[DateCandidate] = []
     for candidate in dynamic:
         candidate.flags.update(flags)
         candidate.score = score_candidate(candidate, platform, flags)
@@ -352,9 +373,7 @@ def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> Optional[dict]:
         logger.info(f"Fecha dinamica: {best.date} (score={best.score:.2f})")
     elif best_static:
         best = best_static
-        logger.info(
-            f"Fecha estatica (fallback): {best.date} (score={best.score:.2f})"
-        )
+        logger.info(f"Fecha estatica (fallback): {best.date} (score={best.score:.2f})")
     else:
         logger.debug(f"No se encontro fecha para: {url}")
         return None
@@ -370,8 +389,8 @@ def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> Optional[dict]:
 
 def _apply_static_outcome(
     outcome: _StaticPhaseOutcome,
-    publicaciones: List[dict],
-    pending_dynamic: List[_StaticPhaseOutcome],
+    publicaciones: list[dict],
+    pending_dynamic: list[_StaticPhaseOutcome],
 ) -> None:
     if outcome.publication:
         publicaciones.append(outcome.publication)
@@ -428,16 +447,18 @@ def _apply_static_outcome(
     _sort_publications(publicaciones)
 
 
-def run_static_phase(results, on_progress=None) -> tuple[List[dict], List[_StaticPhaseOutcome]]:
+def run_static_phase(
+    results, on_progress=None
+) -> tuple[list[dict], list[_StaticPhaseOutcome]]:
     deduped = _dedupe_results(results)
     total = len(deduped)
     if total == 0:
         return [], []
 
-    publicaciones: List[dict] = []
+    publicaciones: list[dict] = []
     processed = 0
     lock = threading.Lock()
-    pending_dynamic: List[_StaticPhaseOutcome] = []
+    pending_dynamic: list[_StaticPhaseOutcome] = []
 
     static_workers = min(SCRAPE_STATIC_MAX_WORKERS, total)
     logger.info(
@@ -459,27 +480,27 @@ def run_static_phase(results, on_progress=None) -> tuple[List[dict], List[_Stati
 
 
 def run_dynamic_phase(
-    pending_outcomes: List[_StaticPhaseOutcome],
+    pending_outcomes: list[_StaticPhaseOutcome],
     on_progress=None,
     *,
     static_processed: int = 0,
     static_total: int = 0,
-) -> List[dict]:
+) -> list[dict]:
     if not pending_outcomes:
         return []
 
-    updates: List[dict] = []
+    updates: list[dict] = []
     processed = 0
     total = len(pending_outcomes)
     lock = threading.Lock()
 
     dynamic_workers = min(SCRAPE_DYNAMIC_MAX_WORKERS, total)
-    logger.info(
-        f"Iniciando fase dinamica: {total} URLs, workers={dynamic_workers}"
-    )
+    logger.info(f"Iniciando fase dinamica: {total} URLs, workers={dynamic_workers}")
 
     with ThreadPoolExecutor(max_workers=dynamic_workers) as pool:
-        futures = [pool.submit(_resolve_with_dynamic, item) for item in pending_outcomes]
+        futures = [
+            pool.submit(_resolve_with_dynamic, item) for item in pending_outcomes
+        ]
         for future in as_completed(futures):
             publication = future.result()
             with lock:
@@ -496,8 +517,8 @@ def run_dynamic_phase(
     return updates
 
 
-def merge_publications(existing: List[dict], updates: List[dict]) -> List[dict]:
-    by_url: Dict[str, dict] = {}
+def merge_publications(existing: list[dict], updates: list[dict]) -> list[dict]:
+    by_url: dict[str, dict] = {}
     for item in existing:
         link = item.get("link")
         if link:

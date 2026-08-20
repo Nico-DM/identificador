@@ -1,6 +1,6 @@
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime, timezone
-from typing import Iterator
 
 from db.connection import db_cursor
 from db.json_util import from_jsonable, to_jsonable
