@@ -2,27 +2,20 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from datetime import datetime, timezone
-from urllib.parse import urlparse
+import copy
+import logging
 import os
 import uuid
-import copy
-import requests
-import logging
+from datetime import datetime, timezone
+from urllib.parse import urlparse
 
-from identificador import (
-    deserialize_pending_outcome,
-    merge_publications,
-    normalize_url,
-    run_dynamic_phase,
-    run_static_phase,
-    serialize_pending_outcome,
+import requests
+from db.cache import (
+    get_analysis_cache,
+    get_lens_cache,
+    set_analysis_cache,
+    set_lens_cache,
 )
-from scrape_config import SCRAPE_DYNAMIC_ENABLED
-from db.cache import get_analysis_cache, get_lens_cache, set_analysis_cache, set_lens_cache
 from db.config import db_enabled
 from db.repository import (
     prune_searches,
@@ -31,13 +24,25 @@ from db.repository import (
     search_persist,
     search_session,
 )
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
+from identificador import (
+    deserialize_pending_outcome,
+    merge_publications,
+    normalize_url,
+    run_dynamic_phase,
+    run_static_phase,
+    serialize_pending_outcome,
+)
+from pydantic import BaseModel
 from rate_limit import rate_limit_deep, rate_limit_results, rate_limit_search
+from scrape_config import SCRAPE_DYNAMIC_ENABLED
+from starlette.datastructures import UploadFile
 from storage import delete_search_image, storage_enabled, upload_search_image
 
 # Configurar logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -86,11 +91,14 @@ ALLOWED_ORIGINS = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS if os.getenv("ENVIRONMENT") == "development" else ["*"],
+    allow_origins=ALLOWED_ORIGINS
+    if os.getenv("ENVIRONMENT") == "development"
+    else ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 def _now_utc() -> datetime:
     return datetime.now(timezone.utc)
@@ -152,7 +160,9 @@ def _verify_url_returns_image(url: str) -> None:
             "No se pudo verificar la URL como imagen (error de red, tiempo agotado o acceso denegado)"
         ) from exc
 
-    raise ValueError("La URL no es una imagen: el servidor no devolvio Content-Type image/*")
+    raise ValueError(
+        "La URL no es una imagen: el servidor no devolvio Content-Type image/*"
+    )
 
 
 def _validate_image_url(image_url: str) -> str:
@@ -173,10 +183,7 @@ def _validate_image_url(image_url: str) -> str:
 
 
 def _is_http_url(value: str) -> bool:
-    try:
-        parsed = urlparse(value)
-    except Exception:
-        return False
+    parsed = urlparse(value)
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
@@ -199,7 +206,11 @@ def extract_match_metadata(payload: dict) -> dict[str, dict]:
             continue
         thumbnail = match.get("thumbnail")
         site_name = match.get("source")
-        thumb = thumbnail if isinstance(thumbnail, str) and _is_http_url(thumbnail) else None
+        thumb = (
+            thumbnail
+            if isinstance(thumbnail, str) and _is_http_url(thumbnail)
+            else None
+        )
         name = site_name if isinstance(site_name, str) else None
         _upsert(link, thumb, name)
 
@@ -208,19 +219,20 @@ def extract_match_metadata(payload: dict) -> dict[str, dict]:
         if not isinstance(link, str):
             continue
         thumbnail = image.get("thumbnail")
-        thumb = thumbnail if isinstance(thumbnail, str) and _is_http_url(thumbnail) else None
+        thumb = (
+            thumbnail
+            if isinstance(thumbnail, str) and _is_http_url(thumbnail)
+            else None
+        )
         _upsert(link, thumb, None)
 
     return metadata
 
 
 def _site_name_fallback(url: str, platform: str | None) -> str:
-    try:
-        host = urlparse(url).netloc
-        if host:
-            return host.removeprefix("www.")
-    except Exception:
-        pass
+    host = urlparse(url).netloc
+    if host:
+        return host.removeprefix("www.")
     return platform or "unknown"
 
 
@@ -304,7 +316,9 @@ def _save_analysis_cache(image_url: str, safe_search: bool, data: dict) -> None:
     if data.get("status") not in {"done", "static_done"}:
         return
     set_analysis_cache(image_url, _analysis_snapshot(data), safe_search=safe_search)
-    logger.info(f"Análisis cacheado para imagen (safe_search={'active' if safe_search else 'off'})")
+    logger.info(
+        f"Análisis cacheado para imagen (safe_search={'active' if safe_search else 'off'})"
+    )
 
 
 def _set_search(
@@ -361,9 +375,12 @@ def _format_result_item(item: dict, match_metadata: dict) -> dict:
         "url": url,
         "score": item.get("score"),
         "source": item.get("source"),
-        "confidence": item.get("confidence", "pending" if created is None else "confirmed"),
+        "confidence": item.get(
+            "confidence", "pending" if created is None else "confirmed"
+        ),
         "thumbnail": meta.get("thumbnail"),
-        "site_name": meta.get("site_name") or _site_name_fallback(url, platform),
+        "site_name": meta.get("site_name")
+        or (_site_name_fallback(url, platform) if url else (platform or "unknown")),
     }
 
 
@@ -427,7 +444,9 @@ def _process_search(
         )
 
         formatted = _format_results(static_results, match_metadata)
-        pending_serialized = [serialize_pending_outcome(item) for item in pending_outcomes]
+        pending_serialized = [
+            serialize_pending_outcome(item) for item in pending_outcomes
+        ]
         deep_available = SCRAPE_DYNAMIC_ENABLED and len(pending_outcomes) > 0
 
         with search_session(search_id) as current:
@@ -456,7 +475,7 @@ def _process_search(
             _save_analysis_cache(image_url, safe_search, current)
         logger.info(f"Búsqueda {search_id} fase estatica completada")
     except Exception as exc:
-        logger.error(f"Error procesando búsqueda {search_id}: {str(exc)}", exc_info=True)
+        logger.exception("Error procesando búsqueda %s", search_id)
         _set_search(search_id, "error", results=None, error=str(exc), phase="complete")
     finally:
         if upload_object_path:
@@ -481,7 +500,9 @@ def _process_deep_search(search_id: str) -> None:
             total=static_total + deep_total,
         )
 
-        def _on_deep_progress(processed: int, total: int, partial_updates: list) -> None:
+        def _on_deep_progress(
+            processed: int, total: int, partial_updates: list
+        ) -> None:
             merged_raw = merge_publications(existing_raw, partial_updates)
             formatted = _format_results(merged_raw, match_metadata)
             _update_search_progress(
@@ -521,9 +542,11 @@ def _process_deep_search(search_id: str) -> None:
                 current.get("safe_search", True),
                 current,
             )
-        logger.info(f"Búsqueda profunda {search_id} completada: {len(formatted)} resultados")
+        logger.info(
+            f"Búsqueda profunda {search_id} completada: {len(formatted)} resultados"
+        )
     except Exception as exc:
-        logger.error(f"Error en búsqueda profunda {search_id}: {str(exc)}", exc_info=True)
+        logger.exception("Error en búsqueda profunda %s", search_id)
         with search_session(search_id) as current:
             if current:
                 current["deep_search_available"] = False
@@ -558,9 +581,7 @@ def _parse_safe_search(value) -> bool:
     normalized = str(value).strip().lower()
     if normalized in {"1", "true", "yes", "on"}:
         return True
-    if normalized in {"0", "false", "no", "off"}:
-        return False
-    return True
+    return normalized not in {"0", "false", "no", "off"}
 
 
 def _start_search(
@@ -643,7 +664,7 @@ async def search(
         upload = form.get("file")
         safe_search = _parse_safe_search(form.get("safe_search"))
 
-        if upload is None or not hasattr(upload, "read"):
+        if not isinstance(upload, UploadFile):
             raise HTTPException(status_code=400, detail="Falta el archivo de imagen")
 
         filename = getattr(upload, "filename", None) or "upload.jpg"

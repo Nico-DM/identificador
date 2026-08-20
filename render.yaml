@@ -41,4 +41,3 @@ services:
         value: "5"
       - key: RATE_LIMIT_RESULTS_PER_MINUTE
         value: "300"
-

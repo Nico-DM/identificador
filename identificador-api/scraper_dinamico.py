@@ -1,17 +1,22 @@
+import json
+import logging
+import re
+import time
+from datetime import datetime, timezone
+
+from bs4 import BeautifulSoup
+from dateutil import parser
+from dateutil.parser import ParserError
+from modelos import DateCandidate
 from selenium import webdriver
+from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from dateutil import parser
-from datetime import datetime, timezone
-from bs4 import BeautifulSoup
-import re, json, time, logging
-from typing import List
-
-from modelos import DateCandidate
+from selenium.webdriver.support.wait import WebDriverWait
 
 logger = logging.getLogger(__name__)
+
 
 def _to_naive_utc(dt):
     """Convierte cualquier datetime a naive UTC."""
@@ -21,11 +26,15 @@ def _to_naive_utc(dt):
         return dt.astimezone(timezone.utc).replace(tzinfo=None)
     return dt
 
+
 ISO_DATETIME_RE = re.compile(
     r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:Z|[+\-]\d{2}:?\d{2})?"
 )
 ISO_DATE_RE = re.compile(r"\d{4}-\d{2}-\d{2}")
-VERBOSE_DATE_RE = re.compile(r"\b\d{1,2} (?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}\b", re.IGNORECASE)
+VERBOSE_DATE_RE = re.compile(
+    r"\b\d{1,2} (?:enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) \d{4}\b",
+    re.IGNORECASE,
+)
 GENERIC_DATE_RE = re.compile(r"\b\d{1,2}/\d{1,2}/\d{4}\b")
 
 # prioridad: menor es mejor
@@ -38,22 +47,25 @@ SOURCE_PRIORITY = {
     "visible-text": 6,
 }
 
+
 def _try_parse_date(text):
+    parse_errors = (ParserError, OverflowError, TypeError, ValueError)
     try:
-        d = parser.parse(text, fuzzy=False)
-        return d
-    except Exception:
+        return parser.parse(text, fuzzy=False)
+    except parse_errors:
         try:
             # menos estricto
-            d = parser.parse(text, fuzzy=True)
-            return d
-        except Exception:
+            return parser.parse(text, fuzzy=True)
+        except parse_errors:
             return None
+
 
 def _add_candidate(candidates, date_obj, source, raw, url):
     if date_obj is None:
         return
     date_naive = _to_naive_utc(date_obj)
+    if date_naive is None:
+        return
     candidates.append(
         DateCandidate(
             date=date_naive,
@@ -64,26 +76,30 @@ def _add_candidate(candidates, date_obj, source, raw, url):
         )
     )
 
+
 # -------------------------
 # Buscar time / meta elements
 # -------------------------
 def extract_from_dom(driver, url):
     candidates = []
     selectors_time = [
-        'time[datetime]',
-        'article time[datetime]',
+        "time[datetime]",
+        "article time[datetime]",
         'div[role="article"] time[datetime]',
         'div[data-testid="tweet"] time',
-        'a time[datetime]',
+        "a time[datetime]",
     ]
     for sel in selectors_time:
         try:
             elems = driver.find_elements(By.CSS_SELECTOR, sel)
             for e in elems:
-                dt = e.get_attribute("datetime") or e.get_attribute("dateTime") or e.text
+                dt = (
+                    e.get_attribute("datetime") or e.get_attribute("dateTime") or e.text
+                )
                 parsed = _try_parse_date(dt) if dt else None
                 _add_candidate(candidates, parsed, "time", dt, url)
-        except Exception:
+        except WebDriverException:
+            logger.debug("Selector time fallido %s en %s", sel, url, exc_info=True)
             continue
 
     # metas
@@ -101,13 +117,17 @@ def extract_from_dom(driver, url):
         try:
             elems = driver.find_elements(By.CSS_SELECTOR, sel)
             for e in elems:
-                content = e.get_attribute("content") or e.get_attribute("value") or e.text
+                content = (
+                    e.get_attribute("content") or e.get_attribute("value") or e.text
+                )
                 parsed = _try_parse_date(content) if content else None
                 _add_candidate(candidates, parsed, "meta", content, url)
-        except Exception:
+        except WebDriverException:
+            logger.debug("Selector meta fallido %s en %s", sel, url, exc_info=True)
             continue
 
     return candidates
+
 
 # -------------------------
 # Buscar JSON/ld+json en <script>
@@ -117,24 +137,29 @@ def extract_dates_from_scripts(driver, url):
     soup = BeautifulSoup(driver.page_source, "html.parser")
     scripts = soup.find_all("script")
     for script in scripts:
-        text = script.string if script.string is not None else script.get_text() # type: ignore
+        text = script.string if script.string is not None else script.get_text()  # type: ignore
         if not text or text.strip() == "":
             continue
 
         # saltar scripts de cookies / trackers que contienen fechas de expiracion
         low = text.lower()
-        if "document.cookie" in low or "expires=" in low or "max-age" in low or "setcookie" in low:
+        if (
+            "document.cookie" in low
+            or "expires=" in low
+            or "max-age" in low
+            or "setcookie" in low
+        ):
             continue
 
         # ld+json tipicos
-        if script.get("type") == "application/ld+json": # type: ignore
+        if script.get("type") == "application/ld+json":  # type: ignore
             try:
                 parsed_json = json.loads(text)
-            except Exception:
+            except json.JSONDecodeError:
                 # intentar reparar arrays multiples (no critico)
                 try:
                     parsed_json = json.loads("[" + text + "]")
-                except Exception:
+                except json.JSONDecodeError:
                     parsed_json = None
             if parsed_json is not None:
                 # recorrer diccionario/array buscando claves con fechas
@@ -147,28 +172,39 @@ def extract_dates_from_scripts(driver, url):
                                 stack.append(v)
                             elif isinstance(v, str):
                                 # claves que habitualmente almacenan fecha
-                                if k.lower() in ("datepublished", "uploaddate", "datecreated", "datepublished"):
+                                if k.lower() in (
+                                    "datepublished",
+                                    "uploaddate",
+                                    "datecreated",
+                                    "datepublished",
+                                ):
                                     d = _try_parse_date(v)
                                     _add_candidate(candidates, d, "ld+json", v, url)
                                 else:
                                     # tambien intentar si la cadena parece ISO
-                                    if ISO_DATETIME_RE.search(v) or ISO_DATE_RE.search(v):
+                                    if ISO_DATETIME_RE.search(v) or ISO_DATE_RE.search(
+                                        v
+                                    ):
                                         d = _try_parse_date(v)
                                         _add_candidate(candidates, d, "ld+json", v, url)
                     elif isinstance(node, list):
                         for it in node:
                             if isinstance(it, (dict, list)):
                                 stack.append(it)
-                            elif isinstance(it, str):
-                                if ISO_DATETIME_RE.search(it) or ISO_DATE_RE.search(it):
-                                    d = _try_parse_date(it)
-                                    _add_candidate(candidates, d, "ld+json", it, url)
+                            elif isinstance(it, str) and (
+                                ISO_DATETIME_RE.search(it) or ISO_DATE_RE.search(it)
+                            ):
+                                d = _try_parse_date(it)
+                                _add_candidate(candidates, d, "ld+json", it, url)
             continue
 
         # si no es ld+json, buscar claves tipo "datePublished" dentro del texto (JSON incrustado)
         if "datePublished" in text or "created_at" in text or "dateCreated" in text:
             # primero intentar con regex para extraer valores entre comillas
-            matches = re.findall(r'"(?:datePublished|uploadDate|created_at|dateCreated)"\s*:\s*"([^"]+)"', text)
+            matches = re.findall(
+                r'"(?:datePublished|uploadDate|created_at|dateCreated)"\s*:\s*"([^"]+)"',
+                text,
+            )
             for m in matches:
                 d = _try_parse_date(m)
                 _add_candidate(candidates, d, "script-json", m, url)
@@ -180,6 +216,7 @@ def extract_dates_from_scripts(driver, url):
                 _add_candidate(candidates, d, "script-regex", m, url)
 
     return candidates
+
 
 # -------------------------
 # Buscar en texto visible (limpiando scripts/styles)
@@ -205,10 +242,11 @@ def extract_from_visible_text(driver, url):
         _add_candidate(candidates, d, "visible-text", m, url)
     return candidates
 
+
 # -------------------------
 # Seleccionar mejor fecha con prioridad + distancia a hoy
 # -------------------------
-def seleccionar_mejor_fecha(candidates: List[DateCandidate]):
+def seleccionar_mejor_fecha(candidates: list[DateCandidate]):
     if not candidates:
         return None
 
@@ -237,14 +275,22 @@ def seleccionar_mejor_fecha(candidates: List[DateCandidate]):
         c_distance = abs((hoy - d_naive).days) if d_naive else 999999
         c.flags["distance_days"] = c_distance
 
-    filtered.sort(key=lambda x: (SOURCE_PRIORITY.get(x.source, 99), x.flags.get("distance_days", 0)))
+    filtered.sort(
+        key=lambda x: (
+            SOURCE_PRIORITY.get(x.source, 99),
+            x.flags.get("distance_days", 0),
+        )
+    )
     best = filtered[0]
     return best
+
 
 # -------------------------
 # Función principal
 # -------------------------
-def obtener_candidatas_dinamicas(url, headless=True, timeout=20, wait_for=8) -> List[DateCandidate]:
+def obtener_candidatas_dinamicas(
+    url, headless=True, timeout=20, wait_for=8
+) -> list[DateCandidate]:
     options = Options()
     if headless:
         # dependiendo de la version de Chrome, '--headless=new' puede funcionar; usar '--headless' por compatibilidad
@@ -275,13 +321,15 @@ def obtener_candidatas_dinamicas(url, headless=True, timeout=20, wait_for=8) -> 
             """
             },
         )
-    except Exception:
-        pass
+    except WebDriverException:
+        logger.debug("No se pudo ocultar webdriver en %s", url, exc_info=True)
 
     try:
         driver.get(url)
         # esperar que el body exista
-        WebDriverWait(driver, wait_for).until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+        WebDriverWait(driver, wait_for).until(
+            EC.presence_of_element_located((By.TAG_NAME, "body"))
+        )
 
         # dar tiempo extra para que JS renderice (scroll + sleeps)
         for _ in range(3):
@@ -296,20 +344,22 @@ def obtener_candidatas_dinamicas(url, headless=True, timeout=20, wait_for=8) -> 
         # 3) texto visible
         candidates += extract_from_visible_text(driver, url)
 
-
         return candidates
 
-    except Exception:
+    except WebDriverException:
+        logger.debug("Scrape dinamico fallido para %s", url, exc_info=True)
         return []
     finally:
         try:
             driver.quit()
-        except Exception:
-            pass
+        except WebDriverException:
+            logger.debug("No se pudo cerrar el driver para %s", url, exc_info=True)
 
 
 def obtener_fecha_dinamica(url, headless=True, timeout=20, wait_for=8):
-    candidates = obtener_candidatas_dinamicas(url, headless=headless, timeout=timeout, wait_for=wait_for)
+    candidates = obtener_candidatas_dinamicas(
+        url, headless=headless, timeout=timeout, wait_for=wait_for
+    )
     best = seleccionar_mejor_fecha(candidates)
     return best.date if best else None
 

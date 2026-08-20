@@ -1,16 +1,21 @@
 import argparse
-import time
-import requests
 import logging
+import time
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+import requests
+
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 TERMINAL_STATUSES = {"done", "error"}
 STATIC_TERMINAL_STATUSES = {"static_done", "done", "error"}
 
 
-def poll_results(base_url: str, search_id: str, *, until_statuses: set[str], label: str) -> dict:
+def poll_results(
+    base_url: str, search_id: str, *, until_statuses: set[str], label: str
+) -> dict:
     for attempt in range(60):
         time.sleep(2)
         res = requests.get(f"{base_url}/api/results/{search_id}", timeout=30)
@@ -32,9 +37,13 @@ def poll_results(base_url: str, search_id: str, *, until_statuses: set[str], lab
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Smoke test para el API de identificador")
+    parser = argparse.ArgumentParser(
+        description="Smoke test para el API de identificador"
+    )
     parser.add_argument("--image-url", required=True, help="URL publica de imagen")
-    parser.add_argument("--base-url", default="http://localhost:8000", help="Base URL del backend")
+    parser.add_argument(
+        "--base-url", default="http://localhost:8000", help="Base URL del backend"
+    )
     parser.add_argument(
         "--expect-status",
         type=int,

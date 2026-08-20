@@ -14,6 +14,7 @@ def _normalize_url(url: str) -> str:
 
     return normalize_url(url)
 
+
 _CACHE_SELECT = """
 SELECT platform, date_utc, score, source, extractor, confidence, scraped_at
 FROM url_scrape_cache
@@ -66,7 +67,9 @@ def get_analysis_cache(image_url: str, *, safe_search: bool = True) -> dict | No
         return from_jsonable(entry[1])
 
 
-def set_analysis_cache(image_url: str, snapshot: dict, *, safe_search: bool = True) -> None:
+def set_analysis_cache(
+    image_url: str, snapshot: dict, *, safe_search: bool = True
+) -> None:
     key = analysis_cache_key(image_url, safe_search=safe_search)
     encoded = to_jsonable(snapshot)
     now = time.time()

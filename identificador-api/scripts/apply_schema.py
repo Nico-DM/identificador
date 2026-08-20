@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
 """Aplica schema/001_init.sql usando DATABASE_URL del entorno."""
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 from dotenv import load_dotenv
 
@@ -23,12 +22,15 @@ def main() -> int:
         print(f"No existe {SCHEMA}", file=sys.stderr)
         return 1
 
+    from typing import cast
+
     import psycopg
+    from psycopg.abc import Query
 
     sql = SCHEMA.read_text(encoding="utf-8")
     with psycopg.connect(**connection_params()) as conn:
         with conn.cursor() as cur:
-            cur.execute(sql)
+            cur.execute(cast(Query, sql))
         conn.commit()
     print(f"Esquema aplicado desde {SCHEMA}")
     return 0

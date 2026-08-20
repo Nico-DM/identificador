@@ -1,15 +1,15 @@
+import json
+import logging
+import re
+from datetime import datetime, timezone
+
+import dateparser
 import requests
 from bs4 import BeautifulSoup
-import re
-import json
-import dateparser
-import logging
-from datetime import datetime, timezone
-from typing import List
-
 from modelos import DateCandidate
 
 logger = logging.getLogger(__name__)
+
 
 def _to_naive_utc(dt):
     """Convierte cualquier datetime a naive UTC."""
@@ -18,6 +18,7 @@ def _to_naive_utc(dt):
     if dt.tzinfo is not None:
         return dt.astimezone(timezone.utc).replace(tzinfo=None)
     return dt
+
 
 def _extract_ld_json_dates(soup):
     fechas = []
@@ -40,7 +41,9 @@ def _extract_ld_json_dates(soup):
                     if isinstance(value, (dict, list)):
                         stack.append(value)
                     elif isinstance(value, str) and key.lower() in (
-                        "datepublished", "uploaddate", "datecreated",
+                        "datepublished",
+                        "uploaddate",
+                        "datecreated",
                     ):
                         fechas.append((value, "ld+json"))
             elif isinstance(node, list):
@@ -48,6 +51,7 @@ def _extract_ld_json_dates(soup):
                     if isinstance(item, (dict, list)):
                         stack.append(item)
     return fechas
+
 
 def obtener_fechas_candidatas(html):
     soup = BeautifulSoup(html, "html.parser")
@@ -57,36 +61,43 @@ def obtener_fechas_candidatas(html):
 
     # 1. Etiquetas <time>
     for time_tag in soup.find_all("time"):
-        if time_tag.get("datetime"): # type: ignore
-            fechas.append((time_tag["datetime"], "time")) # type: ignore
+        if time_tag.get("datetime"):  # type: ignore
+            fechas.append((time_tag["datetime"], "time"))  # type: ignore
         elif time_tag.text:
             fechas.append((time_tag.text.strip(), "time"))
 
     # 2. Metadatos comunes
     metas = [
-        "article:published_time", "og:published_time", "date", "dc.date",
-        "dc.date.issued", "pubdate", "publish-date", "datePublished"
+        "article:published_time",
+        "og:published_time",
+        "date",
+        "dc.date",
+        "dc.date.issued",
+        "pubdate",
+        "publish-date",
+        "datePublished",
     ]
     for meta in soup.find_all("meta"):
-        name = meta.get("name", "").lower() # type: ignore
-        prop = meta.get("property", "").lower() # type: ignore
-        value = meta.get("content") or meta.get("value") # type: ignore
-        if value:
-            if name in metas or prop in metas:
-                fechas.append((value, "meta"))
+        name = meta.get("name", "").lower()  # type: ignore
+        prop = meta.get("property", "").lower()  # type: ignore
+        value = meta.get("content") or meta.get("value")  # type: ignore
+        if value and (name in metas or prop in metas):
+            fechas.append((value, "meta"))
 
     # 3. Texto plano
     texto = soup.get_text()
     patrones = re.findall(
         r"\b(\d{1,2} de \w+ de \d{4}|\w+ \d{1,2}, \d{4}|\d{4}-\d{2}-\d{2})\b",
-        texto, re.IGNORECASE
+        texto,
+        re.IGNORECASE,
     )
     for p in patrones:
         fechas.append((p, "texto"))
 
     return fechas
 
-def seleccionar_mejor_fecha(candidates: List[DateCandidate]):
+
+def seleccionar_mejor_fecha(candidates: list[DateCandidate]):
     puntuadas = []
     now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
     for c in candidates:
@@ -105,19 +116,22 @@ def seleccionar_mejor_fecha(candidates: List[DateCandidate]):
     puntuadas.sort(key=lambda x: (-x[1], x[0]))  # mayor puntaje y mas antigua
     return puntuadas[0][0] if puntuadas else None
 
-def obtener_candidatas_estaticas(url: str) -> List[DateCandidate]:
+
+def obtener_candidatas_estaticas(url: str) -> list[DateCandidate]:
     try:
         r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
         if r.status_code != 200:
             return []
         html = r.text
         fechas_raw = obtener_fechas_candidatas(html)
-        candidates: List[DateCandidate] = []
+        candidates: list[DateCandidate] = []
         for texto, fuente in fechas_raw:
             fecha = dateparser.parse(texto)
             if not fecha:
                 continue
             fecha_naive = _to_naive_utc(fecha)
+            if fecha_naive is None:
+                continue
             candidates.append(
                 DateCandidate(
                     date=fecha_naive,
@@ -128,8 +142,10 @@ def obtener_candidatas_estaticas(url: str) -> List[DateCandidate]:
                 )
             )
         return candidates
-    except Exception:
+    except requests.RequestException:
+        logger.debug("Scrape estatico fallido para %s", url, exc_info=True)
         return []
+
 
 def obtener_fecha_estatica(url):
     candidates = obtener_candidatas_estaticas(url)

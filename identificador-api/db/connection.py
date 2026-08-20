@@ -1,18 +1,23 @@
+from collections.abc import Iterator
 from contextlib import contextmanager
-from typing import Iterator
+from typing import Any, cast
 
 from db.config import connection_params
 
-_pool = None
+_pool: Any = None
 
 
 def _get_conn():
     global _pool
     import psycopg
-    from psycopg.rows import dict_row
+    from psycopg.rows import RowFactory, dict_row
 
     if _pool is None or _pool.closed:
-        _pool = psycopg.connect(**connection_params(), row_factory=dict_row, autocommit=False)
+        _pool = psycopg.connect(
+            **connection_params(),
+            row_factory=cast(RowFactory[Any], dict_row),
+            autocommit=False,
+        )
     return _pool
 
 
