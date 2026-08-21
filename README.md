@@ -28,7 +28,7 @@ Usuario → Frontend (Next.js) → Backend (FastAPI) → SerpApi + Scrapers → 
 | Capa | Tecnología |
 |------|------------|
 | Frontend | [Next.js](https://nextjs.org/) (App Router), TypeScript |
-| Backend | [FastAPI](https://fastapi.tiangolo.com/) (Python 3.10+) |
+| Backend | [FastAPI](https://fastapi.tiangolo.com/) (Python 3.11) |
 | Búsqueda inversa | SerpApi — motor `google_reverse_image` |
 | Scraping | BeautifulSoup (estático); Selenium opcional (búsqueda profunda) |
 | Persistencia | Supabase / Postgres (opcional; sin configurar, el estado queda en memoria) |
@@ -44,13 +44,16 @@ Usuario → Frontend (Next.js) → Backend (FastAPI) → SerpApi + Scrapers → 
 identificador/
 ├── README.md                 # Este archivo
 ├── render.yaml               # Blueprint de despliegue en Render
+├── scripts/dev.sh            # Levanta API + web en local (sin DB por defecto)
 ├── identificador-api/        # Backend FastAPI
 │   ├── main.py               # Endpoints, SerpApi, workers
 │   ├── identificador.py      # Scoring y ordenación de candidatas
 │   ├── scraper_estatico.py
 │   ├── scraper_dinamico.py
 │   ├── db/                   # Persistencia Supabase/Postgres
-│   └── scripts/smoke_test.py
+│   └── scripts/
+│       ├── smoke_test.py
+│       └── apply_schema.py   # Aplica schema/001_init.sql
 └── identificador-web/        # Frontend Next.js
     ├── app/page.tsx          # Interfaz principal
     └── app/api/              # Proxy hacia el backend
@@ -62,9 +65,17 @@ identificador/
 
 ### Requisitos
 
-- Python 3.10+
+- Python 3.11
 - Node.js (compatible con la versión de Next.js del proyecto)
 - Clave de [SerpApi](https://serpapi.com/) (`SERPAPI_API_KEY`)
+
+### Todo junto (recomendado)
+
+```bash
+./scripts/dev.sh
+```
+
+Levanta backend (`http://localhost:8000`) y frontend (`http://localhost:3000`) en una sola terminal. Por defecto usa memoria en lugar de Postgres; para usar Supabase/Postgres localmente: `DEV_USE_DATABASE=1 ./scripts/dev.sh`.
 
 ### Backend
 
@@ -126,6 +137,7 @@ Flujo: el cliente envía la búsqueda → el backend responde con `search_id` y 
 | `SEARCH_TTL_SECONDS` | TTL de búsquedas en memoria (por defecto `900`) |
 | `ENVIRONMENT` | `development` en local; `production` en Render |
 | `DATABASE_URL` | Opcional — Postgres/Supabase para persistencia y caché |
+| `DISABLE_DATABASE` | `1`/`true` fuerza modo memoria (lo usa `scripts/dev.sh` por defecto) |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STORAGE_BUCKET` | Opcional — subida de archivos |
 
 Plantilla completa: `identificador-api/.env.example`.
@@ -156,3 +168,14 @@ En el plan free de Render el servicio se suspende tras inactividad. Para mantene
 **En Vercel** — Misma variable `BACKEND_API_URL` con la URL HTTPS de Render; redeploy del frontend después de guardarla.
 
 **URL de imagen rechazada** — Debe ser `http`/`https` y apuntar a una imagen (extensión permitida o `Content-Type: image/*`).
+
+---
+
+## Derechos del ícono
+
+This favicon was generated using the following graphics from Twitter Twemoji:
+
+- Graphics Title: 1f9d1-200d-1f3a8.svg
+- Graphics Author: Copyright 2020 Twitter, Inc and other contributors (https://github.com/twitter/twemoji)
+- Graphics Source: https://github.com/twitter/twemoji/blob/v14.0.2/assets/svg/1f9d1-200d-1f3a8.svg
+- Graphics License: CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/)

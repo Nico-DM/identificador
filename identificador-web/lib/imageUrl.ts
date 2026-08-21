@@ -6,7 +6,6 @@ export const IMAGE_EXTENSIONS = new Set([
   ".gif",
   ".webp",
   ".avif",
-  ".svg",
   ".bmp",
   ".ico",
   ".heic",

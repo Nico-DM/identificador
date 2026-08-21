@@ -42,7 +42,7 @@ export async function POST(req: Request) {
 
   if (typeof imageUrl !== "string" || !imageUrl.trim()) {
     return Response.json(
-      { error: "image_url invalida o faltante" },
+      { detail: "image_url invalida o faltante" },
       { status: 400 },
     );
   }

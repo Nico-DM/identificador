@@ -1,7 +1,7 @@
 import json
 import logging
 import re
-from datetime import datetime, timezone
+from datetime import timezone
 
 import dateparser
 import requests
@@ -97,26 +97,6 @@ def obtener_fechas_candidatas(html):
     return fechas
 
 
-def seleccionar_mejor_fecha(candidates: list[DateCandidate]):
-    puntuadas = []
-    now_naive = datetime.now(timezone.utc).replace(tzinfo=None)
-    for c in candidates:
-        fecha = c.date
-        fecha_sin_tz = _to_naive_utc(fecha)
-        if fecha_sin_tz and fecha_sin_tz <= now_naive:
-            puntaje = 0
-            if "published" in c.source or "datePublished" in c.source:
-                puntaje += 3
-            if "meta" in c.source:
-                puntaje += 2
-            if "time" in c.source:
-                puntaje += 1
-            puntuadas.append((fecha_sin_tz, puntaje))
-
-    puntuadas.sort(key=lambda x: (-x[1], x[0]))  # mayor puntaje y mas antigua
-    return puntuadas[0][0] if puntuadas else None
-
-
 def obtener_candidatas_estaticas(url: str) -> list[DateCandidate]:
     try:
         r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
@@ -145,15 +125,3 @@ def obtener_candidatas_estaticas(url: str) -> list[DateCandidate]:
     except requests.RequestException:
         logger.debug("Scrape estatico fallido para %s", url, exc_info=True)
         return []
-
-
-def obtener_fecha_estatica(url):
-    candidates = obtener_candidatas_estaticas(url)
-    return seleccionar_mejor_fecha(candidates)
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    url = "https://www.deviantart.com/qoentari/art/Dnd-gunslinger-character-1061655719"
-    fecha = obtener_fecha_estatica(url)
-    logger.info(f"Fecha extraída: {fecha}")

@@ -1,6 +1,6 @@
 import os
 
-from psycopg.conninfo import conninfo_to_dict, make_conninfo
+from psycopg.conninfo import conninfo_to_dict
 
 
 def _env(name: str, default: str = "") -> str:
@@ -28,13 +28,6 @@ def connection_params() -> dict:
     if password:
         params["password"] = password
     return params
-
-
-def connection_string() -> str:
-    params = connection_params()
-    if not params:
-        return ""
-    return make_conninfo("", **params)
 
 
 def db_enabled() -> bool:

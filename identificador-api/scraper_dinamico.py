@@ -2,7 +2,7 @@ import json
 import logging
 import re
 import time
-from datetime import datetime, timezone
+from datetime import timezone
 
 from bs4 import BeautifulSoup
 from dateutil import parser
@@ -36,16 +36,6 @@ VERBOSE_DATE_RE = re.compile(
     re.IGNORECASE,
 )
 GENERIC_DATE_RE = re.compile(r"\b\d{1,2}/\d{1,2}/\d{4}\b")
-
-# prioridad: menor es mejor
-SOURCE_PRIORITY = {
-    "time": 1,
-    "meta": 2,
-    "ld+json": 3,
-    "script-json": 4,
-    "script-regex": 5,
-    "visible-text": 6,
-}
 
 
 def _try_parse_date(text):
@@ -243,51 +233,6 @@ def extract_from_visible_text(driver, url):
     return candidates
 
 
-# -------------------------
-# Seleccionar mejor fecha con prioridad + distancia a hoy
-# -------------------------
-def seleccionar_mejor_fecha(candidates: list[DateCandidate]):
-    if not candidates:
-        return None
-
-    hoy = datetime.now(timezone.utc).replace(tzinfo=None)
-    # filtrar rango razonable
-    filtered = []
-    for c in candidates:
-        d = c.date
-        if d is None:
-            continue
-        d_naive = _to_naive_utc(d)
-        if d_naive is None:
-            continue
-        if d_naive.year < 2000:
-            continue
-        if d_naive > hoy:
-            # ignorar fechas futuras
-            continue
-        filtered.append(c)
-    if not filtered:
-        return None
-
-    # ordenar por (prioridad, distancia_dias)
-    for c in filtered:
-        d_naive = _to_naive_utc(c.date)
-        c_distance = abs((hoy - d_naive).days) if d_naive else 999999
-        c.flags["distance_days"] = c_distance
-
-    filtered.sort(
-        key=lambda x: (
-            SOURCE_PRIORITY.get(x.source, 99),
-            x.flags.get("distance_days", 0),
-        )
-    )
-    best = filtered[0]
-    return best
-
-
-# -------------------------
-# Función principal
-# -------------------------
 def obtener_candidatas_dinamicas(
     url, headless=True, timeout=20, wait_for=8
 ) -> list[DateCandidate]:
@@ -354,18 +299,3 @@ def obtener_candidatas_dinamicas(
             driver.quit()
         except WebDriverException:
             logger.debug("No se pudo cerrar el driver para %s", url, exc_info=True)
-
-
-def obtener_fecha_dinamica(url, headless=True, timeout=20, wait_for=8):
-    candidates = obtener_candidatas_dinamicas(
-        url, headless=headless, timeout=timeout, wait_for=wait_for
-    )
-    best = seleccionar_mejor_fecha(candidates)
-    return best.date if best else None
-
-
-if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
-    url = "https://x.com/_Woong_Bi_/status/1940043620599603367"
-    fecha = obtener_fecha_dinamica(url)
-    logger.info(f"Fecha extraída: {fecha}")
