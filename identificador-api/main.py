@@ -190,7 +190,12 @@ def _is_http_url(value: str) -> bool:
 def extract_match_metadata(payload: dict) -> dict[str, dict]:
     metadata: dict[str, dict] = {}
 
-    def _upsert(link: str, thumbnail: str | None, site_name: str | None) -> None:
+    def _upsert(
+        link: str,
+        thumbnail: str | None,
+        site_name: str | None,
+        favicon: str | None = None,
+    ) -> None:
         if not _is_http_url(link):
             return
         key = normalize_url(link)
@@ -199,16 +204,36 @@ def extract_match_metadata(payload: dict) -> dict[str, dict]:
             entry.setdefault("thumbnail", thumbnail)
         if site_name and site_name.strip():
             entry.setdefault("site_name", site_name.strip())
+        if favicon and _is_http_url(favicon):
+            entry.setdefault("favicon", favicon)
+
+    inline_thumbnails: dict[str, str] = {}
+    for image in payload.get("inline_images", []) or []:
+        page = image.get("link") or image.get("source")
+        thumbnail = image.get("thumbnail")
+        if (
+            isinstance(page, str)
+            and _is_http_url(page)
+            and isinstance(thumbnail, str)
+            and _is_http_url(thumbnail)
+        ):
+            inline_thumbnails[normalize_url(page)] = thumbnail
 
     for result in payload.get("image_results", []) or []:
         link = result.get("link")
         if not isinstance(link, str):
             continue
-        favicon = result.get("favicon")
-        thumb = favicon if isinstance(favicon, str) and _is_http_url(favicon) else None
+        thumbnail = result.get("thumbnail")
+        thumb = (
+            thumbnail
+            if isinstance(thumbnail, str) and _is_http_url(thumbnail)
+            else inline_thumbnails.get(normalize_url(link))
+        )
         source = result.get("source")
         name = source if isinstance(source, str) else None
-        _upsert(link, thumb, name)
+        favicon = result.get("favicon")
+        icon = favicon if isinstance(favicon, str) and _is_http_url(favicon) else None
+        _upsert(link, thumb, name, icon)
 
     for match in payload.get("visual_matches", []) or []:
         link = match.get("link")
@@ -222,7 +247,13 @@ def extract_match_metadata(payload: dict) -> dict[str, dict]:
             else None
         )
         name = site_name if isinstance(site_name, str) else None
-        _upsert(link, thumb, name)
+        source_icon = match.get("source_icon")
+        icon = (
+            source_icon
+            if isinstance(source_icon, str) and _is_http_url(source_icon)
+            else None
+        )
+        _upsert(link, thumb, name, icon)
 
     for image in payload.get("inline_images", []) or []:
         link = image.get("link") or image.get("source")
@@ -398,6 +429,7 @@ def _format_result_item(item: dict, match_metadata: dict) -> dict:
             "confidence", "pending" if created is None else "confirmed"
         ),
         "thumbnail": meta.get("thumbnail"),
+        "favicon": meta.get("favicon"),
         "site_name": meta.get("site_name")
         or (_site_name_fallback(url, platform) if url else (platform or "unknown")),
     }
