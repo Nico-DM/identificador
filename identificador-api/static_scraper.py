@@ -6,13 +6,13 @@ from datetime import timezone
 import dateparser
 import requests
 from bs4 import BeautifulSoup
-from modelos import DateCandidate
+from models import DateCandidate
 
 logger = logging.getLogger(__name__)
 
 
 def _to_naive_utc(dt):
-    """Convierte cualquier datetime a naive UTC."""
+    """Convert any datetime to naive UTC."""
     if dt is None:
         return None
     if dt.tzinfo is not None:
@@ -21,7 +21,7 @@ def _to_naive_utc(dt):
 
 
 def _extract_ld_json_dates(soup):
-    fechas = []
+    dates = []
     for script in soup.find_all("script", type="application/ld+json"):
         text = script.string if script.string is not None else script.get_text()
         if not text or not text.strip():
@@ -45,29 +45,29 @@ def _extract_ld_json_dates(soup):
                         "uploaddate",
                         "datecreated",
                     ):
-                        fechas.append((value, "ld+json"))
+                        dates.append((value, "ld+json"))
             elif isinstance(node, list):
                 for item in node:
                     if isinstance(item, (dict, list)):
                         stack.append(item)
-    return fechas
+    return dates
 
 
-def obtener_fechas_candidatas(html):
+def extract_candidate_dates(html):
     soup = BeautifulSoup(html, "html.parser")
-    fechas = []
+    dates = []
 
-    fechas.extend(_extract_ld_json_dates(soup))
+    dates.extend(_extract_ld_json_dates(soup))
 
-    # 1. Etiquetas <time>
+    # 1. <time> tags
     for time_tag in soup.find_all("time"):
         if time_tag.get("datetime"):  # type: ignore
-            fechas.append((time_tag["datetime"], "time"))  # type: ignore
+            dates.append((time_tag["datetime"], "time"))  # type: ignore
         elif time_tag.text:
-            fechas.append((time_tag.text.strip(), "time"))
+            dates.append((time_tag.text.strip(), "time"))
 
-    # 2. Metadatos comunes
-    metas = [
+    # 2. Common metadata
+    meta_names = [
         "article:published_time",
         "og:published_time",
         "date",
@@ -81,47 +81,47 @@ def obtener_fechas_candidatas(html):
         name = meta.get("name", "").lower()  # type: ignore
         prop = meta.get("property", "").lower()  # type: ignore
         value = meta.get("content") or meta.get("value")  # type: ignore
-        if value and (name in metas or prop in metas):
-            fechas.append((value, "meta"))
+        if value and (name in meta_names or prop in meta_names):
+            dates.append((value, "meta"))
 
-    # 3. Texto plano
-    texto = soup.get_text()
-    patrones = re.findall(
+    # 3. Plain text
+    visible_text = soup.get_text()
+    patterns = re.findall(
         r"\b(\d{1,2} de \w+ de \d{4}|\w+ \d{1,2}, \d{4}|\d{4}-\d{2}-\d{2})\b",
-        texto,
+        visible_text,
         re.IGNORECASE,
     )
-    for p in patrones:
-        fechas.append((p, "texto"))
+    for match in patterns:
+        dates.append((match, "plain-text"))
 
-    return fechas
+    return dates
 
 
-def obtener_candidatas_estaticas(url: str) -> list[DateCandidate]:
+def fetch_static_candidates(url: str) -> list[DateCandidate]:
     try:
         r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
         if r.status_code != 200:
             return []
         html = r.text
-        fechas_raw = obtener_fechas_candidatas(html)
+        raw_dates = extract_candidate_dates(html)
         candidates: list[DateCandidate] = []
-        for texto, fuente in fechas_raw:
-            fecha = dateparser.parse(texto)
-            if not fecha:
+        for text, source in raw_dates:
+            parsed_date = dateparser.parse(text)
+            if not parsed_date:
                 continue
-            fecha_naive = _to_naive_utc(fecha)
-            if fecha_naive is None:
+            naive_date = _to_naive_utc(parsed_date)
+            if naive_date is None:
                 continue
             candidates.append(
                 DateCandidate(
-                    date=fecha_naive,
-                    source=fuente,
-                    raw=texto,
+                    date=naive_date,
+                    source=source,
+                    raw=text,
                     extractor="static",
                     url=url,
                 )
             )
         return candidates
     except requests.RequestException:
-        logger.debug("Scrape estatico fallido para %s", url, exc_info=True)
+        logger.debug("Static scrape failed for %s", url, exc_info=True)
         return []

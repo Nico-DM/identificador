@@ -30,15 +30,15 @@ def poll_results(
             f"results={result_count}, deep_available={deep.get('available')}"
         )
         if status in until_statuses:
-            logger.info(f"{label} completado con status: {status}")
+            logger.info("%s completed with status: %s", label, status)
             return payload
 
-    raise SystemExit(f"Timeout esperando resultados ({label}, 120s)")
+    raise SystemExit(f"Timeout waiting for results ({label}, 120s)")
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Smoke test para el API de identificador"
+        description="Smoke test for the identificador API",
     )
     parser.add_argument("--image-url", required=True, help="URL publica de imagen")
     parser.add_argument(
@@ -95,7 +95,7 @@ def main():
     if args.deep and static_payload.get("status") == "static_done":
         deep_info = static_payload.get("deep_search") or {}
         if not deep_info.get("available"):
-            logger.info("Busqueda profunda no disponible; omitiendo --deep")
+            logger.info("Deep search not available; skipping --deep")
             return
 
         deep_resp = requests.post(

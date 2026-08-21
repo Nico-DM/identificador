@@ -52,9 +52,10 @@ identificador/
 │   ├── serpapi_client.py     # SerpApi + extracción de URLs
 │   ├── image_validation.py   # Validación de URLs de imagen
 │   ├── env_util.py           # Helpers de variables de entorno
-│   ├── identificador.py      # Scoring y ordenación de candidatas
-│   ├── scraper_estatico.py
-│   ├── scraper_dinamico.py
+│   ├── publication_scorer.py # Scoring and candidate ranking
+│   ├── static_scraper.py
+│   ├── dynamic_scraper.py
+│   ├── models.py             # Shared dataclasses
 │   ├── db/                   # Persistencia Supabase/Postgres
 │   └── scripts/
 │       ├── smoke_test.py

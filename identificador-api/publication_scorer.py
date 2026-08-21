@@ -7,21 +7,21 @@ from datetime import datetime, timezone
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from db.cache import get_url_scrape_cache, set_url_scrape_cache
-from modelos import DateCandidate
+from dynamic_scraper import fetch_dynamic_candidates
+from models import DateCandidate
 from scrape_config import (
     SCRAPE_DYNAMIC_ENABLED,
     SCRAPE_DYNAMIC_MAX_WORKERS,
     SCRAPE_STATIC_CONFIDENCE_THRESHOLD,
     SCRAPE_STATIC_MAX_WORKERS,
 )
-from scraper_dinamico import obtener_candidatas_dinamicas
-from scraper_estatico import obtener_candidatas_estaticas
+from static_scraper import fetch_static_candidates
 
 logger = logging.getLogger(__name__)
 
 
 def _to_naive_utc(dt):
-    """Convierte cualquier datetime a naive UTC."""
+    """Convert any datetime to naive UTC."""
     if dt is None:
         return None
     if dt.tzinfo is not None:
@@ -55,7 +55,8 @@ SOURCE_SCORE = {
     "visible-text": 0.1,
     "time-datetime": 0.3,
     "time-text": 0.2,
-    "texto": 0.1,
+    "plain-text": 0.1,
+    "texto": 0.1,  # legacy cache entries
 }
 
 EXTRACTOR_SCORE = {
@@ -63,10 +64,10 @@ EXTRACTOR_SCORE = {
     "dynamic": 0.2,
 }
 
-# Plataformas cuyo HTML inicial suele incluir fechas fiables en meta/time/ld+json.
+# Platforms whose initial HTML usually includes reliable dates in meta/time/ld+json.
 PLATFORM_STATIC_BONUS = {"youtube", "reddit", "deviantart"}
 
-# Fuentes estructuradas presentes en HTML sin JS; merecen confianza en fase estatica.
+# Structured sources present in HTML without JS; deserve static-phase confidence.
 STATIC_STRUCTURED_SOURCES = {"meta", "ld+json", "time"}
 
 
@@ -138,6 +139,8 @@ def classify_context(url: str, platform: str) -> dict[str, bool]:
 
 
 def _normalize_source(source: str) -> str:
+    if source == "texto":
+        return "plain-text"
     if source.startswith("meta:"):
         return "meta"
     if source in {"time-datetime", "time-text"}:
@@ -191,7 +194,7 @@ def _dedupe_results(results) -> list:
     for result in results:
         url = normalize_url(result["link"])
         if url in seen_urls:
-            logger.debug(f"URL duplicada, ignorando: {url}")
+            logger.debug("Duplicate URL ignored: %s", url)
             continue
         seen_urls.add(url)
         item = copy.copy(result)
@@ -242,10 +245,10 @@ def _score_static_candidates(
     cached = get_url_scrape_cache(url)
     if cached and cached.get("date_utc") is not None:
         best = _candidate_from_cache(cached, url)
-        logger.info(f"Scrape estatico desde caché: {url}")
+        logger.info("Static scrape from cache: %s", url)
         return [best], best
 
-    candidates = obtener_candidatas_estaticas(url)
+    candidates = fetch_static_candidates(url)
     flags = classify_context(url, platform)
     for candidate in candidates:
         candidate.flags.update(flags)
@@ -306,7 +309,10 @@ def _static_phase(result: dict) -> _StaticPhaseOutcome:
     url = result["link"]
     platform = detect_platform(url)
     logger.info(
-        f"Fase estatica - Source: {result['source']}, Platform: {platform}, Link: {url}"
+        "Static phase - source: %s, platform: %s, link: %s",
+        result["source"],
+        platform,
+        url,
     )
 
     static_candidates, best_static = _score_static_candidates(url, platform)
@@ -320,15 +326,17 @@ def _static_phase(result: dict) -> _StaticPhaseOutcome:
             result, url, platform, best_static, confidence="confirmed"
         )
         logger.info(
-            f"Fecha estatica: {best_static.date} (score={best_static.score:.2f})"
+            "Static date: %s (score=%.2f)", best_static.date, best_static.score
         )
     elif needs_dynamic:
         static_score = best_static.score if best_static else 0.0
         logger.info(
-            f"Fecha estatica provisional (score={static_score:.2f}); pendiente dinamico: {url}"
+            "Provisional static date (score=%.2f); pending dynamic scrape: %s",
+            static_score,
+            url,
         )
     else:
-        logger.debug(f"No se encontro fecha estatica para: {url}")
+        logger.debug("No static date found for: %s", url)
 
     return _StaticPhaseOutcome(
         result=result,
@@ -345,9 +353,9 @@ def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> dict | None:
     url = outcome.url
     platform = outcome.platform
     best_static = outcome.best_static
-    logger.info(f"Fase dinamica - Platform: {platform}, Link: {url}")
+    logger.info("Dynamic phase - platform: %s, link: %s", platform, url)
 
-    dynamic = obtener_candidatas_dinamicas(url)
+    dynamic = fetch_dynamic_candidates(url)
     flags = classify_context(url, platform)
     dynamic_scored: list[DateCandidate] = []
     for candidate in dynamic:
@@ -361,21 +369,23 @@ def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> dict | None:
         if best_dynamic.score > best_static.score:
             best = best_dynamic
             logger.info(
-                f"Fecha dinamica (mejora estatica): {best.date} (score={best.score:.2f})"
+                "Dynamic date (improved static): %s (score=%.2f)",
+                best.date,
+                best.score,
             )
         else:
             best = best_static
             logger.info(
-                f"Fecha estatica conservada: {best.date} (score={best.score:.2f})"
+                "Static date kept: %s (score=%.2f)", best.date, best.score
             )
     elif best_dynamic:
         best = best_dynamic
-        logger.info(f"Fecha dinamica: {best.date} (score={best.score:.2f})")
+        logger.info("Dynamic date: %s (score=%.2f)", best.date, best.score)
     elif best_static:
         best = best_static
-        logger.info(f"Fecha estatica (fallback): {best.date} (score={best.score:.2f})")
+        logger.info("Static date (fallback): %s (score=%.2f)", best.date, best.score)
     else:
-        logger.debug(f"No se encontro fecha para: {url}")
+        logger.debug("No date found for: %s", url)
         return None
 
     return _build_publication(
@@ -389,18 +399,18 @@ def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> dict | None:
 
 def _apply_static_outcome(
     outcome: _StaticPhaseOutcome,
-    publicaciones: list[dict],
+    publications: list[dict],
     pending_dynamic: list[_StaticPhaseOutcome],
 ) -> None:
     if outcome.publication:
-        publicaciones.append(outcome.publication)
-        _sort_publications(publicaciones)
+        publications.append(outcome.publication)
+        _sort_publications(publications)
         return
 
     if outcome.needs_dynamic and SCRAPE_DYNAMIC_ENABLED:
         pending_dynamic.append(outcome)
         if outcome.best_static:
-            publicaciones.append(
+            publications.append(
                 _build_pending_publication(
                     outcome.result,
                     outcome.url,
@@ -410,7 +420,7 @@ def _apply_static_outcome(
                 )
             )
         else:
-            publicaciones.append(
+            publications.append(
                 _build_pending_publication(
                     outcome.result,
                     outcome.url,
@@ -418,7 +428,7 @@ def _apply_static_outcome(
                     confidence="pending",
                 )
             )
-        _sort_publications(publicaciones)
+        _sort_publications(publications)
         return
 
     if outcome.best_static:
@@ -429,14 +439,15 @@ def _apply_static_outcome(
             outcome.best_static,
         )
         logger.info(
-            f"Fecha estatica (dinamico desactivado): "
-            f"{outcome.best_static.date} (score={outcome.best_static.score:.2f})"
+            "Static date (dynamic disabled): %s (score=%.2f)",
+            outcome.best_static.date,
+            outcome.best_static.score,
         )
-        publicaciones.append(publication)
-        _sort_publications(publicaciones)
+        publications.append(publication)
+        _sort_publications(publications)
         return
 
-    publicaciones.append(
+    publications.append(
         _build_pending_publication(
             outcome.result,
             outcome.url,
@@ -444,7 +455,7 @@ def _apply_static_outcome(
             confidence="pending",
         )
     )
-    _sort_publications(publicaciones)
+    _sort_publications(publications)
 
 
 def run_static_phase(
@@ -455,15 +466,17 @@ def run_static_phase(
     if total == 0:
         return [], []
 
-    publicaciones: list[dict] = []
+    publications: list[dict] = []
     processed = 0
     lock = threading.Lock()
     pending_dynamic: list[_StaticPhaseOutcome] = []
 
     static_workers = min(SCRAPE_STATIC_MAX_WORKERS, total)
     logger.info(
-        f"Iniciando fase estatica: {total} URLs, workers={static_workers}, "
-        f"umbral={SCRAPE_STATIC_CONFIDENCE_THRESHOLD}"
+        "Starting static phase: %s URLs, workers=%s, threshold=%s",
+        total,
+        static_workers,
+        SCRAPE_STATIC_CONFIDENCE_THRESHOLD,
     )
 
     with ThreadPoolExecutor(max_workers=static_workers) as pool:
@@ -472,11 +485,11 @@ def run_static_phase(
             outcome = future.result()
             with lock:
                 processed += 1
-                _apply_static_outcome(outcome, publicaciones, pending_dynamic)
+                _apply_static_outcome(outcome, publications, pending_dynamic)
                 if on_progress:
-                    on_progress(processed, total, list(publicaciones))
+                    on_progress(processed, total, list(publications))
 
-    return publicaciones, pending_dynamic
+    return publications, pending_dynamic
 
 
 def run_dynamic_phase(
@@ -495,7 +508,9 @@ def run_dynamic_phase(
     lock = threading.Lock()
 
     dynamic_workers = min(SCRAPE_DYNAMIC_MAX_WORKERS, total)
-    logger.info(f"Iniciando fase dinamica: {total} URLs, workers={dynamic_workers}")
+    logger.info(
+        "Starting dynamic phase: %s URLs, workers=%s", total, dynamic_workers
+    )
 
     with ThreadPoolExecutor(max_workers=dynamic_workers) as pool:
         futures = [
@@ -598,8 +613,8 @@ def deserialize_pending_outcome(data: dict) -> _StaticPhaseOutcome:
 
 
 def get_sorted_dates(results, on_progress=None):
-    """Compatibilidad: fase estatica seguida de dinamica automatica si esta habilitada."""
-    publicaciones, pending = run_static_phase(results, on_progress=on_progress)
+    """Compatibility: static phase followed by automatic dynamic phase if enabled."""
+    publications, pending = run_static_phase(results, on_progress=on_progress)
     if pending and SCRAPE_DYNAMIC_ENABLED:
         updates = run_dynamic_phase(
             pending,
@@ -607,5 +622,5 @@ def get_sorted_dates(results, on_progress=None):
             static_processed=len(results),
             static_total=len(results),
         )
-        return merge_publications(publicaciones, updates)
-    return publicaciones
+        return merge_publications(publications, updates)
+    return publications

@@ -1,4 +1,4 @@
-"""Aplica schema/001_init.sql usando DATABASE_URL del entorno."""
+"""Apply schema/001_init.sql using DATABASE_URL from the environment."""
 
 import sys
 from pathlib import Path
@@ -16,7 +16,7 @@ def main() -> int:
     from db.config import connection_params, db_enabled
 
     if not db_enabled():
-        print("DATABASE_URL no está definida.", file=sys.stderr)
+        print("DATABASE_URL is not set.", file=sys.stderr)
         return 1
     if not SCHEMA.is_file():
         print(f"No existe {SCHEMA}", file=sys.stderr)
@@ -32,7 +32,7 @@ def main() -> int:
         with conn.cursor() as cur:
             cur.execute(cast(Query, sql))
         conn.commit()
-    print(f"Esquema aplicado desde {SCHEMA}")
+    print(f"Schema applied from {SCHEMA}")
     return 0
 
 

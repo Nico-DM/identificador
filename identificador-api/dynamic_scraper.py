@@ -7,7 +7,7 @@ from datetime import timezone
 from bs4 import BeautifulSoup
 from dateutil import parser
 from dateutil.parser import ParserError
-from modelos import DateCandidate
+from models import DateCandidate
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.options import Options
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def _to_naive_utc(dt):
-    """Convierte cualquier datetime a naive UTC."""
+    """Convert any datetime to naive UTC."""
     if dt is None:
         return None
     if dt.tzinfo is not None:
@@ -44,7 +44,6 @@ def _try_parse_date(text):
         return parser.parse(text, fuzzy=False)
     except parse_errors:
         try:
-            # menos estricto
             return parser.parse(text, fuzzy=True)
         except parse_errors:
             return None
@@ -67,9 +66,6 @@ def _add_candidate(candidates, date_obj, source, raw, url):
     )
 
 
-# -------------------------
-# Buscar time / meta elements
-# -------------------------
 def extract_from_dom(driver, url):
     candidates = []
     selectors_time = [
@@ -89,10 +85,9 @@ def extract_from_dom(driver, url):
                 parsed = _try_parse_date(dt) if dt else None
                 _add_candidate(candidates, parsed, "time", dt, url)
         except WebDriverException:
-            logger.debug("Selector time fallido %s en %s", sel, url, exc_info=True)
+            logger.debug("Time selector failed %s on %s", sel, url, exc_info=True)
             continue
 
-    # metas
     meta_selectors = [
         "meta[property='article:published_time']",
         "meta[name='date']",
@@ -113,15 +108,12 @@ def extract_from_dom(driver, url):
                 parsed = _try_parse_date(content) if content else None
                 _add_candidate(candidates, parsed, "meta", content, url)
         except WebDriverException:
-            logger.debug("Selector meta fallido %s en %s", sel, url, exc_info=True)
+            logger.debug("Meta selector failed %s on %s", sel, url, exc_info=True)
             continue
 
     return candidates
 
 
-# -------------------------
-# Buscar JSON/ld+json en <script>
-# -------------------------
 def extract_dates_from_scripts(driver, url):
     candidates = []
     soup = BeautifulSoup(driver.page_source, "html.parser")
@@ -131,7 +123,6 @@ def extract_dates_from_scripts(driver, url):
         if not text or text.strip() == "":
             continue
 
-        # saltar scripts de cookies / trackers que contienen fechas de expiracion
         low = text.lower()
         if (
             "document.cookie" in low
@@ -141,18 +132,15 @@ def extract_dates_from_scripts(driver, url):
         ):
             continue
 
-        # ld+json tipicos
         if script.get("type") == "application/ld+json":  # type: ignore
             try:
                 parsed_json = json.loads(text)
             except json.JSONDecodeError:
-                # intentar reparar arrays multiples (no critico)
                 try:
                     parsed_json = json.loads("[" + text + "]")
                 except json.JSONDecodeError:
                     parsed_json = None
             if parsed_json is not None:
-                # recorrer diccionario/array buscando claves con fechas
                 stack = [parsed_json]
                 while stack:
                     node = stack.pop()
@@ -161,7 +149,6 @@ def extract_dates_from_scripts(driver, url):
                             if isinstance(v, (dict, list)):
                                 stack.append(v)
                             elif isinstance(v, str):
-                                # claves que habitualmente almacenan fecha
                                 if k.lower() in (
                                     "datepublished",
                                     "uploaddate",
@@ -170,13 +157,9 @@ def extract_dates_from_scripts(driver, url):
                                 ):
                                     d = _try_parse_date(v)
                                     _add_candidate(candidates, d, "ld+json", v, url)
-                                else:
-                                    # tambien intentar si la cadena parece ISO
-                                    if ISO_DATETIME_RE.search(v) or ISO_DATE_RE.search(
-                                        v
-                                    ):
-                                        d = _try_parse_date(v)
-                                        _add_candidate(candidates, d, "ld+json", v, url)
+                                elif ISO_DATETIME_RE.search(v) or ISO_DATE_RE.search(v):
+                                    d = _try_parse_date(v)
+                                    _add_candidate(candidates, d, "ld+json", v, url)
                     elif isinstance(node, list):
                         for it in node:
                             if isinstance(it, (dict, list)):
@@ -188,9 +171,7 @@ def extract_dates_from_scripts(driver, url):
                                 _add_candidate(candidates, d, "ld+json", it, url)
             continue
 
-        # si no es ld+json, buscar claves tipo "datePublished" dentro del texto (JSON incrustado)
         if "datePublished" in text or "created_at" in text or "dateCreated" in text:
-            # primero intentar con regex para extraer valores entre comillas
             matches = re.findall(
                 r'"(?:datePublished|uploadDate|created_at|dateCreated)"\s*:\s*"([^"]+)"',
                 text,
@@ -199,7 +180,6 @@ def extract_dates_from_scripts(driver, url):
                 d = _try_parse_date(m)
                 _add_candidate(candidates, d, "script-json", m, url)
 
-            # tambien buscar ISO en el script si no hay matches
             iso_matches = ISO_DATETIME_RE.findall(text) + ISO_DATE_RE.findall(text)
             for m in iso_matches:
                 d = _try_parse_date(m)
@@ -208,53 +188,45 @@ def extract_dates_from_scripts(driver, url):
     return candidates
 
 
-# -------------------------
-# Buscar en texto visible (limpiando scripts/styles)
-# -------------------------
 def extract_from_visible_text(driver, url):
     candidates = []
     soup = BeautifulSoup(driver.page_source, "html.parser")
     for tag in soup(["script", "style", "noscript"]):
         tag.extract()
-    texto = soup.get_text(separator=" ")
-    # buscar patrones
-    for m in ISO_DATETIME_RE.findall(texto):
+    visible_text = soup.get_text(separator=" ")
+    for m in ISO_DATETIME_RE.findall(visible_text):
         d = _try_parse_date(m)
         _add_candidate(candidates, d, "visible-text", m, url)
-    for m in ISO_DATE_RE.findall(texto):
+    for m in ISO_DATE_RE.findall(visible_text):
         d = _try_parse_date(m)
         _add_candidate(candidates, d, "visible-text", m, url)
-    for m in VERBOSE_DATE_RE.findall(texto):
+    for m in VERBOSE_DATE_RE.findall(visible_text):
         d = _try_parse_date(m)
         _add_candidate(candidates, d, "visible-text", m, url)
-    for m in GENERIC_DATE_RE.findall(texto):
+    for m in GENERIC_DATE_RE.findall(visible_text):
         d = _try_parse_date(m)
         _add_candidate(candidates, d, "visible-text", m, url)
     return candidates
 
 
-def obtener_candidatas_dinamicas(
+def fetch_dynamic_candidates(
     url, headless=True, timeout=20, wait_for=8
 ) -> list[DateCandidate]:
     options = Options()
     if headless:
-        # dependiendo de la version de Chrome, '--headless=new' puede funcionar; usar '--headless' por compatibilidad
         options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_argument("window-size=1920,1080")
-    # establecer un UA realista
     ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
     options.add_argument(f"user-agent={ua}")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option("useAutomationExtension", False)
 
     driver = webdriver.Chrome(options=options)
-    # menor: aumentar timeouts si el sitio es lento
     driver.set_page_load_timeout(timeout)
 
-    # ejecutar un pequeno script para ocultar webdriver
     try:
         driver.execute_cdp_cmd(
             "Page.addScriptToEvaluateOnNewDocument",
@@ -267,35 +239,30 @@ def obtener_candidatas_dinamicas(
             },
         )
     except WebDriverException:
-        logger.debug("No se pudo ocultar webdriver en %s", url, exc_info=True)
+        logger.debug("Could not hide webdriver on %s", url, exc_info=True)
 
     try:
         driver.get(url)
-        # esperar que el body exista
         WebDriverWait(driver, wait_for).until(
             EC.presence_of_element_located((By.TAG_NAME, "body"))
         )
 
-        # dar tiempo extra para que JS renderice (scroll + sleeps)
         for _ in range(3):
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(1)
 
         candidates = []
-        # 1) DOM (time/meta) - alta prioridad
         candidates += extract_from_dom(driver, url)
-        # 2) scripts JSON / ld+json
         candidates += extract_dates_from_scripts(driver, url)
-        # 3) texto visible
         candidates += extract_from_visible_text(driver, url)
 
         return candidates
 
     except WebDriverException:
-        logger.debug("Scrape dinamico fallido para %s", url, exc_info=True)
+        logger.debug("Dynamic scrape failed for %s", url, exc_info=True)
         return []
     finally:
         try:
             driver.quit()
         except WebDriverException:
-            logger.debug("No se pudo cerrar el driver para %s", url, exc_info=True)
+            logger.debug("Could not close driver for %s", url, exc_info=True)

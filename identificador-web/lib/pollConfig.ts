@@ -7,7 +7,7 @@ function parsePositiveInt(value: string | undefined, fallback: number): number {
   return parsed;
 }
 
-/** Pausa entre consultas a /api/results (ms). */
+/** Delay between /api/results polls (ms). */
 export const POLL_DELAY_MS = parsePositiveInt(
   process.env.NEXT_PUBLIC_POLL_DELAY_MS,
   DEFAULT_POLL_DELAY_MS,

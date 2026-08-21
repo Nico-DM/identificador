@@ -10,7 +10,7 @@ from db.json_util import from_jsonable, to_jsonable
 
 
 def _normalize_url(url: str) -> str:
-    from identificador import normalize_url
+    from publication_scorer import normalize_url
 
     return normalize_url(url)
 

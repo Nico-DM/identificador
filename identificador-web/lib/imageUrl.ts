@@ -1,4 +1,4 @@
-/** Debe coincidir con IMAGE_EXTENSIONS en identificador-api/image_validation.py */
+/** Must match IMAGE_EXTENSIONS in identificador-api/image_validation.py */
 export const IMAGE_EXTENSIONS = new Set([
   ".jpg",
   ".jpeg",

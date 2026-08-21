@@ -1,4 +1,4 @@
-/** Debe coincidir con UPLOAD_MAX_BYTES / UPLOAD_IMAGE_EXTENSIONS del API */
+/** Must match UPLOAD_MAX_BYTES / UPLOAD_IMAGE_EXTENSIONS in the API */
 export const UPLOAD_MAX_BYTES = 5 * 1024 * 1024;
 
 export const IMAGE_ACCEPT =

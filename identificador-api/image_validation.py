@@ -36,7 +36,7 @@ def _response_content_type(resp: requests.Response) -> str | None:
 
 
 def verify_url_returns_image(url: str) -> None:
-    """Comprueba Content-Type image/* con HEAD; si no basta, GET en stream (solo cabeceras)."""
+    """Verify Content-Type image/* via HEAD; fall back to streaming GET (headers only)."""
     try:
         head = requests.head(
             url,

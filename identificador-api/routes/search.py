@@ -77,7 +77,7 @@ async def search(
     try:
         image_url = validate_image_url(payload.image_url)
     except ValueError as exc:
-        logger.warning(f"URL de imagen inválida: {payload.image_url}")
+        logger.warning("Invalid image URL: %s", payload.image_url)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     return start_search(background_tasks, image_url, payload.safe_search)

@@ -4,7 +4,7 @@ from urllib.parse import urlparse
 import requests
 from db.cache import get_lens_cache, set_lens_cache
 from env_util import env_str
-from identificador import normalize_url
+from publication_scorer import normalize_url
 
 logger = logging.getLogger(__name__)
 
@@ -141,7 +141,7 @@ def serpapi_reverse_image_search(image_url: str, *, safe_search: bool = True) ->
 
     cached = get_lens_cache(image_url)
     if cached is not None:
-        logger.info("SerpApi: respuesta desde caché Supabase")
+        logger.info("SerpApi: response from Supabase cache")
         return cached
 
     params: dict[str, str] = {

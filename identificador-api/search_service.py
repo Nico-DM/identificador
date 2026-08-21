@@ -15,7 +15,7 @@ from db.repository import (
     search_session,
 )
 from env_util import env_str
-from identificador import (
+from publication_scorer import (
     deserialize_pending_outcome,
     merge_publications,
     normalize_url,
@@ -73,7 +73,8 @@ def save_analysis_cache(image_url: str, safe_search: bool, data: dict) -> None:
         return
     set_analysis_cache(image_url, analysis_snapshot(data), safe_search=safe_search)
     logger.info(
-        f"Análisis cacheado para imagen (safe_search={'active' if safe_search else 'off'})"
+        "Analysis cached for image (safe_search=%s)",
+        "active" if safe_search else "off",
     )
 
 
@@ -174,13 +175,15 @@ def process_search(
 ) -> None:
     try:
         logger.info(
-            f"Iniciando búsqueda {search_id} para imagen: {image_url} "
-            f"(safe_search={'active' if safe_search else 'off'})"
+            "Starting search %s for image: %s (safe_search=%s)",
+            search_id,
+            image_url,
+            "active" if safe_search else "off",
         )
         payload = serpapi_reverse_image_search(image_url, safe_search=safe_search)
         urls = extract_urls_from_serpapi(payload)
         match_metadata = extract_match_metadata(payload)
-        logger.info(f"SerpApi devolvió {len(urls)} URLs para búsqueda {search_id}")
+        logger.info("SerpApi returned %s URLs for search %s", len(urls), search_id)
 
         search_inputs = [{"link": url, "source": "serpapi"} for url in urls]
         total_urls = len(search_inputs)
@@ -219,8 +222,9 @@ def process_search(
         search_persist(search_id, force=True)
 
         logger.info(
-            f"Fase estatica completada: {len(static_results)} resultados, "
-            f"{len(pending_outcomes)} pendientes de busqueda profunda"
+            "Static phase completed: %s results, %s pending deep search",
+            len(static_results),
+            len(pending_outcomes),
         )
 
         if deep_available:
@@ -230,9 +234,9 @@ def process_search(
         current = search_get(search_id)
         if current:
             save_analysis_cache(image_url, safe_search, current)
-        logger.info(f"Búsqueda {search_id} fase estatica completada")
+        logger.info("Search %s static phase completed", search_id)
     except Exception as exc:
-        logger.exception("Error procesando búsqueda %s", search_id)
+        logger.exception("Error processing search %s", search_id)
         set_search(search_id, "error", results=None, error=str(exc), phase="complete")
     finally:
         if upload_object_path:
@@ -298,10 +302,10 @@ def process_deep_search(search_id: str) -> None:
                 current,
             )
         logger.info(
-            f"Búsqueda profunda {search_id} completada: {len(formatted)} resultados"
+            "Deep search %s completed: %s results", search_id, len(formatted)
         )
     except Exception as exc:
-        logger.exception("Error en búsqueda profunda %s", search_id)
+        logger.exception("Error in deep search %s", search_id)
         with search_session(search_id) as current:
             if current:
                 current["deep_search_available"] = False
@@ -335,12 +339,14 @@ def start_search(
         data["updated_at"] = now
         search_create(search_id, data)
         logger.info(
-            f"Búsqueda {search_id} restaurada desde caché "
-            f"(status={data['status']}, resultados={len(data.get('results') or [])})"
+            "Search %s restored from cache (status=%s, results=%s)",
+            search_id,
+            data["status"],
+            len(data.get("results") or []),
         )
         return {"search_id": search_id, "status": data["status"], "cached": True}
 
-    logger.info(f"Nueva búsqueda iniciada - ID: {search_id}, URL: {image_url}")
+    logger.info("New search started - ID: %s, URL: %s", search_id, image_url)
     search_create(
         search_id,
         {
