@@ -1,22 +1,17 @@
-import os
-
+from env_util import env_str
 from psycopg.conninfo import conninfo_to_dict
 
 
-def _env(name: str, default: str = "") -> str:
-    return os.getenv(name, default).strip()
-
-
 def database_url() -> str:
-    return _env("DATABASE_URL")
+    return env_str("DATABASE_URL")
 
 
 def database_password() -> str:
-    return _env("DATABASE_PASSWORD")
+    return env_str("DATABASE_PASSWORD")
 
 
 def cache_ttl_seconds() -> int:
-    return int(_env("CACHE_TTL_SECONDS", str(7 * 24 * 3600)))
+    return int(env_str("CACHE_TTL_SECONDS", str(7 * 24 * 3600)))
 
 
 def connection_params() -> dict:
@@ -31,6 +26,6 @@ def connection_params() -> dict:
 
 
 def db_enabled() -> bool:
-    if _env("DISABLE_DATABASE").lower() in ("1", "true", "yes"):
+    if env_str("DISABLE_DATABASE").lower() in ("1", "true", "yes"):
         return False
     return bool(database_url())

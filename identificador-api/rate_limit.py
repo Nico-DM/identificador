@@ -5,47 +5,24 @@ from collections import defaultdict
 from dataclasses import dataclass
 from threading import Lock
 
+from env_util import parse_bool, parse_positive_int
 from fastapi import HTTPException, Request
 
 logger = logging.getLogger(__name__)
 
-
-def _parse_positive_int(value: str | None, fallback: int) -> int:
-    if not value or not value.strip():
-        return fallback
-    try:
-        parsed = int(value.strip(), 10)
-    except ValueError:
-        return fallback
-    if parsed <= 0:
-        return fallback
-    return parsed
-
-
-def _parse_bool(value: str | None, fallback: bool) -> bool:
-    if not value or not value.strip():
-        return fallback
-    normalized = value.strip().lower()
-    if normalized in {"1", "true", "yes", "on"}:
-        return True
-    if normalized in {"0", "false", "no", "off"}:
-        return False
-    return fallback
-
-
-RATE_LIMIT_ENABLED = _parse_bool(
+RATE_LIMIT_ENABLED = parse_bool(
     os.getenv("RATE_LIMIT_ENABLED"),
     os.getenv("ENVIRONMENT", "development") != "development",
 )
-RATE_LIMIT_SEARCH_PER_HOUR = _parse_positive_int(
+RATE_LIMIT_SEARCH_PER_HOUR = parse_positive_int(
     os.getenv("RATE_LIMIT_SEARCH_PER_HOUR"),
     10,
 )
-RATE_LIMIT_DEEP_PER_HOUR = _parse_positive_int(
+RATE_LIMIT_DEEP_PER_HOUR = parse_positive_int(
     os.getenv("RATE_LIMIT_DEEP_PER_HOUR"),
     5,
 )
-RATE_LIMIT_RESULTS_PER_MINUTE = _parse_positive_int(
+RATE_LIMIT_RESULTS_PER_MINUTE = parse_positive_int(
     os.getenv("RATE_LIMIT_RESULTS_PER_MINUTE"),
     300,
 )

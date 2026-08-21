@@ -46,7 +46,12 @@ identificador/
 ├── render.yaml               # Blueprint de despliegue en Render
 ├── scripts/dev.sh            # Levanta API + web en local (sin DB por defecto)
 ├── identificador-api/        # Backend FastAPI
-│   ├── main.py               # Endpoints, SerpApi, workers
+│   ├── main.py               # App, CORS, routers
+│   ├── routes/               # Endpoints HTTP
+│   ├── search_service.py     # Orquestación de búsquedas
+│   ├── serpapi_client.py     # SerpApi + extracción de URLs
+│   ├── image_validation.py   # Validación de URLs de imagen
+│   ├── env_util.py           # Helpers de variables de entorno
 │   ├── identificador.py      # Scoring y ordenación de candidatas
 │   ├── scraper_estatico.py
 │   ├── scraper_dinamico.py
@@ -55,7 +60,9 @@ identificador/
 │       ├── smoke_test.py
 │       └── apply_schema.py   # Aplica schema/001_init.sql
 └── identificador-web/        # Frontend Next.js
-    ├── app/page.tsx          # Interfaz principal
+    ├── app/page.tsx          # Página principal (layout)
+    ├── components/search/    # UI de búsqueda
+    ├── hooks/useSearch.ts    # Estado y polling
     └── app/api/              # Proxy hacia el backend
 ```
 
