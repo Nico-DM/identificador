@@ -15,7 +15,7 @@ Identificador permite a una persona introducir la **URL de una imagen pública**
 - **Dónde apareció** la imagen (páginas web enlazadas)
 - **Fechas** inferidas a partir del contenido de esas páginas
 
-El sistema combina **búsqueda inversa visual** (Google Lens vía [SerpApi](https://serpapi.com/)) con **scraping estático** de las URLs candidatas y un algoritmo de puntuación que prioriza los resultados más relevantes.
+El sistema combina **búsqueda inversa visual** ([Google Reverse Image](https://serpapi.com/google-reverse-image) vía [SerpApi](https://serpapi.com/)) con **scraping estático** de las URLs candidatas y un algoritmo de puntuación que prioriza los resultados más relevantes.
 
 ```
 Usuario → Frontend (Next.js) → Backend (FastAPI) → SerpApi + Scrapers → Resultados ordenados
@@ -29,7 +29,7 @@ Usuario → Frontend (Next.js) → Backend (FastAPI) → SerpApi + Scrapers → 
 |------|------------|
 | Frontend | [Next.js](https://nextjs.org/) (App Router), TypeScript |
 | Backend | [FastAPI](https://fastapi.tiangolo.com/) (Python 3.10+) |
-| Búsqueda inversa | SerpApi — motor `google_lens` |
+| Búsqueda inversa | SerpApi — motor `google_reverse_image` |
 | Scraping | BeautifulSoup (estático); Selenium opcional (búsqueda profunda) |
 | Persistencia | Supabase / Postgres (opcional; sin configurar, el estado queda en memoria) |
 | Almacenamiento | Supabase Storage (subida de archivos) |
@@ -122,7 +122,7 @@ Flujo: el cliente envía la búsqueda → el backend responde con `search_id` y 
 |----------|-------------|
 | `SERPAPI_API_KEY` | Clave de SerpApi (obligatoria) |
 | `SERPAPI_ENDPOINT` | Por defecto `https://serpapi.com/search.json` |
-| `SERPAPI_ENGINE` | Por defecto `google_lens` |
+| `SERPAPI_ENGINE` | Por defecto `google_reverse_image` |
 | `SEARCH_TTL_SECONDS` | TTL de búsquedas en memoria (por defecto `900`) |
 | `ENVIRONMENT` | `development` en local; `production` en Render |
 | `DATABASE_URL` | Opcional — Postgres/Supabase para persistencia y caché |

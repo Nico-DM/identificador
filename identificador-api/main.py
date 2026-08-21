@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY", "")
 SERPAPI_ENDPOINT = os.getenv("SERPAPI_ENDPOINT", "https://serpapi.com/search.json")
-SERPAPI_ENGINE = os.getenv("SERPAPI_ENGINE", "google_lens")
+SERPAPI_ENGINE = os.getenv("SERPAPI_ENGINE", "google_reverse_image")
 SEARCH_TTL_SECONDS = int(os.getenv("SEARCH_TTL_SECONDS", "900"))
 
 IMAGE_EXTENSIONS = frozenset(
@@ -200,6 +200,16 @@ def extract_match_metadata(payload: dict) -> dict[str, dict]:
         if site_name and site_name.strip():
             entry.setdefault("site_name", site_name.strip())
 
+    for result in payload.get("image_results", []) or []:
+        link = result.get("link")
+        if not isinstance(link, str):
+            continue
+        favicon = result.get("favicon")
+        thumb = favicon if isinstance(favicon, str) and _is_http_url(favicon) else None
+        source = result.get("source")
+        name = source if isinstance(source, str) else None
+        _upsert(link, thumb, name)
+
     for match in payload.get("visual_matches", []) or []:
         link = match.get("link")
         if not isinstance(link, str):
@@ -215,7 +225,7 @@ def extract_match_metadata(payload: dict) -> dict[str, dict]:
         _upsert(link, thumb, name)
 
     for image in payload.get("inline_images", []) or []:
-        link = image.get("link")
+        link = image.get("link") or image.get("source")
         if not isinstance(link, str):
             continue
         thumbnail = image.get("thumbnail")
@@ -239,6 +249,11 @@ def _site_name_fallback(url: str, platform: str | None) -> str:
 def extract_urls_from_serpapi(payload: dict) -> list[str]:
     urls: list[str] = []
 
+    for result in payload.get("image_results", []) or []:
+        link = result.get("link")
+        if isinstance(link, str) and _is_http_url(link):
+            urls.append(link)
+
     for match in payload.get("visual_matches", []) or []:
         for key in ("link", "source", "thumbnail"):
             value = match.get(key)
@@ -251,7 +266,7 @@ def extract_urls_from_serpapi(payload: dict) -> list[str]:
             urls.append(value)
 
     for image in payload.get("inline_images", []) or []:
-        for key in ("link", "thumbnail"):
+        for key in ("link", "source", "thumbnail"):
             value = image.get(key)
             if isinstance(value, str) and _is_http_url(value):
                 urls.append(value)
@@ -265,7 +280,7 @@ def extract_urls_from_serpapi(payload: dict) -> list[str]:
     return unique_urls
 
 
-def _serpapi_lens_search(image_url: str, *, safe_search: bool = True) -> dict:
+def _serpapi_reverse_image_search(image_url: str, *, safe_search: bool = True) -> dict:
     if not SERPAPI_API_KEY:
         raise RuntimeError("SERPAPI_API_KEY no configurada")
 
@@ -274,12 +289,16 @@ def _serpapi_lens_search(image_url: str, *, safe_search: bool = True) -> dict:
         logger.info("SerpApi: respuesta desde caché Supabase")
         return cached
 
-    params = {
+    params: dict[str, str] = {
         "engine": SERPAPI_ENGINE,
-        "url": image_url,
         "api_key": SERPAPI_API_KEY,
         "safe": "active" if safe_search else "off",
     }
+    if SERPAPI_ENGINE == "google_lens":
+        params["url"] = image_url
+    else:
+        params["image_url"] = image_url
+
     response = requests.get(SERPAPI_ENDPOINT, params=params, timeout=30)
     response.raise_for_status()
     payload = response.json()
@@ -287,8 +306,8 @@ def _serpapi_lens_search(image_url: str, *, safe_search: bool = True) -> dict:
     error_value = payload.get("error")
     if error_value:
         error_text = str(error_value).lower()
-        # Google Lens puede devolver este mensaje cuando no hay coincidencias; no es fallo tecnico.
-        if "returned any results" in error_text:
+        # SerpApi puede devolver este mensaje cuando no hay coincidencias; no es fallo tecnico.
+        if "returned any results" in error_text or "hasn't returned any" in error_text:
             return {}
         raise RuntimeError(str(error_value))
 
@@ -420,7 +439,7 @@ def _process_search(
             f"Iniciando búsqueda {search_id} para imagen: {image_url} "
             f"(safe_search={'active' if safe_search else 'off'})"
         )
-        payload = _serpapi_lens_search(image_url, safe_search=safe_search)
+        payload = _serpapi_reverse_image_search(image_url, safe_search=safe_search)
         urls = extract_urls_from_serpapi(payload)
         match_metadata = extract_match_metadata(payload)
         logger.info(f"SerpApi devolvió {len(urls)} URLs para búsqueda {search_id}")

@@ -15,7 +15,7 @@ services:
       - key: SERPAPI_ENDPOINT
         value: https://serpapi.com/search.json
       - key: SERPAPI_ENGINE
-        value: google_lens
+        value: google_reverse_image
       - key: SEARCH_TTL_SECONDS
         value: 900
       - key: ENVIRONMENT
