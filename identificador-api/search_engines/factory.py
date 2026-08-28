@@ -1,4 +1,5 @@
 from env_util import env_str
+from exceptions import ConfigurationError
 
 from search_engines.base import SearchEngine
 from search_engines.bing_visual import BingVisualEngine
@@ -26,7 +27,9 @@ def get_search_engine(engine_name: str | None = None) -> SearchEngine:
     engine_cls = _ENGINE_REGISTRY.get(name)
     if engine_cls is None:
         supported = ", ".join(sorted(_ENGINE_REGISTRY))
-        raise ValueError(f"Motor de búsqueda desconocido: {name!r}. Soportados: {supported}")
+        raise ConfigurationError(
+            f"Motor de búsqueda desconocido: {name!r}. Soportados: {supported}"
+        )
     return engine_cls()
 
 

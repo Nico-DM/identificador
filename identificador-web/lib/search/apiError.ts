@@ -1,6 +1,7 @@
 type ApiErrorBody = {
   detail?: unknown;
   error?: string;
+  code?: string;
 };
 
 export function apiErrorMessage(data: unknown, fallback: string): string {
@@ -17,6 +18,19 @@ export function apiErrorMessage(data: unknown, fallback: string): string {
   }
   if (typeof body?.error === "string") {
     return body.error;
+  }
+  return fallback;
+}
+
+export function searchErrorMessage(error: unknown, fallback: string): string {
+  if (typeof error === "string") {
+    return error;
+  }
+  if (error && typeof error === "object" && "message" in error) {
+    const message = (error as { message?: unknown }).message;
+    if (typeof message === "string") {
+      return message;
+    }
   }
   return fallback;
 }

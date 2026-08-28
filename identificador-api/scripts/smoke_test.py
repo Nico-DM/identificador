@@ -1,13 +1,11 @@
 import argparse
-import logging
 import time
 
 import requests
+from logging_config import configure_logging, get_logger
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
-logger = logging.getLogger(__name__)
+configure_logging()
+logger = get_logger(__name__)
 
 TERMINAL_STATUSES = {"done", "error"}
 STATIC_TERMINAL_STATUSES = {"static_done", "done", "error"}

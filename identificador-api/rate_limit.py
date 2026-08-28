@@ -1,4 +1,3 @@
-import logging
 import os
 import time
 from collections import defaultdict
@@ -6,9 +5,11 @@ from dataclasses import dataclass
 from threading import Lock
 
 from env_util import parse_bool, parse_positive_int
-from fastapi import HTTPException, Request
+from exceptions import RateLimitError
+from fastapi import Request
+from logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 RATE_LIMIT_ENABLED = parse_bool(
     os.getenv("RATE_LIMIT_ENABLED"),
@@ -92,11 +93,13 @@ def enforce_rate_limit(
     key = f"{namespace}:{ip}"
     retry_after = _limiter.check(key, limit, window_seconds)
     if retry_after > 0:
-        logger.warning("Rate limit exceeded for %s (namespace=%s)", ip, namespace)
-        raise HTTPException(
-            status_code=429,
-            detail=f"Demasiadas solicitudes. Intenta de nuevo en {retry_after} s.",
-            headers={"Retry-After": str(retry_after)},
+        logger.warning(
+            "Rate limit exceeded",
+            extra={"event": "rate_limit", "client_ip": ip, "namespace": namespace},
+        )
+        raise RateLimitError(
+            f"Demasiadas solicitudes. Intenta de nuevo en {retry_after} s.",
+            retry_after=retry_after,
         )
 
 

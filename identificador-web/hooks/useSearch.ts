@@ -8,7 +8,7 @@ import {
   POLL_DELAY_MS,
   pollAttemptsForTimeout,
 } from "@/lib/pollConfig";
-import { apiErrorMessage } from "@/lib/search/apiError";
+import { apiErrorMessage, searchErrorMessage } from "@/lib/search/apiError";
 import { abortableDelay } from "@/lib/search/poll";
 import type {
   DeepSearchInfo,
@@ -231,7 +231,7 @@ export function useSearch() {
             );
             return "partial";
           }
-          setError(data.error ?? "Error en el procesamiento");
+          setError(searchErrorMessage(data.error, "Error en el procesamiento"));
           setStatus("error");
           return "error";
         }
@@ -247,7 +247,7 @@ export function useSearch() {
           );
           return "partial";
         }
-        setError(data.error ?? "Error en el procesamiento");
+        setError(searchErrorMessage(data.error, "Error en el procesamiento"));
         setStatus("error");
         return "error";
       }

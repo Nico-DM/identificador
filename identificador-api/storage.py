@@ -1,10 +1,11 @@
-import logging
 import os
 import uuid
 
 import requests
+from exceptions import ServiceUnavailableError, ValidationError
+from logging_config import get_logger
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 SUPABASE_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
 SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
@@ -84,25 +85,27 @@ def _detect_image_format(content: bytes) -> str | None:
 
 def validate_upload(content: bytes, filename: str) -> tuple[str, str]:
     if not content:
-        raise ValueError("El archivo está vacío")
+        raise ValidationError("El archivo está vacío")
     if len(content) > UPLOAD_MAX_BYTES:
-        raise ValueError(
+        raise ValidationError(
             f"El archivo supera el tamaño máximo ({UPLOAD_MAX_BYTES // (1024 * 1024)} MB)"
         )
 
     declared_ext = _extension_from_filename(filename)
     if declared_ext and declared_ext not in UPLOAD_IMAGE_EXTENSIONS:
-        raise ValueError("Tipo de archivo no permitido")
+        raise ValidationError("Tipo de archivo no permitido")
 
     detected_ext = _detect_image_format(content)
     if detected_ext is None:
-        raise ValueError("El archivo no es una imagen válida")
+        raise ValidationError("El archivo no es una imagen válida")
 
     if declared_ext and declared_ext != detected_ext:
         # JPEG puede declararse como .jpg o .jpeg
         jpeg_aliases = {".jpg", ".jpeg"}
         if not (declared_ext in jpeg_aliases and detected_ext in jpeg_aliases):
-            raise ValueError("La extensión del archivo no coincide con su contenido")
+            raise ValidationError(
+                "La extensión del archivo no coincide con su contenido"
+            )
 
     ext = declared_ext if declared_ext in UPLOAD_IMAGE_EXTENSIONS else detected_ext
     content_type = _EXT_CONTENT_TYPES.get(ext, "application/octet-stream")
@@ -111,8 +114,9 @@ def validate_upload(content: bytes, filename: str) -> tuple[str, str]:
 
 def upload_search_image(content: bytes, filename: str) -> tuple[str, str]:
     if not storage_enabled():
-        raise RuntimeError(
-            "Supabase Storage no está configurado (SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY)"
+        raise ServiceUnavailableError(
+            "Supabase Storage no está configurado (SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY)",
+            code="STORAGE_UNAVAILABLE",
         )
 
     ext, content_type = validate_upload(content, filename)
@@ -127,11 +131,17 @@ def upload_search_image(content: bytes, filename: str) -> tuple[str, str]:
     )
     if not response.ok:
         logger.error(
-            "Supabase upload failed: status=%s body=%s",
-            response.status_code,
-            response.text[:500],
+            "Supabase upload failed",
+            extra={
+                "event": "storage_upload_failed",
+                "status": response.status_code,
+                "body": response.text[:500],
+            },
         )
-        raise RuntimeError("No se pudo subir la imagen a almacenamiento temporal")
+        raise ServiceUnavailableError(
+            "No se pudo subir la imagen a almacenamiento temporal",
+            code="STORAGE_UPLOAD_FAILED",
+        )
 
     public_url = (
         f"{SUPABASE_URL}/storage/v1/object/public/{STORAGE_BUCKET}/{object_path}"
@@ -147,9 +157,16 @@ def delete_search_image(object_path: str) -> None:
         response = requests.delete(url, headers=_auth_headers(), timeout=15)
         if not response.ok:
             logger.warning(
-                "Supabase delete failed for %s: status=%s",
-                object_path,
-                response.status_code,
+                "Supabase delete failed",
+                extra={
+                    "event": "storage_delete_failed",
+                    "object_path": object_path,
+                    "status": response.status_code,
+                },
             )
     except requests.RequestException as exc:
-        logger.warning("Supabase delete error for %s: %s", object_path, exc)
+        logger.warning(
+            "Supabase delete error",
+            extra={"event": "storage_delete_error", "object_path": object_path},
+            exc_info=exc,
+        )

@@ -2,6 +2,7 @@ import os
 from urllib.parse import urlparse
 
 import requests
+from exceptions import ValidationError
 
 IMAGE_EXTENSIONS = frozenset(
     {
@@ -69,11 +70,11 @@ def verify_url_returns_image(url: str) -> None:
         finally:
             get.close()
     except requests.RequestException as exc:
-        raise ValueError(
+        raise ValidationError(
             "No se pudo verificar la URL como imagen (error de red, tiempo agotado o acceso denegado)"
         ) from exc
 
-    raise ValueError(
+    raise ValidationError(
         "La URL no es una imagen: el servidor no devolvio Content-Type image/*"
     )
 
@@ -81,13 +82,13 @@ def verify_url_returns_image(url: str) -> None:
 def validate_image_url(image_url: str) -> str:
     parsed = urlparse(image_url.strip())
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
-        raise ValueError("image_url debe ser una URL http(s) valida")
+        raise ValidationError("image_url debe ser una URL http(s) valida")
     url = image_url.strip()
     parsed = urlparse(url)
     ext = path_image_extension(parsed)
     if ext:
         if ext not in IMAGE_EXTENSIONS:
-            raise ValueError(
+            raise ValidationError(
                 "La URL debe ser un enlace directo a imagen (extension no permitida)"
             )
         return url

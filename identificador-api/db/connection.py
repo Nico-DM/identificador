@@ -2,7 +2,11 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Any, cast
 
+from logging_config import get_logger
+
 from db.config import connection_params
+
+logger = get_logger(__name__)
 
 _pool: Any = None
 
@@ -30,4 +34,8 @@ def db_cursor() -> Iterator:
         conn.commit()
     except Exception:
         conn.rollback()
+        logger.exception(
+            "Database operation failed",
+            extra={"event": "db_error"},
+        )
         raise
