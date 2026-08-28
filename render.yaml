@@ -1,13 +1,13 @@
 services:
   - type: web
     name: identificador-api
-    runtime: python
+    runtime: docker
     rootDir: identificador-api
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     region: oregon
     plan: free
     branch: main
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: SERPAPI_API_KEY
@@ -40,3 +40,7 @@ services:
         value: "5"
       - key: RATE_LIMIT_RESULTS_PER_MINUTE
         value: "300"
+      - key: SCRAPE_DYNAMIC_ENABLED
+        value: "true"
+      - key: SCRAPE_DYNAMIC_MAX_WORKERS
+        value: "1"
