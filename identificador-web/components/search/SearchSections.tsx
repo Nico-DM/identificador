@@ -130,7 +130,7 @@ export function SearchForm({
             disabled={busy}
             className="rounded border-neutral-300 dark:border-neutral-600"
           />
-          SafeSearch (filtrar contenido explícito en Google Lens)
+          SafeSearch (filtrar contenido explícito)
         </label>
         <label className="flex items-center gap-2 select-none">
           <span>Tiempo máximo de espera</span>

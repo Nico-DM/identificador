@@ -1,24 +1,7 @@
-import logging
-from urllib.parse import urlparse
-
-import requests
-from db.cache import get_lens_cache, set_lens_cache
-from env_util import env_str
-from publication_scorer import normalize_url
-
-logger = logging.getLogger(__name__)
-
-SERPAPI_API_KEY = env_str("SERPAPI_API_KEY")
-SERPAPI_ENDPOINT = env_str("SERPAPI_ENDPOINT", "https://serpapi.com/search.json")
-SERPAPI_ENGINE = env_str("SERPAPI_ENGINE", "google_reverse_image")
+from search_engines.utils import is_http_url, normalize_url
 
 
-def is_http_url(value: str) -> bool:
-    parsed = urlparse(value)
-    return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
-
-
-def extract_match_metadata(payload: dict) -> dict[str, dict]:
+def extract_google_match_metadata(payload: dict) -> dict[str, dict]:
     metadata: dict[str, dict] = {}
 
     def upsert(
@@ -101,7 +84,7 @@ def extract_match_metadata(payload: dict) -> dict[str, dict]:
     return metadata
 
 
-def extract_urls_from_serpapi(payload: dict) -> list[str]:
+def extract_google_urls(payload: dict) -> list[str]:
     urls: list[str] = []
 
     for result in payload.get("image_results", []) or []:
@@ -126,44 +109,91 @@ def extract_urls_from_serpapi(payload: dict) -> list[str]:
             if isinstance(value, str) and is_http_url(value):
                 urls.append(value)
 
-    seen = set()
-    unique_urls = []
+    return _dedupe_urls(urls)
+
+
+def extract_bing_match_metadata(payload: dict) -> dict[str, dict]:
+    metadata: dict[str, dict] = {}
+
+    for item in payload.get("related_content", []) or []:
+        link = item.get("link")
+        if not isinstance(link, str) or not is_http_url(link):
+            continue
+        key = normalize_url(link)
+        entry = metadata.setdefault(key, {})
+        thumbnail = item.get("thumbnail") or item.get("original")
+        if isinstance(thumbnail, str) and is_http_url(thumbnail):
+            entry.setdefault("thumbnail", thumbnail)
+        title = item.get("title")
+        if isinstance(title, str) and title.strip():
+            entry.setdefault("site_name", title.strip())
+
+    return metadata
+
+
+def extract_bing_urls(payload: dict) -> list[str]:
+    urls: list[str] = []
+
+    for item in payload.get("related_content", []) or []:
+        link = item.get("link")
+        if isinstance(link, str) and is_http_url(link):
+            urls.append(link)
+        for key in ("original", "thumbnail"):
+            value = item.get(key)
+            if isinstance(value, str) and is_http_url(value):
+                urls.append(value)
+
+    return _dedupe_urls(urls)
+
+
+def extract_yandex_match_metadata(payload: dict) -> dict[str, dict]:
+    metadata: dict[str, dict] = {}
+
+    def upsert(item: dict) -> None:
+        link = item.get("link")
+        if not isinstance(link, str) or not is_http_url(link):
+            return
+        key = normalize_url(link)
+        entry = metadata.setdefault(key, {})
+        for thumb_key in ("thumbnail", "original_image", "original"):
+            thumbnail = item.get(thumb_key)
+            if isinstance(thumbnail, str) and is_http_url(thumbnail):
+                entry.setdefault("thumbnail", thumbnail)
+                break
+        source = item.get("source") or item.get("title")
+        if isinstance(source, str) and source.strip():
+            entry.setdefault("site_name", source.strip())
+
+    for item in payload.get("image_results", []) or []:
+        upsert(item)
+
+    for item in payload.get("similar_images", []) or []:
+        upsert(item)
+
+    return metadata
+
+
+def extract_yandex_urls(payload: dict) -> list[str]:
+    urls: list[str] = []
+
+    for section in ("image_results", "similar_images"):
+        for item in payload.get(section, []) or []:
+            link = item.get("link")
+            if isinstance(link, str) and is_http_url(link):
+                urls.append(link)
+            for key in ("original_image", "original", "thumbnail"):
+                value = item.get(key)
+                if isinstance(value, str) and is_http_url(value):
+                    urls.append(value)
+
+    return _dedupe_urls(urls)
+
+
+def _dedupe_urls(urls: list[str]) -> list[str]:
+    seen: set[str] = set()
+    unique_urls: list[str] = []
     for url in urls:
         if url not in seen:
             seen.add(url)
             unique_urls.append(url)
     return unique_urls
-
-
-def serpapi_reverse_image_search(image_url: str, *, safe_search: bool = True) -> dict:
-    if not SERPAPI_API_KEY:
-        raise RuntimeError("SERPAPI_API_KEY no configurada")
-
-    cached = get_lens_cache(image_url)
-    if cached is not None:
-        logger.info("SerpApi: response from Supabase cache")
-        return cached
-
-    params: dict[str, str] = {
-        "engine": SERPAPI_ENGINE,
-        "api_key": SERPAPI_API_KEY,
-        "safe": "active" if safe_search else "off",
-    }
-    if SERPAPI_ENGINE == "google_lens":
-        params["url"] = image_url
-    else:
-        params["image_url"] = image_url
-
-    response = requests.get(SERPAPI_ENDPOINT, params=params, timeout=30)
-    response.raise_for_status()
-    payload = response.json()
-
-    error_value = payload.get("error")
-    if error_value:
-        error_text = str(error_value).lower()
-        if "returned any results" in error_text or "hasn't returned any" in error_text:
-            return {}
-        raise RuntimeError(str(error_value))
-
-    set_lens_cache(image_url, payload)
-    return payload

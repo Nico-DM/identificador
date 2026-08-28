@@ -33,7 +33,7 @@ export type SearchProgress = {
   total: number;
 };
 
-export type ProgressPhase = "static" | "deep" | "serpapi";
+export type ProgressPhase = "static" | "deep" | "reverse_image";
 
 export type InputMode = "url" | "file";
 

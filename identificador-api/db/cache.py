@@ -96,7 +96,7 @@ def set_analysis_cache(
         _analysis_memory[key] = (now, encoded)
 
 
-def get_lens_cache(image_url: str) -> dict | None:
+def get_engine_cache(image_url: str, *, engine: str) -> dict | None:
     if not db_enabled():
         return None
     cutoff = datetime.now(timezone.utc).timestamp() - cache_ttl_seconds()
@@ -105,22 +105,24 @@ def get_lens_cache(image_url: str) -> dict | None:
     with db_cursor() as cur:
         cur.execute(
             """
-            SELECT serpapi_payload
-            FROM image_lens_cache
-            WHERE image_url_hash = %s AND created_at >= %s
+            SELECT engine_payload
+            FROM image_engine_cache
+            WHERE image_url_hash = %s
+              AND engine = %s
+              AND created_at >= %s
             """,
-            (url_hash, cutoff_dt),
+            (url_hash, engine, cutoff_dt),
         )
         row = cur.fetchone()
     if not row:
         return None
-    payload = row["serpapi_payload"]
+    payload = row["engine_payload"]
     if isinstance(payload, str):
         return json.loads(payload)
     return payload
 
 
-def set_lens_cache(image_url: str, payload: dict) -> None:
+def set_engine_cache(image_url: str, payload: dict, *, engine: str) -> None:
     if not db_enabled():
         return
     from psycopg.types.json import Jsonb
@@ -129,14 +131,14 @@ def set_lens_cache(image_url: str, payload: dict) -> None:
     with db_cursor() as cur:
         cur.execute(
             """
-            INSERT INTO image_lens_cache (image_url_hash, image_url, serpapi_payload)
-            VALUES (%s, %s, %s)
-            ON CONFLICT (image_url_hash) DO UPDATE SET
+            INSERT INTO image_engine_cache (image_url_hash, image_url, engine, engine_payload)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (image_url_hash, engine) DO UPDATE SET
               image_url = EXCLUDED.image_url,
-              serpapi_payload = EXCLUDED.serpapi_payload,
+              engine_payload = EXCLUDED.engine_payload,
               created_at = now()
             """,
-            (url_hash, image_url.strip(), Jsonb(payload)),
+            (url_hash, image_url.strip(), engine, Jsonb(payload)),
         )
 
 

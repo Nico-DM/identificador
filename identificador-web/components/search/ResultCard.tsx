@@ -23,7 +23,7 @@ export function ResultCard({ result }: { result: SearchResult }) {
         className="block overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-700 hover:opacity-90 transition-opacity"
       >
         {showThumbnail ? (
-          // biome-ignore lint/performance/noImgElement: thumbnails from external SerpApi domains
+          // biome-ignore lint/performance/noImgElement: thumbnails from external search engines
           <img
             src={result.thumbnail ?? undefined}
             alt={`Vista previa de ${siteName}`}
@@ -42,7 +42,7 @@ export function ResultCard({ result }: { result: SearchResult }) {
       <div className="px-1 text-left">
         <div className="flex items-start gap-1.5">
           {showFavicon ? (
-            // biome-ignore lint/performance/noImgElement: favicons from external SerpApi domains
+            // biome-ignore lint/performance/noImgElement: favicons from external search engines
             <img
               src={result.favicon ?? undefined}
               alt=""

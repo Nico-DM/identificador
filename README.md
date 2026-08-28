@@ -141,7 +141,7 @@ Flujo: el cliente envía la búsqueda → el backend responde con `search_id` y 
 |----------|-------------|
 | `SERPAPI_API_KEY` | Clave de SerpApi (obligatoria) |
 | `SERPAPI_ENDPOINT` | Por defecto `https://serpapi.com/search.json` |
-| `SERPAPI_ENGINE` | Por defecto `google_reverse_image` |
+| `SEARCH_ENGINE` | Motor de búsqueda inversa; por defecto `google_reverse_image` (alias legacy: `SERPAPI_ENGINE`) |
 | `SEARCH_TTL_SECONDS` | TTL de búsquedas en memoria (por defecto `900`) |
 | `ENVIRONMENT` | `development` en local; `production` en Render |
 | `DATABASE_URL` | Opcional — Postgres/Supabase para persistencia y caché |

@@ -148,18 +148,16 @@ def extract_dates_from_scripts(driver, url):
                         for k, v in node.items():
                             if isinstance(v, (dict, list)):
                                 stack.append(v)
-                            elif isinstance(v, str):
-                                if k.lower() in (
+                            elif isinstance(v, str) and (
+                                k.lower() in (
                                     "datepublished",
                                     "uploaddate",
                                     "datecreated",
                                     "datepublished",
-                                ):
-                                    d = _try_parse_date(v)
-                                    _add_candidate(candidates, d, "ld+json", v, url)
-                                elif ISO_DATETIME_RE.search(v) or ISO_DATE_RE.search(v):
-                                    d = _try_parse_date(v)
-                                    _add_candidate(candidates, d, "ld+json", v, url)
+                                ) or ISO_DATETIME_RE.search(v) or ISO_DATE_RE.search(v)
+                            ):
+                                d = _try_parse_date(v)
+                                _add_candidate(candidates, d, "ld+json", v, url)
                     elif isinstance(node, list):
                         for it in node:
                             if isinstance(it, (dict, list)):

@@ -24,11 +24,7 @@ from publication_scorer import (
     serialize_pending_outcome,
 )
 from scrape_config import SCRAPE_DYNAMIC_ENABLED
-from serpapi_client import (
-    extract_match_metadata,
-    extract_urls_from_serpapi,
-    serpapi_reverse_image_search,
-)
+from search_engines import get_search_engine
 from storage import delete_search_image
 
 logger = logging.getLogger(__name__)
@@ -180,12 +176,18 @@ def process_search(
             image_url,
             "active" if safe_search else "off",
         )
-        payload = serpapi_reverse_image_search(image_url, safe_search=safe_search)
-        urls = extract_urls_from_serpapi(payload)
-        match_metadata = extract_match_metadata(payload)
-        logger.info("SerpApi returned %s URLs for search %s", len(urls), search_id)
+        engine = get_search_engine()
+        outcome = engine.search(image_url, safe_search=safe_search)
+        urls = outcome.urls
+        match_metadata = outcome.match_metadata
+        logger.info(
+            "%s returned %s URLs for search %s",
+            engine.name,
+            len(urls),
+            search_id,
+        )
 
-        search_inputs = [{"link": url, "source": "serpapi"} for url in urls]
+        search_inputs = [{"link": url, "source": engine.name} for url in urls]
         total_urls = len(search_inputs)
         update_search_progress(search_id, results=[], processed=0, total=total_urls)
 

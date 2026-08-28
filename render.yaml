@@ -14,7 +14,7 @@ services:
         sync: false
       - key: SERPAPI_ENDPOINT
         value: https://serpapi.com/search.json
-      - key: SERPAPI_ENGINE
+      - key: SEARCH_ENGINE
         value: google_reverse_image
       - key: SEARCH_TTL_SECONDS
         value: 900

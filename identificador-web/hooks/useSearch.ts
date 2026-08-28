@@ -35,7 +35,7 @@ export function useSearch() {
   const [error, setError] = useState<string | null>(null);
   const [searchId, setSearchId] = useState<string | null>(null);
   const [deepSearch, setDeepSearch] = useState<DeepSearchInfo | null>(null);
-  const [progressPhase, setProgressPhase] = useState<ProgressPhase>("serpapi");
+  const [progressPhase, setProgressPhase] = useState<ProgressPhase>("reverse_image");
   const [progress, setProgress] = useState<SearchProgress>({
     processed: 0,
     total: 0,
@@ -364,7 +364,7 @@ export function useSearch() {
     setStatus("processing");
     setSearchId(null);
     setDeepSearch(null);
-    setProgressPhase("serpapi");
+    setProgressPhase("reverse_image");
     setProgress({ processed: 0, total: 0 });
     setCanRetryPoll(false);
     setPollTarget("static");
