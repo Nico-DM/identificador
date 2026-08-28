@@ -1,5 +1,4 @@
 import copy
-import logging
 import threading
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
@@ -8,6 +7,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from db.cache import get_url_scrape_cache, set_url_scrape_cache
 from dynamic_scraper import fetch_dynamic_candidates
+from logging_config import get_logger
 from models import DateCandidate
 from scrape_config import (
     SCRAPE_DYNAMIC_ENABLED,
@@ -17,7 +17,7 @@ from scrape_config import (
 )
 from static_scraper import fetch_static_candidates
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def _to_naive_utc(dt):
@@ -194,7 +194,10 @@ def _dedupe_results(results) -> list:
     for result in results:
         url = normalize_url(result["link"])
         if url in seen_urls:
-            logger.debug("Duplicate URL ignored: %s", url)
+            logger.debug(
+                "Duplicate URL ignored",
+                extra={"event": "duplicate_url", "url": url},
+            )
             continue
         seen_urls.add(url)
         item = copy.copy(result)
@@ -245,7 +248,10 @@ def _score_static_candidates(
     cached = get_url_scrape_cache(url)
     if cached and cached.get("date_utc") is not None:
         best = _candidate_from_cache(cached, url)
-        logger.info("Static scrape from cache: %s", url)
+        logger.info(
+            "Static scrape from cache",
+            extra={"event": "static_cache_hit", "url": url},
+        )
         return [best], best
 
     candidates = fetch_static_candidates(url)
@@ -309,10 +315,13 @@ def _static_phase(result: dict) -> _StaticPhaseOutcome:
     url = result["link"]
     platform = detect_platform(url)
     logger.info(
-        "Static phase - source: %s, platform: %s, link: %s",
-        result["source"],
-        platform,
-        url,
+        "Static phase started",
+        extra={
+            "event": "static_phase_url",
+            "source": result["source"],
+            "platform": platform,
+            "url": url,
+        },
     )
 
     static_candidates, best_static = _score_static_candidates(url, platform)
@@ -326,17 +335,29 @@ def _static_phase(result: dict) -> _StaticPhaseOutcome:
             result, url, platform, best_static, confidence="confirmed"
         )
         logger.info(
-            "Static date: %s (score=%.2f)", best_static.date, best_static.score
+            "Static date confirmed",
+            extra={
+                "event": "static_date_confirmed",
+                "date": best_static.date.isoformat(),
+                "score": round(best_static.score, 2),
+                "url": url,
+            },
         )
     elif needs_dynamic:
         static_score = best_static.score if best_static else 0.0
         logger.info(
-            "Provisional static date (score=%.2f); pending dynamic scrape: %s",
-            static_score,
-            url,
+            "Provisional static date pending dynamic scrape",
+            extra={
+                "event": "static_date_provisional",
+                "score": round(static_score, 2),
+                "url": url,
+            },
         )
     else:
-        logger.debug("No static date found for: %s", url)
+        logger.debug(
+            "No static date found",
+            extra={"event": "static_date_missing", "url": url},
+        )
 
     return _StaticPhaseOutcome(
         result=result,
@@ -353,7 +374,10 @@ def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> dict | None:
     url = outcome.url
     platform = outcome.platform
     best_static = outcome.best_static
-    logger.info("Dynamic phase - platform: %s, link: %s", platform, url)
+    logger.info(
+        "Dynamic phase started",
+        extra={"event": "dynamic_phase_url", "platform": platform, "url": url},
+    )
 
     dynamic = fetch_dynamic_candidates(url)
     flags = classify_context(url, platform)
@@ -369,23 +393,52 @@ def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> dict | None:
         if best_dynamic.score > best_static.score:
             best = best_dynamic
             logger.info(
-                "Dynamic date (improved static): %s (score=%.2f)",
-                best.date,
-                best.score,
+                "Dynamic date improved static result",
+                extra={
+                    "event": "dynamic_date_improved",
+                    "date": best.date.isoformat(),
+                    "score": round(best.score, 2),
+                    "url": url,
+                },
             )
         else:
             best = best_static
             logger.info(
-                "Static date kept: %s (score=%.2f)", best.date, best.score
+                "Static date kept over dynamic",
+                extra={
+                    "event": "static_date_kept",
+                    "date": best.date.isoformat(),
+                    "score": round(best.score, 2),
+                    "url": url,
+                },
             )
     elif best_dynamic:
         best = best_dynamic
-        logger.info("Dynamic date: %s (score=%.2f)", best.date, best.score)
+        logger.info(
+            "Dynamic date selected",
+            extra={
+                "event": "dynamic_date_selected",
+                "date": best.date.isoformat(),
+                "score": round(best.score, 2),
+                "url": url,
+            },
+        )
     elif best_static:
         best = best_static
-        logger.info("Static date (fallback): %s (score=%.2f)", best.date, best.score)
+        logger.info(
+            "Static date used as fallback",
+            extra={
+                "event": "static_date_fallback",
+                "date": best.date.isoformat(),
+                "score": round(best.score, 2),
+                "url": url,
+            },
+        )
     else:
-        logger.debug("No date found for: %s", url)
+        logger.debug(
+            "No date found",
+            extra={"event": "date_not_found", "url": url},
+        )
         return None
 
     return _build_publication(
@@ -439,9 +492,13 @@ def _apply_static_outcome(
             outcome.best_static,
         )
         logger.info(
-            "Static date (dynamic disabled): %s (score=%.2f)",
-            outcome.best_static.date,
-            outcome.best_static.score,
+            "Static date with dynamic disabled",
+            extra={
+                "event": "static_date_no_dynamic",
+                "date": outcome.best_static.date.isoformat(),
+                "score": round(outcome.best_static.score, 2),
+                "url": outcome.url,
+            },
         )
         publications.append(publication)
         _sort_publications(publications)
@@ -473,10 +530,13 @@ def run_static_phase(
 
     static_workers = min(SCRAPE_STATIC_MAX_WORKERS, total)
     logger.info(
-        "Starting static phase: %s URLs, workers=%s, threshold=%s",
-        total,
-        static_workers,
-        SCRAPE_STATIC_CONFIDENCE_THRESHOLD,
+        "Starting static phase",
+        extra={
+            "event": "static_phase_start",
+            "url_count": total,
+            "workers": static_workers,
+            "threshold": SCRAPE_STATIC_CONFIDENCE_THRESHOLD,
+        },
     )
 
     with ThreadPoolExecutor(max_workers=static_workers) as pool:
@@ -509,7 +569,12 @@ def run_dynamic_phase(
 
     dynamic_workers = min(SCRAPE_DYNAMIC_MAX_WORKERS, total)
     logger.info(
-        "Starting dynamic phase: %s URLs, workers=%s", total, dynamic_workers
+        "Starting dynamic phase",
+        extra={
+            "event": "dynamic_phase_start",
+            "url_count": total,
+            "workers": dynamic_workers,
+        },
     )
 
     with ThreadPoolExecutor(max_workers=dynamic_workers) as pool:

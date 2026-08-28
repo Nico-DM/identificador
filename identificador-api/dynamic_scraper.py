@@ -1,5 +1,4 @@
 import json
-import logging
 import re
 import time
 from datetime import timezone
@@ -7,6 +6,7 @@ from datetime import timezone
 from bs4 import BeautifulSoup
 from dateutil import parser
 from dateutil.parser import ParserError
+from logging_config import get_logger
 from models import DateCandidate
 from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
@@ -15,7 +15,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def _to_naive_utc(dt):
@@ -85,7 +85,11 @@ def extract_from_dom(driver, url):
                 parsed = _try_parse_date(dt) if dt else None
                 _add_candidate(candidates, parsed, "time", dt, url)
         except WebDriverException:
-            logger.debug("Time selector failed %s on %s", sel, url, exc_info=True)
+            logger.debug(
+                "Time selector failed",
+                extra={"event": "dynamic_selector_failed", "selector": sel, "url": url},
+                exc_info=True,
+            )
             continue
 
     meta_selectors = [
@@ -108,7 +112,11 @@ def extract_from_dom(driver, url):
                 parsed = _try_parse_date(content) if content else None
                 _add_candidate(candidates, parsed, "meta", content, url)
         except WebDriverException:
-            logger.debug("Meta selector failed %s on %s", sel, url, exc_info=True)
+            logger.debug(
+                "Meta selector failed",
+                extra={"event": "dynamic_selector_failed", "selector": sel, "url": url},
+                exc_info=True,
+            )
             continue
 
     return candidates
@@ -237,7 +245,11 @@ def fetch_dynamic_candidates(
             },
         )
     except WebDriverException:
-        logger.debug("Could not hide webdriver on %s", url, exc_info=True)
+        logger.debug(
+            "Could not hide webdriver",
+            extra={"event": "dynamic_webdriver_hide_failed", "url": url},
+            exc_info=True,
+        )
 
     try:
         driver.get(url)
@@ -257,10 +269,18 @@ def fetch_dynamic_candidates(
         return candidates
 
     except WebDriverException:
-        logger.debug("Dynamic scrape failed for %s", url, exc_info=True)
+        logger.debug(
+            "Dynamic scrape failed",
+            extra={"event": "dynamic_scrape_failed", "url": url},
+            exc_info=True,
+        )
         return []
     finally:
         try:
             driver.quit()
         except WebDriverException:
-            logger.debug("Could not close driver for %s", url, exc_info=True)
+            logger.debug(
+                "Could not close driver",
+                extra={"event": "dynamic_driver_close_failed", "url": url},
+                exc_info=True,
+            )

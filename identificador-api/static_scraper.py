@@ -1,14 +1,14 @@
 import json
-import logging
 import re
 from datetime import timezone
 
 import dateparser
 import requests
 from bs4 import BeautifulSoup
+from logging_config import get_logger
 from models import DateCandidate
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 def _to_naive_utc(dt):
@@ -123,5 +123,9 @@ def fetch_static_candidates(url: str) -> list[DateCandidate]:
             )
         return candidates
     except requests.RequestException:
-        logger.debug("Static scrape failed for %s", url, exc_info=True)
+        logger.debug(
+            "Static scrape failed",
+            extra={"event": "static_scrape_failed", "url": url},
+            exc_info=True,
+        )
         return []

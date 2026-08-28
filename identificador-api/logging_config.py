@@ -48,19 +48,21 @@ class JsonFormatter(logging.Formatter):
 
 
 class StructuredTextFormatter(logging.Formatter):
+    _CONTEXT_SKIP = frozenset({"request_id", "search_id"})
+
     def format(self, record: logging.LogRecord) -> str:
         base = super().format(record)
         context: list[str] = []
-        request_id = getattr(record, "request_id", None)
-        if request_id:
-            context.append(f"request_id={request_id}")
-        search_id = getattr(record, "search_id", None)
-        if search_id:
-            context.append(f"search_id={search_id}")
-        for key in ("event", "code", "engine", "phase", "status", "path", "method"):
+        for key in ("request_id", "search_id"):
             value = getattr(record, key, None)
-            if value is not None:
+            if value:
                 context.append(f"{key}={value}")
+        for key, value in sorted(record.__dict__.items()):
+            if key in _LOG_RECORD_RESERVED or key.startswith("_"):
+                continue
+            if key in self._CONTEXT_SKIP:
+                continue
+            context.append(f"{key}={value}")
         if context:
             return f"{base} [{', '.join(context)}]"
         return base
