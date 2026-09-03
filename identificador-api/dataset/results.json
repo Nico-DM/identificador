@@ -1,0 +1,668 @@
+{
+  "generated_at": "2026-09-03T00:16:15.156429+00:00",
+  "base_url": "http://localhost:8000",
+  "search_engine": "google_reverse_image",
+  "evaluation_window": 10,
+  "deep_search_used_count": 4,
+  "total_images": 10,
+  "correct": 4,
+  "precision": 0.4,
+  "error_rate": 0.0,
+  "avg_response_time_seconds": 7.02,
+  "by_category": {
+    "arte_digital": {
+      "total": 2,
+      "correct": 0
+    },
+    "arte_tradicional_digitalizado": {
+      "total": 2,
+      "correct": 2
+    },
+    "fotografia_historica": {
+      "total": 2,
+      "correct": 1
+    },
+    "meme": {
+      "total": 2,
+      "correct": 1
+    },
+    "stock": {
+      "total": 2,
+      "correct": 0
+    }
+  },
+  "rows": [
+    {
+      "id": "hist-01",
+      "category": "fotografia_historica",
+      "title": "Migrant Mother (Dorothea Lange, 1936)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Lange-MigrantMother02.jpg/960px-Lange-MigrantMother02.jpg",
+      "expected": {
+        "artist": "Dorothea Lange",
+        "date": "1936",
+        "url_contains": [
+          "wikipedia.org",
+          "loc.gov",
+          "moma.org"
+        ]
+      },
+      "started_at": "2026-09-03T00:15:04.984795+00:00",
+      "search_id": "9453f2e7-5758-4c62-9653-5e0e80c2f4ef",
+      "status": "error",
+      "response_time_seconds": 4.01,
+      "static_poll_seconds": 2.0,
+      "deep_poll_seconds": 2.0,
+      "deep_search_used": true,
+      "deep_search_available": true,
+      "result_count": 8,
+      "top_results": [
+        {
+          "url": "https://www.facebook.com/AmericanExperiencePBS/posts/born-on-may-26-1895-in-hoboken-new-jersey-dorothea-lange-made-her-early-career-a/841623288013287/",
+          "date": "1895-05-26T00:00:00",
+          "platform": "facebook",
+          "site_name": "Facebook · American Experience | PBS",
+          "score": 0.2,
+          "confidence": "provisional"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Migrant_Mother",
+          "date": "2016-12-09T21:05:38",
+          "platform": "unknown",
+          "site_name": "Wikipedia",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.moma.org/collection/works/50989",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "MoMA",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://www.kennedy-center.org/education/resources-for-educators/classroom-resources/media-and-interactives/media/media-arts/dorothea-lange-migrant--mother/",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "The Kennedy Center",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://www.si.edu/object/migrant-mother-dorothea-lange%3Anmah_1313354",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "Smithsonian",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://www.instagram.com/p/Dcla4xiEc6o/",
+          "date": null,
+          "platform": "instagram",
+          "site_name": "Instagram · sustainable__human",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://www.history.com/articles/migrant-mother-new-deal-great-depression",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "History.com",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://www.pbs.org/wgbh/roadshow/articles/the-story-of-the-migrant-mother/",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "PBS",
+          "score": null,
+          "confidence": "pending"
+        }
+      ],
+      "obtained": {
+        "url": "https://en.wikipedia.org/wiki/Migrant_Mother",
+        "date": "2016-12-09T21:05:38",
+        "platform": "unknown",
+        "site_name": "Wikipedia",
+        "score": 0.7,
+        "confidence": "confirmed"
+      },
+      "evaluation": {
+        "correct": true,
+        "reason": "ok",
+        "match_rank": 2,
+        "evaluation_window": 10,
+        "url_match": true,
+        "date_match": false
+      },
+      "error": "Error interno del procesamiento"
+    },
+    {
+      "id": "hist-02",
+      "category": "fotografia_historica",
+      "title": "V-J Day in Times Square (Alfred Eisenstaedt, 1945)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Kissing_the_War_Goodbye.jpg/960px-Kissing_the_War_Goodbye.jpg",
+      "expected": {
+        "artist": "Alfred Eisenstaedt",
+        "date": "1945",
+        "url_contains": [
+          "wikipedia.org",
+          "gettyimages",
+          "life.com"
+        ]
+      },
+      "started_at": "2026-09-03T00:15:08.999219+00:00",
+      "search_id": "f11841b9-ada8-4ed0-89ce-193c1858f704",
+      "status": "done",
+      "response_time_seconds": 2.01,
+      "static_poll_seconds": 2.0,
+      "deep_poll_seconds": 0.0,
+      "deep_search_used": false,
+      "deep_search_available": false,
+      "result_count": 0,
+      "top_results": [],
+      "obtained": null,
+      "evaluation": {
+        "correct": false,
+        "reason": "sin_resultados",
+        "detail": "La búsqueda no devolvió candidatos",
+        "match_rank": null,
+        "evaluation_window": 10
+      },
+      "error": null
+    },
+    {
+      "id": "trad-01",
+      "category": "arte_tradicional_digitalizado",
+      "title": "La Gioconda (Leonardo da Vinci)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/960px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg",
+      "expected": {
+        "artist": "Leonardo da Vinci",
+        "date": "1503",
+        "url_contains": [
+          "wikipedia.org",
+          "louvre",
+          "wikimedia.org"
+        ]
+      },
+      "started_at": "2026-09-03T00:15:11.005272+00:00",
+      "search_id": "7ffcfacf-d09e-4c65-911b-3b25f63c6730",
+      "status": "error",
+      "response_time_seconds": 4.01,
+      "static_poll_seconds": 2.0,
+      "deep_poll_seconds": 2.0,
+      "deep_search_used": true,
+      "deep_search_available": true,
+      "result_count": 8,
+      "top_results": [
+        {
+          "url": "https://en.wikipedia.org/wiki/File:Mona_Lisa,_by_Leonardo_da_Vinci,_from_C2RMF_retouched.jpg",
+          "date": "1931-01-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "Wikipedia",
+          "score": 0.2,
+          "confidence": "provisional"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Mona_Lisa",
+          "date": "2002-08-12T19:21:41",
+          "platform": "unknown",
+          "site_name": "Wikipedia",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.britannica.com/topic/Mona-Lisa-painting",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "Britannica",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://smarthistory.org/leonardo-mona-lisa/",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "Smarthistory",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://www.google.com/goto?url=CAESyQEB6zswFSPeF9tE_ozq927E5fJttBtGFJ2FdQXDQwrv33QxBctN-g6P8bQ0n0_6Vmi8owfkk8C3FjSfyc8kVC7bQQUXxcygTtDr4Uzaxjor6XGJ6VgEhwJVjRgyW21nrSMPzv47velb9UoE8fzaXLRxFmKC2PE7sYQ5oDjv7yi-sR4_ggrwQ3KICgDJdmbNGzWrUXRJ4Zhyq841czVGgi93wzOF04rzq3CfQbLSg454kjWNs5nMrNFrp3QimLTAOA8RpQPNPTdfKMs",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "Facebook · BBC Arts",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://www.facebook.com/paintingandfineart/photos/leonardo-da-vinci-the-mona-lisa-1506/1214448324144858/",
+          "date": null,
+          "platform": "facebook",
+          "site_name": "Facebook · Painting and Fine Arts",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://www.facebook.com/NOVApbs/posts/this-engineer-used-powerful-lights-cameras-and-computer-software-to-digitally-re/1518491106991935/",
+          "date": null,
+          "platform": "facebook",
+          "site_name": "Facebook · NOVA l PBS",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://worldmuseumguide.org/artworks/mona-lisa/",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "worldmuseumguide.org",
+          "score": null,
+          "confidence": "pending"
+        }
+      ],
+      "obtained": {
+        "url": "https://en.wikipedia.org/wiki/File:Mona_Lisa,_by_Leonardo_da_Vinci,_from_C2RMF_retouched.jpg",
+        "date": "1931-01-01T00:00:00",
+        "platform": "unknown",
+        "site_name": "Wikipedia",
+        "score": 0.2,
+        "confidence": "provisional"
+      },
+      "evaluation": {
+        "correct": true,
+        "reason": "ok",
+        "match_rank": 1,
+        "evaluation_window": 10,
+        "url_match": true,
+        "date_match": false
+      },
+      "error": "Error interno del procesamiento"
+    },
+    {
+      "id": "trad-02",
+      "category": "arte_tradicional_digitalizado",
+      "title": "La noche estrellada (Vincent van Gogh, 1889)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
+      "expected": {
+        "artist": "Vincent van Gogh",
+        "date": "1889",
+        "url_contains": [
+          "wikipedia.org",
+          "moma.org",
+          "vangoghmuseum"
+        ]
+      },
+      "started_at": "2026-09-03T00:15:15.018850+00:00",
+      "search_id": "57fc8077-3964-41da-948c-3e6393d0cd52",
+      "status": "error",
+      "response_time_seconds": 4.01,
+      "static_poll_seconds": 2.0,
+      "deep_poll_seconds": 2.0,
+      "deep_search_used": true,
+      "deep_search_available": true,
+      "result_count": 8,
+      "top_results": [
+        {
+          "url": "https://en.wikipedia.org/wiki/File:Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
+          "date": "1931-01-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "Wikipedia",
+          "score": 0.2,
+          "confidence": "provisional"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/The_Starry_Night",
+          "date": "2004-10-29T17:53:04",
+          "platform": "unknown",
+          "site_name": "Wikipedia",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://commons.wikimedia.org/wiki/File:Van_Gogh_-_Starry_Night_2.jpg",
+          "date": "2018-02-14T11:03:38",
+          "platform": "unknown",
+          "site_name": "Wikimedia Commons",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.google.com/goto?url=CAESYwHrOzAVVlk_yD5ERWwhn0DjxxQtWyrfpz3priNVp9FfQ_aNaaC3UiSLKS0eciwQeGwwAcjC9HqZJCeYdjDt7Or0up79WeK41o5gea6S5_wCcN0h3cjDqf-HWwBonVQC61S_Mw",
+          "date": "2026-07-04T18:32:56",
+          "platform": "unknown",
+          "site_name": "YouTube · Great Art Explained",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.reddit.com/r/ArtistLounge/comments/2f0dxo/this_optional_drawing_exercise_is_a_tougher_than/",
+          "date": null,
+          "platform": "reddit",
+          "site_name": "Reddit · r/ArtistLounge",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://www.britannica.com/topic/The-Starry-Night",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "Britannica",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://www.amazon.com/Exploding-Village-Cypress-Impressionism-Painting/dp/B09KNXSJ3V",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "Amazon.com",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://vggallery.com/painting/p_0612.htm",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "The Vincent van Gogh Gallery",
+          "score": null,
+          "confidence": "pending"
+        }
+      ],
+      "obtained": {
+        "url": "https://en.wikipedia.org/wiki/File:Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
+        "date": "1931-01-01T00:00:00",
+        "platform": "unknown",
+        "site_name": "Wikipedia",
+        "score": 0.2,
+        "confidence": "provisional"
+      },
+      "evaluation": {
+        "correct": true,
+        "reason": "ok",
+        "match_rank": 1,
+        "evaluation_window": 10,
+        "url_match": true,
+        "date_match": false
+      },
+      "error": "Error interno del procesamiento"
+    },
+    {
+      "id": "meme-01",
+      "category": "meme",
+      "title": "Success Kid (Laney Griner, 2007)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/en/thumb/f/ff/SuccessKid.jpg/250px-SuccessKid.jpg",
+      "expected": {
+        "artist": "Laney Griner",
+        "date": "2007",
+        "url_contains": [
+          "wikipedia.org",
+          "knowyourmeme",
+          "reddit.com"
+        ]
+      },
+      "started_at": "2026-09-03T00:15:19.030703+00:00",
+      "search_id": "db52d76c-631c-4cdf-b3f0-cb1ae801899d",
+      "status": "done",
+      "response_time_seconds": 2.01,
+      "static_poll_seconds": 2.0,
+      "deep_poll_seconds": 0.0,
+      "deep_search_used": false,
+      "deep_search_available": false,
+      "result_count": 0,
+      "top_results": [],
+      "obtained": null,
+      "evaluation": {
+        "correct": false,
+        "reason": "sin_resultados",
+        "detail": "La búsqueda no devolvió candidatos",
+        "match_rank": null,
+        "evaluation_window": 10
+      },
+      "error": null
+    },
+    {
+      "id": "meme-02",
+      "category": "meme",
+      "title": "Doge (Kabosu)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/en/5/5f/Original_Doge_meme.jpg",
+      "expected": {
+        "artist": "Atsuko Sato",
+        "date": "2010",
+        "url_contains": [
+          "wikipedia.org",
+          "knowyourmeme",
+          "reddit.com"
+        ]
+      },
+      "started_at": "2026-09-03T00:15:21.037266+00:00",
+      "search_id": "7746f5ed-65b2-4ff9-8445-652d76743afc",
+      "status": "done",
+      "response_time_seconds": 46.1,
+      "static_poll_seconds": 2.0,
+      "deep_poll_seconds": 44.09,
+      "deep_search_used": true,
+      "deep_search_available": true,
+      "result_count": 8,
+      "top_results": [
+        {
+          "url": "https://www.washingtonpost.com/technology/2024/05/24/kabosu-doge-meme-shiba-inu-dead/",
+          "date": "1877-12-06T00:00:00",
+          "platform": "unknown",
+          "site_name": "The Washington Post",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.reddit.com/r/todayilearned/comments/4est8n/til_doges_real_name_is_kabosu_and_she_was_rescued/",
+          "date": "2014-01-20T09:26:52.037000",
+          "platform": "reddit",
+          "site_name": "Reddit · r/todayilearned",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.pinterest.com/pin/899594094298105218/",
+          "date": "2014-05-15T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pinterest",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.reddit.com/r/popculturechat/comments/1czpefl/kabosu_the_shiba_inu_face_of_the_doge_meme_has/",
+          "date": "2020-04-22T17:11:11.424000",
+          "platform": "reddit",
+          "site_name": "Reddit · r/popculturechat",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.artrights.me/en/the-iconic-meme-doge-nft-sold-for-4-million/",
+          "date": "2021-06-14T11:14:32",
+          "platform": "unknown",
+          "site_name": "Art Rights",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.instagram.com/p/CVysMrsvd9t/?hl%5Cu003den=",
+          "date": "2021-11-02T23:32:59",
+          "platform": "instagram",
+          "site_name": "Instagram · weratedogs",
+          "score": 0.5,
+          "confidence": "provisional"
+        },
+        {
+          "url": "https://www.boredpanda.com/kabosu-dog-shiba-inu-doge-meme-passes-18/",
+          "date": "2024-05-24T15:34:08",
+          "platform": "unknown",
+          "site_name": "Bored Panda",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.facebook.com/WeRateDogs/photos/4666122940115559/",
+          "date": null,
+          "platform": "facebook",
+          "site_name": "Facebook · We Rate Dogs",
+          "score": null,
+          "confidence": "pending"
+        }
+      ],
+      "obtained": {
+        "url": "https://www.reddit.com/r/todayilearned/comments/4est8n/til_doges_real_name_is_kabosu_and_she_was_rescued/",
+        "date": "2014-01-20T09:26:52.037000",
+        "platform": "reddit",
+        "site_name": "Reddit · r/todayilearned",
+        "score": 0.7,
+        "confidence": "confirmed"
+      },
+      "evaluation": {
+        "correct": true,
+        "reason": "ok",
+        "match_rank": 2,
+        "evaluation_window": 10,
+        "url_match": true,
+        "date_match": false
+      },
+      "error": null
+    },
+    {
+      "id": "stock-01",
+      "category": "stock",
+      "title": "Gato doméstico (foto de stock, Wikimedia)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/960px-Cat03.jpg",
+      "expected": {
+        "artist": "desconocido",
+        "date": null,
+        "url_contains": [
+          "wikipedia.org",
+          "commons.wikimedia",
+          "pixabay"
+        ]
+      },
+      "started_at": "2026-09-03T00:16:07.133916+00:00",
+      "search_id": "c0f4a375-351a-4e2a-b4c4-679805d68eb4",
+      "status": "done",
+      "response_time_seconds": 2.01,
+      "static_poll_seconds": 2.0,
+      "deep_poll_seconds": 0.0,
+      "deep_search_used": false,
+      "deep_search_available": false,
+      "result_count": 0,
+      "top_results": [],
+      "obtained": null,
+      "evaluation": {
+        "correct": false,
+        "reason": "sin_resultados",
+        "detail": "La búsqueda no devolvió candidatos",
+        "match_rank": null,
+        "evaluation_window": 10
+      },
+      "error": null
+    },
+    {
+      "id": "stock-02",
+      "category": "stock",
+      "title": "Retrato de gaviota (foto de stock, Wikimedia)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Gull_portrait_ca_usa.jpg/960px-Gull_portrait_ca_usa.jpg",
+      "expected": {
+        "artist": "desconocido",
+        "date": null,
+        "url_contains": [
+          "wikipedia.org",
+          "unsplash",
+          "commons.wikimedia"
+        ]
+      },
+      "started_at": "2026-09-03T00:16:09.139286+00:00",
+      "search_id": "1fd3cdb6-c1ef-4724-b408-4cbbba6b149d",
+      "status": "done",
+      "response_time_seconds": 2.01,
+      "static_poll_seconds": 2.0,
+      "deep_poll_seconds": 0.0,
+      "deep_search_used": false,
+      "deep_search_available": false,
+      "result_count": 0,
+      "top_results": [],
+      "obtained": null,
+      "evaluation": {
+        "correct": false,
+        "reason": "sin_resultados",
+        "detail": "La búsqueda no devolvió candidatos",
+        "match_rank": null,
+        "evaluation_window": 10
+      },
+      "error": null
+    },
+    {
+      "id": "digital-01",
+      "category": "arte_digital",
+      "title": "Color of Friendship (arte digital, Wikimedia)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Color_of_Friendship.jpg/960px-Color_of_Friendship.jpg",
+      "expected": {
+        "artist": "desconocido",
+        "date": null,
+        "url_contains": [
+          "wikipedia.org",
+          "wikimedia.org",
+          "deviantart"
+        ]
+      },
+      "started_at": "2026-09-03T00:16:11.144545+00:00",
+      "search_id": "75aa4c1f-43ff-417a-bfe5-915259f56a36",
+      "status": "done",
+      "response_time_seconds": 2.01,
+      "static_poll_seconds": 2.0,
+      "deep_poll_seconds": 0.0,
+      "deep_search_used": false,
+      "deep_search_available": false,
+      "result_count": 0,
+      "top_results": [],
+      "obtained": null,
+      "evaluation": {
+        "correct": false,
+        "reason": "sin_resultados",
+        "detail": "La búsqueda no devolvió candidatos",
+        "match_rank": null,
+        "evaluation_window": 10
+      },
+      "error": null
+    },
+    {
+      "id": "digital-02",
+      "category": "arte_digital",
+      "title": "Paisaje en pixel art",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Landscape_pixel_art.png/960px-Landscape_pixel_art.png",
+      "expected": {
+        "artist": "desconocido",
+        "date": null,
+        "url_contains": [
+          "wikipedia.org",
+          "wikimedia.org",
+          "opengameart"
+        ]
+      },
+      "started_at": "2026-09-03T00:16:13.150256+00:00",
+      "search_id": "ada503fe-5e77-4c8e-9a14-74476a01470f",
+      "status": "done",
+      "response_time_seconds": 2.01,
+      "static_poll_seconds": 2.0,
+      "deep_poll_seconds": 0.0,
+      "deep_search_used": false,
+      "deep_search_available": false,
+      "result_count": 0,
+      "top_results": [],
+      "obtained": null,
+      "evaluation": {
+        "correct": false,
+        "reason": "sin_resultados",
+        "detail": "La búsqueda no devolvió candidatos",
+        "match_rank": null,
+        "evaluation_window": 10
+      },
+      "error": null
+    }
+  ]
+}

@@ -1,0 +1,123 @@
+{
+  "version": 1,
+  "description": "Dataset de regresión para Identificador de Artistas",
+  "categories": [
+    "fotografia_historica",
+    "arte_tradicional_digitalizado",
+    "meme",
+    "stock",
+    "arte_digital"
+  ],
+  "images": [
+    {
+      "id": "hist-01",
+      "category": "fotografia_historica",
+      "title": "Migrant Mother (Dorothea Lange, 1936)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Lange-MigrantMother02.jpg/960px-Lange-MigrantMother02.jpg",
+      "expected": {
+        "artist": "Dorothea Lange",
+        "date": "1936",
+        "url_contains": ["wikipedia.org", "loc.gov", "moma.org"]
+      }
+    },
+    {
+      "id": "hist-02",
+      "category": "fotografia_historica",
+      "title": "V-J Day in Times Square (Alfred Eisenstaedt, 1945)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Kissing_the_War_Goodbye.jpg/960px-Kissing_the_War_Goodbye.jpg",
+      "expected": {
+        "artist": "Alfred Eisenstaedt",
+        "date": "1945",
+        "url_contains": ["wikipedia.org", "gettyimages", "life.com"]
+      }
+    },
+    {
+      "id": "trad-01",
+      "category": "arte_tradicional_digitalizado",
+      "title": "La Gioconda (Leonardo da Vinci)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/960px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg",
+      "expected": {
+        "artist": "Leonardo da Vinci",
+        "date": "1503",
+        "url_contains": ["wikipedia.org", "louvre", "wikimedia.org"]
+      }
+    },
+    {
+      "id": "trad-02",
+      "category": "arte_tradicional_digitalizado",
+      "title": "La noche estrellada (Vincent van Gogh, 1889)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
+      "expected": {
+        "artist": "Vincent van Gogh",
+        "date": "1889",
+        "url_contains": ["wikipedia.org", "moma.org", "vangoghmuseum"]
+      }
+    },
+    {
+      "id": "meme-01",
+      "category": "meme",
+      "title": "Success Kid (Laney Griner, 2007)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/en/thumb/f/ff/SuccessKid.jpg/250px-SuccessKid.jpg",
+      "expected": {
+        "artist": "Laney Griner",
+        "date": "2007",
+        "url_contains": ["wikipedia.org", "knowyourmeme", "reddit.com"]
+      }
+    },
+    {
+      "id": "meme-02",
+      "category": "meme",
+      "title": "Doge (Kabosu)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/en/5/5f/Original_Doge_meme.jpg",
+      "expected": {
+        "artist": "Atsuko Sato",
+        "date": "2010",
+        "url_contains": ["wikipedia.org", "knowyourmeme", "reddit.com"]
+      }
+    },
+    {
+      "id": "stock-01",
+      "category": "stock",
+      "title": "Gato doméstico (foto de stock, Wikimedia)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/960px-Cat03.jpg",
+      "expected": {
+        "artist": "desconocido",
+        "date": null,
+        "url_contains": ["wikipedia.org", "commons.wikimedia", "pixabay"]
+      }
+    },
+    {
+      "id": "stock-02",
+      "category": "stock",
+      "title": "Retrato de gaviota (foto de stock, Wikimedia)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Gull_portrait_ca_usa.jpg/960px-Gull_portrait_ca_usa.jpg",
+      "expected": {
+        "artist": "desconocido",
+        "date": null,
+        "url_contains": ["wikipedia.org", "unsplash", "commons.wikimedia"]
+      }
+    },
+    {
+      "id": "digital-01",
+      "category": "arte_digital",
+      "title": "Color of Friendship (arte digital, Wikimedia)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Color_of_Friendship.jpg/960px-Color_of_Friendship.jpg",
+      "expected": {
+        "artist": "desconocido",
+        "date": null,
+        "url_contains": ["wikipedia.org", "wikimedia.org", "deviantart"]
+      }
+    },
+    {
+      "id": "digital-02",
+      "category": "arte_digital",
+      "title": "Paisaje en pixel art",
+      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Landscape_pixel_art.png/960px-Landscape_pixel_art.png",
+      "expected": {
+        "artist": "desconocido",
+        "date": null,
+        "url_contains": ["wikipedia.org", "wikimedia.org", "opengameart"]
+      }
+    }
+  ]
+}

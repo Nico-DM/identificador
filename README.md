@@ -117,6 +117,19 @@ source venv/bin/activate
 python scripts/smoke_test.py --image-url "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Color_of_Friendship.jpg/1920px-Color_of_Friendship.jpg"
 ```
 
+### Dataset de prueba (regresión)
+
+Documentación formal en [`docs/dataset-prueba.md`](docs/dataset-prueba.md).
+
+```bash
+cd identificador-api
+source venv/bin/activate
+python main.py   # en otra terminal
+python scripts/run_dataset.py
+```
+
+El manifest con las 10 imágenes está en `identificador-api/dataset/manifest.json`; la salida se guarda en `dataset/results.json` y regenera el informe en `docs/`.
+
 ---
 
 ## API (resumen)
