@@ -18,8 +18,9 @@ RESULTS_PATH = DATASET_DIR / "results.json"
 
 STATIC_TERMINAL = {"static_done", "done", "error"}
 TERMINAL = {"done", "error"}
-POLL_INTERVAL = 2
-POLL_MAX_ATTEMPTS = 120
+DEFAULT_POLL_INTERVAL = 2.0
+DEFAULT_STATIC_MAX_WAIT_SECONDS = 600.0
+DEFAULT_DEEP_MAX_WAIT_SECONDS = 1200.0
 DEFAULT_TOP_N = 10
 
 
@@ -28,21 +29,49 @@ def load_manifest() -> dict:
         return json.load(fh)
 
 
+def fetch_results(base_url: str, search_id: str) -> dict:
+    res = requests.get(f"{base_url}/api/results/{search_id}", timeout=30)
+    res.raise_for_status()
+    return res.json()
+
+
 def poll_results(
     base_url: str,
     search_id: str,
     *,
     until_statuses: set[str],
+    max_wait_seconds: float,
+    poll_interval: float = DEFAULT_POLL_INTERVAL,
+    label: str = "poll",
 ) -> tuple[dict, float]:
     start = time.monotonic()
-    for _ in range(POLL_MAX_ATTEMPTS):
-        time.sleep(POLL_INTERVAL)
-        res = requests.get(f"{base_url}/api/results/{search_id}", timeout=30)
-        res.raise_for_status()
-        payload = res.json()
-        if payload.get("status") in until_statuses:
-            return payload, time.monotonic() - start
-    raise TimeoutError(f"Timeout esperando resultados para {search_id}")
+    attempt = 0
+    last_status = None
+
+    while time.monotonic() - start < max_wait_seconds:
+        if attempt > 0:
+            time.sleep(poll_interval)
+        attempt += 1
+
+        payload = fetch_results(base_url, search_id)
+        status = payload.get("status")
+        result_count = len(payload.get("results") or [])
+        elapsed = time.monotonic() - start
+
+        if status != last_status or attempt % 10 == 0:
+            print(
+                f"  ... {label}: {elapsed:.0f}s, status={status}, "
+                f"results={result_count}",
+                flush=True,
+            )
+            last_status = status
+
+        if status in until_statuses:
+            return payload, elapsed
+
+    raise TimeoutError(
+        f"Timeout esperando resultados para {search_id} ({label}, {max_wait_seconds:.0f}s)"
+    )
 
 
 def url_matches(url: str | None, fragments: list[str]) -> bool:
@@ -128,13 +157,87 @@ def evaluate_case(item: dict, payload: dict, results: list[dict], *, top_n: int)
     }
 
 
-def run_deep_search(base_url: str, search_id: str) -> tuple[dict, float]:
+def run_deep_search(
+    base_url: str,
+    search_id: str,
+    *,
+    max_wait_seconds: float,
+    poll_interval: float,
+) -> tuple[dict, float]:
     deep_resp = requests.post(f"{base_url}/api/search/{search_id}/deep", timeout=30)
     deep_resp.raise_for_status()
-    return poll_results(base_url, search_id, until_statuses=TERMINAL)
+    return poll_results(
+        base_url,
+        search_id,
+        until_statuses=TERMINAL,
+        max_wait_seconds=max_wait_seconds,
+        poll_interval=poll_interval,
+        label="deep",
+    )
 
 
-def run_case(base_url: str, item: dict, *, top_n: int) -> dict:
+def finalize_row(
+    row: dict,
+    *,
+    item: dict,
+    payload: dict,
+    top_n: int,
+    started: float,
+    static_poll_seconds: float,
+    deep_poll_seconds: float,
+    deep_search_used: bool,
+    deep_search_available: bool,
+    timed_out: bool = False,
+) -> dict:
+    results = payload.get("results") or []
+    evaluation = evaluate_case(item, payload, results, top_n=top_n)
+    if timed_out and evaluation.get("reason") != "error":
+        evaluation = {
+            **evaluation,
+            "reason": "timeout_parcial",
+            "detail": (
+                "Tiempo de espera agotado; se evaluaron los resultados disponibles "
+                f"({len(results)} candidatos, status={payload.get('status')})."
+            ),
+        }
+
+    matched, _rank = find_match_in_top(
+        results,
+        item["expected"].get("url_contains") or [],
+        limit=top_n,
+    )
+    top = results[0] if results else None
+    display = matched or top
+
+    row.update(
+        {
+            "search_id": row.get("search_id"),
+            "status": payload.get("status"),
+            "response_time_seconds": round(time.monotonic() - started, 2),
+            "static_poll_seconds": round(static_poll_seconds, 2),
+            "deep_poll_seconds": round(deep_poll_seconds, 2),
+            "deep_search_used": deep_search_used,
+            "deep_search_available": deep_search_available,
+            "timed_out": timed_out,
+            "result_count": len(results),
+            "top_results": [result_snapshot(result) for result in results[:top_n]],
+            "obtained": result_snapshot(display),
+            "evaluation": evaluation,
+            "error": payload.get("error"),
+        }
+    )
+    return row
+
+
+def run_case(
+    base_url: str,
+    item: dict,
+    *,
+    top_n: int,
+    static_max_wait_seconds: float,
+    deep_max_wait_seconds: float,
+    poll_interval: float,
+) -> dict:
     started = time.monotonic()
     row: dict = {
         "id": item["id"],
@@ -155,9 +258,15 @@ def run_case(base_url: str, item: dict, *, top_n: int) -> dict:
         search_id = resp.json().get("search_id")
         if not search_id:
             raise RuntimeError("Respuesta sin search_id")
+        row["search_id"] = search_id
 
         static_payload, static_poll_seconds = poll_results(
-            base_url, search_id, until_statuses=STATIC_TERMINAL
+            base_url,
+            search_id,
+            until_statuses=STATIC_TERMINAL,
+            max_wait_seconds=static_max_wait_seconds,
+            poll_interval=poll_interval,
+            label="static",
         )
         payload = static_payload
         deep_search_used = False
@@ -165,34 +274,59 @@ def run_case(base_url: str, item: dict, *, top_n: int) -> dict:
 
         deep_info = static_payload.get("deep_search") or {}
         if static_payload.get("status") == "static_done" and deep_info.get("available"):
-            payload, deep_poll_seconds = run_deep_search(base_url, search_id)
-            deep_search_used = True
+            deep_started = time.monotonic()
+            try:
+                payload, deep_poll_seconds = run_deep_search(
+                    base_url,
+                    search_id,
+                    max_wait_seconds=deep_max_wait_seconds,
+                    poll_interval=poll_interval,
+                )
+                deep_search_used = True
+            except TimeoutError:
+                payload = fetch_results(base_url, search_id)
+                deep_search_used = True
+                deep_poll_seconds = time.monotonic() - deep_started
+                return finalize_row(
+                    {**row, "search_id": search_id},
+                    item=item,
+                    payload=payload,
+                    top_n=top_n,
+                    started=started,
+                    static_poll_seconds=static_poll_seconds,
+                    deep_poll_seconds=deep_poll_seconds,
+                    deep_search_used=deep_search_used,
+                    deep_search_available=bool(deep_info.get("available")),
+                    timed_out=True,
+                )
 
-        results = payload.get("results") or []
-        evaluation = evaluate_case(item, payload, results, top_n=top_n)
-        matched, _rank = find_match_in_top(
-            results,
-            item["expected"].get("url_contains") or [],
-            limit=top_n,
+        return finalize_row(
+            {**row, "search_id": search_id},
+            item=item,
+            payload=payload,
+            top_n=top_n,
+            started=started,
+            static_poll_seconds=static_poll_seconds,
+            deep_poll_seconds=deep_poll_seconds,
+            deep_search_used=deep_search_used,
+            deep_search_available=bool(deep_info.get("available")),
         )
-        top = results[0] if results else None
-        display = matched or top
-
-        row.update(
-            {
-                "search_id": search_id,
-                "status": payload.get("status"),
-                "response_time_seconds": round(time.monotonic() - started, 2),
-                "static_poll_seconds": round(static_poll_seconds, 2),
-                "deep_poll_seconds": round(deep_poll_seconds, 2),
-                "deep_search_used": deep_search_used,
-                "deep_search_available": bool(deep_info.get("available")),
-                "result_count": len(results),
-                "top_results": [result_snapshot(item) for item in results[:top_n]],
-                "obtained": result_snapshot(display),
-                "evaluation": evaluation,
-                "error": payload.get("error"),
-            }
+    except TimeoutError:
+        search_id = row.get("search_id")
+        if not search_id:
+            raise
+        payload = fetch_results(base_url, search_id)
+        return finalize_row(
+            {**row, "search_id": search_id},
+            item=item,
+            payload=payload,
+            top_n=top_n,
+            started=started,
+            static_poll_seconds=static_max_wait_seconds,
+            deep_poll_seconds=0.0,
+            deep_search_used=False,
+            deep_search_available=bool((payload.get("deep_search") or {}).get("available")),
+            timed_out=True,
         )
     except Exception as exc:  # noqa: BLE001 - report all failures in dataset output
         row.update(
@@ -258,8 +392,29 @@ def main() -> int:
     parser.add_argument("--ids", nargs="*", help="Ejecutar solo estos IDs del manifest")
     parser.add_argument("--output", default=str(RESULTS_PATH))
     parser.add_argument("--top-n", type=int, default=DEFAULT_TOP_N, help="Ventana de evaluación (default: 10)")
+    parser.add_argument(
+        "--static-max-wait",
+        type=float,
+        default=DEFAULT_STATIC_MAX_WAIT_SECONDS,
+        help="Segundos máximos esperando la fase estática (default: 600)",
+    )
+    parser.add_argument(
+        "--deep-max-wait",
+        type=float,
+        default=DEFAULT_DEEP_MAX_WAIT_SECONDS,
+        help="Segundos máximos esperando la búsqueda profunda (default: 1200)",
+    )
+    parser.add_argument(
+        "--poll-interval",
+        type=float,
+        default=DEFAULT_POLL_INTERVAL,
+        help="Intervalo entre polls en segundos (default: 2)",
+    )
     args = parser.parse_args()
     top_n = max(1, args.top_n)
+    poll_interval = max(0.5, args.poll_interval)
+    static_max_wait = max(poll_interval, args.static_max_wait)
+    deep_max_wait = max(poll_interval, args.deep_max_wait)
 
     manifest = load_manifest()
     items = manifest["images"]
@@ -273,7 +428,16 @@ def main() -> int:
     rows = []
     for index, item in enumerate(items, start=1):
         print(f"[{index}/{len(items)}] {item['id']} — {item['title']}")
-        rows.append(run_case(args.base_url, item, top_n=top_n))
+        rows.append(
+            run_case(
+                args.base_url,
+                item,
+                top_n=top_n,
+                static_max_wait_seconds=static_max_wait,
+                deep_max_wait_seconds=deep_max_wait,
+                poll_interval=poll_interval,
+            )
+        )
 
     report = summarize(rows, args.search_engine or "unknown", args.base_url, top_n=top_n)
     output_path = Path(args.output)
@@ -282,6 +446,7 @@ def main() -> int:
         json.dump(report, fh, ensure_ascii=False, indent=2)
 
     print()
+    print(f"Timeouts: static={static_max_wait:.0f}s, deep={deep_max_wait:.0f}s, poll={poll_interval}s")
     print(f"Precisión (top {top_n} + deep): {report['precision'] * 100:.1f}% ({report['correct']}/{report['total_images']})")
     print(f"Búsqueda profunda usada: {report['deep_search_used_count']}/{report['total_images']}")
     print(f"Tiempo promedio: {report['avg_response_time_seconds']} s")

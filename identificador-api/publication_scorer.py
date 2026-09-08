@@ -70,6 +70,29 @@ PLATFORM_STATIC_BONUS = {"youtube", "reddit", "deviantart"}
 # Structured sources present in HTML without JS; deserve static-phase confidence.
 STATIC_STRUCTURED_SOURCES = {"meta", "ld+json", "time"}
 
+DOMAIN_AUTHORITY = {
+    "wikipedia.org": 1.0,
+    "wikimedia.org": 0.95,
+    "commons.wikimedia.org": 0.95,
+    "loc.gov": 0.9,
+    "moma.org": 0.85,
+    "vangoghmuseum.nl": 0.85,
+    "louvre.fr": 0.85,
+    "knowyourmeme.com": 0.8,
+    "deviantart.com": 0.75,
+    "artstation.com": 0.75,
+    "reddit.com": 0.65,
+    "youtube.com": 0.6,
+    "britannica.com": 0.6,
+}
+
+DOMAIN_REPOST_PENALTY = {
+    "pinterest.com": 0.45,
+    "facebook.com": 0.35,
+    "amazon.com": 0.35,
+    "ebay.com": 0.3,
+}
+
 
 @dataclass
 class _StaticPhaseOutcome:
@@ -206,6 +229,46 @@ def _dedupe_results(results) -> list:
     return deduped
 
 
+def domain_authority_score(url: str) -> float:
+    host = urlparse(url).netloc.lower().removeprefix("www.")
+    for domain, score in DOMAIN_AUTHORITY.items():
+        if host == domain or host.endswith(f".{domain}"):
+            return score
+    for domain, penalty in DOMAIN_REPOST_PENALTY.items():
+        if host == domain or host.endswith(f".{domain}"):
+            return max(0.1, 0.5 - penalty)
+    return 0.4
+
+
+def _confidence_sort_order(confidence: str | None) -> int:
+    return {"confirmed": 0, "provisional": 1, "pending": 2}.get(confidence or "pending", 3)
+
+
+def _publication_rank_key(item: dict) -> tuple:
+    authority = domain_authority_score(item.get("link") or "")
+    engine_rank = item.get("engine_rank")
+    if engine_rank is None:
+        engine_rank = 999
+    created = item.get("created_utc")
+    if created is None:
+        date_key = (1, 0.0)
+    else:
+        naive_created = _to_naive_utc(created)
+        if naive_created is None:
+            date_key = (1, 0.0)
+        else:
+            date_key = (0, naive_created.timestamp())
+    scrape_score = item.get("score") or 0.0
+    return (
+        -authority,
+        _confidence_sort_order(item.get("confidence")),
+        engine_rank,
+        date_key[0],
+        date_key[1],
+        -scrape_score,
+    )
+
+
 def _created_utc_sort_key(item: dict) -> tuple[bool, float]:
     created = item.get("created_utc")
     if created is None:
@@ -214,7 +277,7 @@ def _created_utc_sort_key(item: dict) -> tuple[bool, float]:
 
 
 def _sort_publications(publications: list[dict]) -> None:
-    publications.sort(key=_created_utc_sort_key)
+    publications.sort(key=_publication_rank_key)
 
 
 def _confidence_for_score(score: float | None) -> str:

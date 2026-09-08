@@ -130,6 +130,12 @@ python scripts/run_dataset.py
 
 El manifest con las 10 imágenes está en `identificador-api/dataset/manifest.json`; la salida se guarda en `dataset/results.json` y regenera el informe en `docs/`.
 
+Por defecto espera hasta 10 min la fase estática y 20 min la búsqueda profunda. Ajustable:
+
+```bash
+python scripts/run_dataset.py --static-max-wait 900 --deep-max-wait 1800
+```
+
 ---
 
 ## API (resumen)
@@ -155,6 +161,9 @@ Flujo: el cliente envía la búsqueda → el backend responde con `search_id` y 
 | `SERPAPI_API_KEY` | Clave de SerpApi (obligatoria) |
 | `SERPAPI_ENDPOINT` | Por defecto `https://serpapi.com/search.json` |
 | `SEARCH_ENGINE` | Motor de búsqueda inversa; por defecto `google_reverse_image` (alias legacy: `SERPAPI_ENGINE`) |
+| `SEARCH_FALLBACK_ENGINES` | Motores de respaldo separados por coma (ej. `yandex_images,bing_reverse_image`). Si el primario devuelve pocas URLs, se fusionan con RRF |
+| `SEARCH_MIN_URLS_BEFORE_FALLBACK` | Umbral para activar fallbacks (por defecto `3`) |
+| `SEARCH_MAX_CANDIDATE_URLS` | Máximo de URLs a scrapear por búsqueda (por defecto `30`) |
 | `SEARCH_TTL_SECONDS` | TTL de búsquedas en memoria (por defecto `900`) |
 | `ENVIRONMENT` | `development` en local; `production` en Render |
 | `DATABASE_URL` | Opcional — Postgres/Supabase para persistencia y caché |

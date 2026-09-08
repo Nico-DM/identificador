@@ -14,7 +14,7 @@ from db.repository import (
     search_persist,
     search_session,
 )
-from env_util import env_str
+from env_util import env_str, parse_positive_int
 from exceptions import IdentificadorError, classify_background_error
 from logging_config import get_logger, search_id_context
 from publication_scorer import (
@@ -32,6 +32,10 @@ from storage import delete_search_image
 logger = get_logger(__name__)
 
 SEARCH_TTL_SECONDS = int(env_str("SEARCH_TTL_SECONDS", "900"))
+SEARCH_MAX_CANDIDATE_URLS = parse_positive_int(
+    env_str("SEARCH_MAX_CANDIDATE_URLS"),
+    30,
+)
 
 
 def now_utc() -> datetime:
@@ -187,6 +191,17 @@ def process_search(
             engine = get_search_engine()
             outcome = engine.search(image_url, safe_search=safe_search)
             urls = outcome.urls
+            if len(urls) > SEARCH_MAX_CANDIDATE_URLS:
+                logger.info(
+                    "Capping engine URLs",
+                    extra={
+                        "event": "engine_urls_capped",
+                        "engine": engine.name,
+                        "original_count": len(urls),
+                        "kept": SEARCH_MAX_CANDIDATE_URLS,
+                    },
+                )
+                urls = urls[:SEARCH_MAX_CANDIDATE_URLS]
             match_metadata = outcome.match_metadata
             logger.info(
                 "Engine returned URLs",
@@ -197,7 +212,10 @@ def process_search(
                 },
             )
 
-            search_inputs = [{"link": url, "source": engine.name} for url in urls]
+            search_inputs = [
+                {"link": url, "source": engine.name, "engine_rank": rank}
+                for rank, url in enumerate(urls, start=1)
+            ]
             total_urls = len(search_inputs)
             update_search_progress(search_id, results=[], processed=0, total=total_urls)
 

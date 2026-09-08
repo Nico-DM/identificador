@@ -1,9 +1,11 @@
 from models import DateCandidate
 from publication_scorer import (
+    _sort_publications,
     _StaticPhaseOutcome,
     classify_context,
     deserialize_pending_outcome,
     detect_platform,
+    domain_authority_score,
     merge_publications,
     normalize_url,
     score_candidate,
@@ -151,6 +153,36 @@ class TestSelectBestCandidate:
         best = select_best_candidate(candidates, threshold=0.45)
         assert best is not None
         assert best.date == utc_dt(2024, 1, 1)
+
+
+class TestDomainAuthority:
+    def test_wikipedia_scores_high(self):
+        assert domain_authority_score("https://en.wikipedia.org/wiki/Test") == 1.0
+
+    def test_pinterest_scores_lower_than_wikipedia(self):
+        wiki = domain_authority_score("https://en.wikipedia.org/wiki/Test")
+        pin = domain_authority_score("https://www.pinterest.com/pin/1")
+        assert wiki > pin
+
+    def test_sort_prefers_authoritative_source(self):
+        publications = [
+            {
+                "link": "https://www.pinterest.com/pin/1",
+                "confidence": "confirmed",
+                "created_utc": utc_dt(2010, 1, 1),
+                "score": 0.9,
+                "engine_rank": 1,
+            },
+            {
+                "link": "https://en.wikipedia.org/wiki/Test",
+                "confidence": "provisional",
+                "created_utc": utc_dt(2020, 1, 1),
+                "score": 0.2,
+                "engine_rank": 2,
+            },
+        ]
+        _sort_publications(publications)
+        assert publications[0]["link"].startswith("https://en.wikipedia.org")
 
 
 class TestMergePublications:
