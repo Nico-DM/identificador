@@ -261,12 +261,30 @@ def process_search(
             )
 
             if deep_available:
-                set_search(search_id, "static_done", phase="static")
+                # Default path: continue into Selenium for pending URLs (JS platforms
+                # and low-confidence static dates) without waiting for a manual click.
+                with search_session(search_id) as current:
+                    if not current:
+                        return
+                    current["status"] = "deep_processing"
+                    current["phase"] = "deep"
+                    current["processed_urls"] = total_urls
+                    current["total_urls"] = total_urls + len(pending_serialized)
+                    current["updated_at"] = now_utc()
+                search_persist(search_id, force=True)
+                logger.info(
+                    "Auto-starting deep search after static phase",
+                    extra={
+                        "event": "deep_search_auto_start",
+                        "pending_deep_count": len(pending_serialized),
+                    },
+                )
+                process_deep_search(search_id)
             else:
                 set_search(search_id, "done", phase="complete")
-            current = search_get(search_id)
-            if current:
-                save_analysis_cache(image_url, safe_search, current)
+                current = search_get(search_id)
+                if current:
+                    save_analysis_cache(image_url, safe_search, current)
             logger.info(
                 "Search static phase completed",
                 extra={"event": "search_static_done"},

@@ -16,7 +16,6 @@ DATASET_DIR = Path(__file__).resolve().parent.parent / "dataset"
 MANIFEST_PATH = DATASET_DIR / "manifest.json"
 RESULTS_PATH = DATASET_DIR / "results.json"
 
-STATIC_TERMINAL = {"static_done", "done", "error"}
 TERMINAL = {"done", "error"}
 DEFAULT_POLL_INTERVAL = 2.0
 DEFAULT_STATIC_MAX_WAIT_SECONDS = 600.0
@@ -43,10 +42,11 @@ def poll_results(
     max_wait_seconds: float,
     poll_interval: float = DEFAULT_POLL_INTERVAL,
     label: str = "poll",
-) -> tuple[dict, float]:
+) -> tuple[dict, float, bool]:
     start = time.monotonic()
     attempt = 0
     last_status = None
+    saw_deep = False
 
     while time.monotonic() - start < max_wait_seconds:
         if attempt > 0:
@@ -58,6 +58,9 @@ def poll_results(
         result_count = len(payload.get("results") or [])
         elapsed = time.monotonic() - start
 
+        if status == "deep_processing":
+            saw_deep = True
+
         if status != last_status or attempt % 10 == 0:
             print(
                 f"  ... {label}: {elapsed:.0f}s, status={status}, "
@@ -66,8 +69,8 @@ def poll_results(
             )
             last_status = status
 
-        if status in until_statuses:
-            return payload, elapsed
+        if status in until_statuses and status != "deep_processing":
+            return payload, elapsed, saw_deep
 
     raise TimeoutError(
         f"Timeout esperando resultados para {search_id} ({label}, {max_wait_seconds:.0f}s)"
@@ -163,7 +166,7 @@ def run_deep_search(
     *,
     max_wait_seconds: float,
     poll_interval: float,
-) -> tuple[dict, float]:
+) -> tuple[dict, float, bool]:
     deep_resp = requests.post(f"{base_url}/api/search/{search_id}/deep", timeout=30)
     deep_resp.raise_for_status()
     return poll_results(
@@ -260,23 +263,26 @@ def run_case(
             raise RuntimeError("Respuesta sin search_id")
         row["search_id"] = search_id
 
-        static_payload, static_poll_seconds = poll_results(
+        # Wait through static and auto-deep (if any). static_done remains as
+        # a fallback when SCRAPE_DYNAMIC_ENABLED is off or deep was not needed.
+        combined_wait = static_max_wait_seconds + deep_max_wait_seconds
+        payload, poll_seconds, saw_deep = poll_results(
             base_url,
             search_id,
-            until_statuses=STATIC_TERMINAL,
-            max_wait_seconds=static_max_wait_seconds,
+            until_statuses=TERMINAL | {"static_done"},
+            max_wait_seconds=combined_wait,
             poll_interval=poll_interval,
-            label="static",
+            label="search",
         )
-        payload = static_payload
-        deep_search_used = False
+        static_poll_seconds = poll_seconds
+        deep_search_used = saw_deep
         deep_poll_seconds = 0.0
 
-        deep_info = static_payload.get("deep_search") or {}
-        if static_payload.get("status") == "static_done" and deep_info.get("available"):
+        deep_info = payload.get("deep_search") or {}
+        if payload.get("status") == "static_done" and deep_info.get("available"):
             deep_started = time.monotonic()
             try:
-                payload, deep_poll_seconds = run_deep_search(
+                payload, deep_poll_seconds, _ = run_deep_search(
                     base_url,
                     search_id,
                     max_wait_seconds=deep_max_wait_seconds,

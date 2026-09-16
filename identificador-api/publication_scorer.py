@@ -14,6 +14,7 @@ from scrape_config import (
     SCRAPE_DYNAMIC_MAX_WORKERS,
     SCRAPE_STATIC_CONFIDENCE_THRESHOLD,
     SCRAPE_STATIC_MAX_WORKERS,
+    platform_requires_js_render,
 )
 from static_scraper import fetch_static_candidates
 
@@ -126,6 +127,8 @@ def detect_platform(url: str) -> str:
         return "reddit"
     if "deviantart.com" in host:
         return "deviantart"
+    if "artstation.com" in host:
+        return "artstation"
     if "x.com" in host or "twitter.com" in host:
         return "x"
     if "tiktok.com" in host:
@@ -388,9 +391,11 @@ def _static_phase(result: dict) -> _StaticPhaseOutcome:
     )
 
     static_candidates, best_static = _score_static_candidates(url, platform)
-    needs_dynamic = (
+    low_confidence = (
         not best_static or best_static.score < SCRAPE_STATIC_CONFIDENCE_THRESHOLD
     )
+    # JS-heavy artist platforms always go to Selenium when dynamic scrape is enabled.
+    needs_dynamic = platform_requires_js_render(platform) or low_confidence
 
     publication = None
     if best_static and not needs_dynamic:

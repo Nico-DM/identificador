@@ -6,6 +6,18 @@ DEFAULT_STATIC_MAX_WORKERS = 8
 DEFAULT_DYNAMIC_MAX_WORKERS = 2
 DEFAULT_STATIC_CONFIDENCE_THRESHOLD = 0.55
 
+# Platforms whose public pages typically need a JS runtime to expose dates.
+JS_RENDER_PLATFORMS: frozenset[str] = frozenset(
+    {
+        "instagram",
+        "x",
+        "deviantart",
+        "artstation",
+        "tiktok",
+        "facebook",
+    }
+)
+
 SCRAPE_STATIC_MAX_WORKERS = parse_positive_int(
     os.getenv("SCRAPE_STATIC_MAX_WORKERS"),
     DEFAULT_STATIC_MAX_WORKERS,
@@ -21,3 +33,7 @@ SCRAPE_STATIC_CONFIDENCE_THRESHOLD = parse_float(
     maximum=1,
 )
 SCRAPE_DYNAMIC_ENABLED = parse_bool(os.getenv("SCRAPE_DYNAMIC_ENABLED"), True)
+
+
+def platform_requires_js_render(platform: str) -> bool:
+    return platform in JS_RENDER_PLATFORMS

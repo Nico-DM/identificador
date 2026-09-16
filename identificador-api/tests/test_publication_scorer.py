@@ -40,6 +40,9 @@ class TestDetectPlatform:
         assert detect_platform("https://x.com/user/status/1") == "x"
         assert detect_platform("https://twitter.com/user") == "x"
 
+    def test_artstation(self):
+        assert detect_platform("https://www.artstation.com/artwork/abc") == "artstation"
+
     def test_unknown(self):
         assert detect_platform("https://example.com/page") == "unknown"
 

@@ -117,6 +117,9 @@ export function useSearch() {
     }
     if (data.status) {
       setStatus(data.status);
+      if (data.status === "deep_processing") {
+        setProgressPhase("deep");
+      }
     }
   };
 

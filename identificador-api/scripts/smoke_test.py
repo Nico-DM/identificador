@@ -8,13 +8,14 @@ configure_logging()
 logger = get_logger(__name__)
 
 TERMINAL_STATUSES = {"done", "error"}
-STATIC_TERMINAL_STATUSES = {"static_done", "done", "error"}
+# Includes deep_processing so we keep polling while auto-deep runs.
+POLL_STATUSES = {"static_done", "done", "error"}
 
 
 def poll_results(
     base_url: str, search_id: str, *, until_statuses: set[str], label: str
 ) -> dict:
-    for attempt in range(60):
+    for attempt in range(180):
         time.sleep(2)
         res = requests.get(f"{base_url}/api/results/{search_id}", timeout=30)
         elapsed = (attempt + 1) * 2
@@ -27,11 +28,11 @@ def poll_results(
             f"GET /api/results ({label}, {elapsed}s): status={status}, "
             f"results={result_count}, deep_available={deep.get('available')}"
         )
-        if status in until_statuses:
+        if status in until_statuses and status != "deep_processing":
             logger.info("%s completed with status: %s", label, status)
             return payload
 
-    raise SystemExit(f"Timeout waiting for results ({label}, 120s)")
+    raise SystemExit(f"Timeout waiting for results ({label})")
 
 
 def main():
@@ -51,7 +52,7 @@ def main():
     parser.add_argument(
         "--deep",
         action="store_true",
-        help="Tras la fase estatica, lanzar busqueda profunda si esta disponible",
+        help="Si queda static_done, lanzar busqueda profunda manual (fallback)",
     )
     args = parser.parse_args()
 
@@ -86,8 +87,8 @@ def main():
     static_payload = poll_results(
         args.base_url,
         search_id,
-        until_statuses=STATIC_TERMINAL_STATUSES,
-        label="fase estatica",
+        until_statuses=POLL_STATUSES,
+        label="busqueda",
     )
 
     if args.deep and static_payload.get("status") == "static_done":

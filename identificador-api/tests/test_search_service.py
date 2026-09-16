@@ -126,11 +126,13 @@ class TestSearchEngineFactory:
         assert "google_reverse_image" in engines
         assert "bing_visual" in engines
 
-    def test_get_default_engine(self):
+    def test_get_default_engine(self, monkeypatch):
+        monkeypatch.delenv("SEARCH_FALLBACK_ENGINES", raising=False)
         engine = get_search_engine("google_reverse_image")
         assert engine.name == "google_reverse_image"
 
-    def test_bing_alias(self):
+    def test_bing_alias(self, monkeypatch):
+        monkeypatch.delenv("SEARCH_FALLBACK_ENGINES", raising=False)
         engine = get_search_engine("bing_reverse_image")
         assert engine.name == "bing_reverse_image"
         assert get_search_engine("bing_visual").name == "bing_reverse_image"
