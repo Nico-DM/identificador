@@ -72,6 +72,7 @@ identificador/
 ### Documentación PPS
 
 Índice en [`docs/README.md`](docs/README.md): requerimientos, alternativas tecnológicas, Gantt, plan de pruebas, contingencia Google Lens, manual y dataset.
+
 ---
 
 ## Inicio rápido (desarrollo local)
