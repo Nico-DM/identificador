@@ -15,7 +15,7 @@ Identificador permite a una persona introducir la **URL de una imagen pública**
 - **Dónde apareció** la imagen (páginas web enlazadas)
 - **Fechas** inferidas a partir del contenido de esas páginas
 
-El sistema combina **búsqueda inversa visual** ([Google Reverse Image](https://serpapi.com/google-reverse-image) vía [SerpApi](https://serpapi.com/)) con **scraping estático** de las URLs candidatas y un algoritmo de puntuación que prioriza los resultados más relevantes.
+El sistema combina **búsqueda inversa visual** ([Google Reverse Image](https://serpapi.com/google-reverse-image) vía [SerpApi](https://serpapi.com/), con fallbacks Bing/Yandex) con **scraping estático** y **Selenium automático** en sitios que requieren JavaScript, más un algoritmo de puntuación que prioriza los resultados más relevantes.
 
 ```
 Usuario → Frontend (Next.js) → Backend (FastAPI) → SerpApi + Scrapers → Resultados ordenados
@@ -29,8 +29,8 @@ Usuario → Frontend (Next.js) → Backend (FastAPI) → SerpApi + Scrapers → 
 |------|------------|
 | Frontend | [Next.js](https://nextjs.org/) (App Router), TypeScript |
 | Backend | [FastAPI](https://fastapi.tiangolo.com/) (Python 3.11) |
-| Búsqueda inversa | SerpApi — motor `google_reverse_image` |
-| Scraping | BeautifulSoup (estático); Selenium opcional (búsqueda profunda) |
+| Búsqueda inversa | SerpApi — `google_reverse_image` (+ Bing / Yandex opcionales) |
+| Scraping | BeautifulSoup; Selenium automático (plataformas JS / baja confianza) |
 | Persistencia | Supabase / Postgres (opcional; sin configurar, el estado queda en memoria) |
 | Almacenamiento | Supabase Storage (subida de archivos) |
 | Despliegue | [Render](https://render.com/) (API) + [Vercel](https://vercel.com/) (web) |
@@ -42,14 +42,15 @@ Usuario → Frontend (Next.js) → Backend (FastAPI) → SerpApi + Scrapers → 
 
 ```
 identificador/
-├── README.md                 # Este archivo
+├── README.md                 # Este archivo (uso general)
+├── docs/                     # Documentación oficial PPS (evaluadores)
 ├── render.yaml               # Blueprint de despliegue en Render
 ├── scripts/dev.sh            # Levanta API + web en local (sin DB por defecto)
 ├── identificador-api/        # Backend FastAPI
 │   ├── main.py               # App, CORS, routers
 │   ├── routes/               # Endpoints HTTP
 │   ├── search_service.py     # Orquestación de búsquedas
-│   ├── serpapi_client.py     # SerpApi + extracción de URLs
+│   ├── search_engines/       # Strategy: Google / Bing / Yandex + fusión
 │   ├── image_validation.py   # Validación de URLs de imagen
 │   ├── env_util.py           # Helpers de variables de entorno
 │   ├── publication_scorer.py # Scoring and candidate ranking
@@ -59,6 +60,7 @@ identificador/
 │   ├── db/                   # Persistencia Supabase/Postgres
 │   └── scripts/
 │       ├── smoke_test.py
+│       ├── run_dataset.py
 │       └── apply_schema.py   # Aplica schema/001_init.sql
 └── identificador-web/        # Frontend Next.js
     ├── app/page.tsx          # Página principal (layout)
@@ -67,6 +69,9 @@ identificador/
     └── app/api/              # Proxy hacia el backend
 ```
 
+### Documentación PPS
+
+Índice en [`docs/README.md`](docs/README.md): requerimientos, alternativas tecnológicas, Gantt, plan de pruebas, contingencia Google Lens, manual y dataset.
 ---
 
 ## Inicio rápido (desarrollo local)
