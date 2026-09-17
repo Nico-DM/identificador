@@ -1,146 +1,180 @@
 # Requerimientos funcionales y no funcionales
 
+Documento formal de la PPS *Identificador de Artistas*.
+
+---
+
+## Evolución respecto de la primera entrega
+
+| Aspecto | Primera entrega | Entrega actual |
+|---------|-----------------|----------------|
+| Entrada | URL de imagen (CLI) | URL y, si hay Storage, archivo (web) |
+| Búsqueda inversa (RF-002) | Google Lens vía SerpAPI | Google Reverse Image vía SerpAPI (Lens degradado; ver [contingencia](contingencia-google-lens.md)); fallbacks Bing/Yandex |
+| Interfaz (RNF-002) | CLI con `--help` | Interfaz web (Next.js) |
+| Runtime (RNF-005) | Python 3.8+ | Backend Python **3.11** (FastAPI); frontend Node/Next.js |
+| Fechas / scrapers | Extracción en CLI | Estático (BeautifulSoup) + dinámico (Selenium) automático en sitios JS |
+| Caché / logs (RF-010, RF-011) | Deseables | Implementados (Postgres/Supabase + logs estructurados) |
+
+---
+
 ## 1. Requerimientos funcionales
 
-### RF-001 — Ingreso de imagen
-| | |
-|--|--|
-| **Descripción** | El usuario puede iniciar un análisis a partir de una URL pública de imagen o de un archivo subido. |
-| **Prioridad** | Must |
-| **Criterios de aceptación** | (1) URL `http`/`https` con imagen válida es aceptada. (2) Archivo se acepta si Supabase Storage está configurado. (3) Entradas inválidas se rechazan con mensaje claro. |
-| **Trazabilidad** | `identificador-api/routes/search.py`, `image_validation.py`, `storage.py`; `identificador-web/components/search/`, `hooks/useSearch.ts` |
+### Requerimientos principales (Must Have)
 
-### RF-002 — Búsqueda inversa de imagen
+#### RF-001 — Aceptar URLs de imágenes como entrada
 | | |
 |--|--|
-| **Descripción** | El sistema consulta un motor de búsqueda inversa configurable y obtiene URLs candidatas donde aparece la imagen. |
+| **Descripción (1ª entrega)** | El sistema debe aceptar URLs de imágenes como entrada. |
+| **Descripción actual** | El sistema acepta una URL pública `http`/`https` de imagen. Como extensión del mismo flujo, también acepta **subida de archivo** cuando Supabase Storage está configurado. |
 | **Prioridad** | Must |
-| **Criterios de aceptación** | (1) Motor seleccionable por `SEARCH_ENGINE`. (2) La lógica de negocio no depende de un proveedor concreto (Strategy). (3) Fallos del proveedor se registran y se exponen como error de búsqueda. |
-| **Trazabilidad** | `search_engines/base.py`, `factory.py`, `serpapi.py`, adaptadores; `search_service.py` |
+| **Criterios de aceptación** | (1) URL de imagen válida inicia una búsqueda. (2) URLs no-imagen o esquema inválido se rechazan. (3) Con Storage configurado, un archivo de imagen válido inicia la misma búsqueda. |
+| **Trazabilidad** | `routes/search.py`, `image_validation.py`, `storage.py`; UI `components/search/`, `hooks/useSearch.ts` |
 
-### RF-003 — Obtención y recorte de candidatos
+#### RF-002 — Búsqueda inversa de imágenes vía SerpAPI
 | | |
 |--|--|
-| **Descripción** | Se normalizan y limitan las URLs candidatas antes del scraping. |
+| **Descripción (1ª entrega)** | El sistema debe realizar búsqueda inversa de imágenes usando Google Lens vía SerpAPI. |
+| **Descripción actual** | El sistema realiza búsqueda inversa vía SerpAPI con motor configurable. El **primario** es `google_reverse_image` (reemplazo de Lens tras su degradación semántica). Opcionalmente fusiona Bing y/o Yandex (`SEARCH_FALLBACK_ENGINES`). La lógica de negocio se desacopla del proveedor (Strategy). |
 | **Prioridad** | Must |
-| **Criterios de aceptación** | Máximo de candidatos configurable (`SEARCH_MAX_CANDIDATE_URLS`, por defecto 30). |
-| **Trazabilidad** | `search_service.py` |
+| **Criterios de aceptación** | (1) Con `SERPAPI_API_KEY` válida se obtienen URLs candidatas. (2) `SEARCH_ENGINE` selecciona el adaptador. (3) Fallos del proveedor se registran y se exponen como error de búsqueda. |
+| **Trazabilidad** | `search_engines/` (`base`, `factory`, `google_reverse_image`, `fused_engine`, …); `search_service.py` |
+| **Nota** | Justificación del cambio de motor: [alternativas-tecnologicas.md](alternativas-tecnologicas.md), [contingencia-google-lens.md](contingencia-google-lens.md). |
 
-### RF-004 — Extracción de fechas de publicación
+#### RF-003 — Extraer fechas de publicación
 | | |
 |--|--|
-| **Descripción** | Para cada candidato se intentan obtener fechas (metadatos, DOM, texto) asociadas a la publicación. |
+| **Descripción** | El sistema debe extraer fechas de publicación de los resultados encontrados. |
 | **Prioridad** | Must |
-| **Criterios de aceptación** | Fase estática (BeautifulSoup) siempre; fase dinámica (Selenium) cuando corresponde (ver RF-008). |
-| **Trazabilidad** | `static_scraper.py`, `dynamic_scraper.py`, `publication_scorer.py` |
+| **Criterios de aceptación** | (1) Fase estática sobre HTML (metadatos, `time`, JSON-LD, etc.). (2) Fase dinámica (Selenium) por defecto en plataformas JS (Instagram, X, ArtStation, DeviantArt, TikTok, Facebook) y en candidatos de baja confianza estática, salvo `SCRAPE_DYNAMIC_ENABLED=false`. |
+| **Trazabilidad** | `static_scraper.py`, `dynamic_scraper.py`, `publication_scorer.py`, `scrape_config.py` |
 
-### RF-005 — Ranking de publicación original
+#### RF-004 — Identificar la publicación más antigua
 | | |
 |--|--|
-| **Descripción** | Los resultados se puntúan y ordenan priorizando fechas confiables y fuentes relevantes para identificar la aparición más temprana plausible. |
+| **Descripción** | El sistema debe identificar la publicación más antigua entre los candidatos con fecha usable. |
 | **Prioridad** | Must |
-| **Criterios de aceptación** | Cada resultado expone fecha (si hay), score/confianza, URL y metadatos de sitio; el orden es estable y reproducible para la misma entrada. |
-| **Trazabilidad** | `publication_scorer.py`; UI `ResultCard.tsx` |
+| **Criterios de aceptación** | Los candidatos se puntúan y ordenan de modo que las fechas más tempranas y confiables queden priorizadas; el primer resultado es la mejor estimación de origen bajo el modelo de scoring actual. |
+| **Trazabilidad** | `publication_scorer.py` |
 
-### RF-006 — Interfaz web de resultados
+#### RF-005 — Retornar URL de la publicación original con su fecha
 | | |
 |--|--|
-| **Descripción** | La interfaz muestra progreso, resultados parciales/finales e información suficiente para interpretar el origen. |
+| **Descripción** | El sistema debe retornar la URL de la publicación original (mejor candidato) con su fecha. |
 | **Prioridad** | Must |
-| **Criterios de aceptación** | Polling hasta estado terminal; visualización de candidatos ordenados; feedback de error. |
-| **Trazabilidad** | `identificador-web/app/page.tsx`, `hooks/useSearch.ts`, `components/search/` |
+| **Criterios de aceptación** | La respuesta (API y UI) incluye al menos un resultado destacado con `url` y `date` cuando la extracción fue exitosa; si no hay fecha, se indica confianza `pending` / ausencia de fecha de forma explícita. |
+| **Trazabilidad** | `search_service.format_results`; UI `ResultCard.tsx`; `GET /api/results/{id}` |
 
-### RF-007 — Scraping estático
+#### RF-006 — Manejar errores de conexión y URLs inválidas
 | | |
 |--|--|
-| **Descripción** | Extracción de fechas sin motor de navegador, en paralelo. |
+| **Descripción** | El sistema debe manejar errores de conexión y URLs inválidas. |
 | **Prioridad** | Must |
-| **Criterios de aceptación** | Workers configurables; umbral de confianza (`SCRAPE_STATIC_CONFIDENCE_THRESHOLD`) decide si hace falta fase dinámica. |
-| **Trazabilidad** | `static_scraper.py`, `scrape_config.py`, `publication_scorer.run_static_phase` |
+| **Criterios de aceptación** | (1) URL inválida → error de validación sin romper el servicio. (2) Fallos de red / SerpAPI / scrape → estado `error` o degradación controlada con mensaje. (3) Logs con código/evento estructurado. |
+| **Trazabilidad** | `image_validation.py`, `exceptions.py`, `logging_config.py`, `search_service.py`; UI mensajes de error |
 
-### RF-008 — Scraping dinámico (Selenium)
+---
+
+### Requerimientos secundarios (Should Have)
+
+#### RF-007 — Múltiples resultados ordenados cronológicamente
 | | |
 |--|--|
-| **Descripción** | Para plataformas que requieren JavaScript (Instagram, X/Twitter, ArtStation, DeviantArt, TikTok, Facebook) y para candidatos con baja confianza estática, el sistema ejecuta Selenium **por defecto** tras la fase estática, salvo que `SCRAPE_DYNAMIC_ENABLED=false`. |
-| **Prioridad** | Must |
-| **Criterios de aceptación** | (1) Habilitado por defecto en despliegue. (2) Autoarranque sin acción manual del usuario. (3) Endpoint manual `/api/search/{id}/deep` disponible como respaldo. (4) Timeouts y esperas documentados (ver [manual-usuario.md](manual-usuario.md#scraping-dinamico)). |
-| **Trazabilidad** | `dynamic_scraper.py`, `scrape_config.py` (`JS_RENDER_PLATFORMS`), `search_service.process_search` / `process_deep_search` |
-
-### RF-009 — Procesamiento asíncrono y consulta de estado
-| | |
-|--|--|
-| **Descripción** | La búsqueda se ejecuta en segundo plano; el cliente consulta estado y progreso. |
-| **Prioridad** | Must |
-| **Criterios de aceptación** | `POST /api/search` → `search_id`; `GET /api/results/{id}` con `processing` / `deep_processing` / `done` / `error`. |
-| **Trazabilidad** | `routes/search.py`, `search_service.py`; proxy Next.js `app/api/` |
-
-### RF-010 — Caché y persistencia
-| | |
-|--|--|
-| **Descripción** | Con `DATABASE_URL` configurada, el estado de búsquedas y cachés (análisis, motor, scrape por URL) persisten en Postgres/Supabase y sobreviven reinicios. |
-| **Prioridad** | Must |
-| **Criterios de aceptación** | Tablas del schema aplicadas; `/health` reporta persistencia activa; sin DB, el sistema opera en memoria (degradación documentada). |
-| **Trazabilidad** | `db/cache.py`, `db/searches.py`, `schema/001_init.sql` |
-
-### RF-011 — Motores alternativos y fallback
-| | |
-|--|--|
-| **Descripción** | Además del motor principal, el sistema puede fusionar resultados de motores de respaldo cuando el primario aporta pocas URLs. |
+| **Descripción** | El sistema debería mostrar múltiples resultados ordenados cronológicamente. |
 | **Prioridad** | Should |
-| **Criterios de aceptación** | `SEARCH_FALLBACK_ENGINES` acepta Bing y/o Yandex vía SerpAPI; fusión RRF; documentado en [alternativas-tecnologicas.md](alternativas-tecnologicas.md). |
-| **Trazabilidad** | `search_engines/fused_engine.py`, `fusion.py`, `factory.py` |
+| **Criterios de aceptación** | La UI y la API exponen una lista de candidatos (no solo uno), ordenada por el scoring (fecha + confiabilidad + autoridad de dominio). |
+| **Trazabilidad** | `publication_scorer.py`; `components/search/` |
+
+#### RF-008 — Reporte de confiabilidad del resultado
+| | |
+|--|--|
+| **Descripción** | El sistema debería generar un reporte de confiabilidad del resultado. |
+| **Prioridad** | Should |
+| **Criterios de aceptación** | Cada ítem expone indicadores de confianza (`confirmed` / `provisional` / `pending`) y score cuando aplica. |
+| **Trazabilidad** | `publication_scorer.py`; `ResultCard.tsx` |
+
+#### RF-009 — Múltiples formatos de imagen
+| | |
+|--|--|
+| **Descripción** | El sistema debería soportar imágenes en múltiples formatos (JPG, PNG, WebP, etc.). |
+| **Prioridad** | Should |
+| **Criterios de aceptación** | Validación por extensión y/o `Content-Type: image/*` para URL; subida acepta tipos de imagen habituales dentro del límite de tamaño configurado. |
+| **Trazabilidad** | `image_validation.py`, `storage.py` |
+
+---
+
+### Requerimientos deseables (Could Have)
+
+#### RF-010 — Cachear resultados para consultas repetidas
+| | |
+|--|--|
+| **Descripción** | El sistema podría cachear resultados para consultas repetidas. |
+| **Prioridad** | Could → **implementado** en la entrega actual (Must de facto para resiliencia ante reinicios, según devolución). |
+| **Criterios de aceptación** | Con `DATABASE_URL`: caché de análisis por imagen, de payloads de motor y de scrape por URL (TTL configurable). Sin DB: operación en memoria (degradación documentada). |
+| **Trazabilidad** | `db/cache.py`, `schema/001_init.sql`, `search_service.save_analysis_cache` |
+
+#### RF-011 — Logs detallados de búsqueda
+| | |
+|--|--|
+| **Descripción** | El sistema podría generar logs detallados de búsqueda. |
+| **Prioridad** | Could → **implementado** (Must de facto para observabilidad). |
+| **Criterios de aceptación** | Logs estructurados (texto en dev, JSON en prod) con `event`, `search_id` y fases (engine, static, deep, errores). |
+| **Trazabilidad** | `logging_config.py`; eventos en `search_service`, scrapers y engines |
 
 ---
 
 ## 2. Requerimientos no funcionales
 
-### RNF-001 — Precisión de identificación
+### RNF-001 — Performance
 | | |
 |--|--|
-| **Descripción** | Sobre el dataset formal de 10 imágenes, la proporción de casos correctos (dominio esperado en el top 10) debe ser ≥ 70 %. |
-| **Prioridad** | Must |
-| **Criterios de aceptación** | Corrida reproducible con `scripts/run_dataset.py`; informe en [dataset-prueba.md](dataset-prueba.md). |
-| **Trazabilidad** | `identificador-api/dataset/`, `scripts/run_dataset.py` |
+| **Descripción (1ª entrega)** | Tiempo de respuesta máximo de 30 segundos por consulta. |
+| **Descripción actual** | Objetivo de diseño: completar una consulta típica en **≤ 30 s**. Con scraping dinámico y cold start de hosting free el tiempo puede superar ese techo; se mitiga con límite de candidatos, workers configurables y caché (RF-010). |
+| **Prioridad** | Must (objetivo) |
+| **Criterios de aceptación** | Tiempo medido y publicado en el informe del dataset; parámetros `SEARCH_MAX_CANDIDATE_URLS` y `SCRAPE_*_MAX_WORKERS` ajustables. |
+| **Trazabilidad** | `search_service.py`, `scrape_config.py`, [dataset-prueba.md](dataset-prueba.md) |
 
-### RNF-002 — Tiempo de respuesta
+### RNF-002 — Usabilidad
 | | |
 |--|--|
-| **Descripción** | El flujo completo (búsqueda + scraping) debe completarse en un tiempo usable para demostración; el objetivo de diseño es mantener la fase de búsqueda inversa y el primer ranking en ventana razonable bajo carga normal. |
+| **Descripción (1ª entrega)** | Interfaz CLI intuitiva con ayuda integrada (`--help`). |
+| **Descripción actual** | Interfaz **web** intuitiva: ingreso de URL/archivo, progreso, resultados interpretables y mensajes de error. La operación local y el troubleshooting para evaluadores están en [manual-usuario.md](manual-usuario.md) y el [README](../README.md). |
+| **Prioridad** | Must |
+| **Criterios de aceptación** | Un usuario puede completar una búsqueda sin CLI; estados de carga y error visibles. |
+| **Trazabilidad** | `identificador-web/` |
+
+### RNF-003 — Confiabilidad
+| | |
+|--|--|
+| **Descripción (1ª entrega)** | Tasa de éxito mínima del 80 % en el dataset de prueba. |
+| **Descripción actual** | Tasa de éxito mínima del **70 %** en el dataset de prueba (umbral ajustado en la devolución de la 2ª entrega ante el cambio de motor de búsqueda). |
+| **Prioridad** | Must |
+| **Criterios de aceptación** | Dataset formal de ≥ 10 imágenes (`dataset/manifest.json`); caso correcto = dominio esperado en el top 10; precisión ≥ 70 %; informe en [dataset-prueba.md](dataset-prueba.md). |
+| **Trazabilidad** | `scripts/run_dataset.py`, `identificador-api/dataset/` |
+
+### RNF-004 — Mantenibilidad
+| | |
+|--|--|
+| **Descripción** | Código documentado con docstrings y comentarios donde aportan claridad; módulos desacoplados (engines, scrapers, DB). |
 | **Prioridad** | Should |
-| **Criterios de aceptación** | Tiempo promedio medido y publicado en el informe del dataset; workers y límites de URL ajustables por entorno. |
-| **Trazabilidad** | `SEARCH_MAX_CANDIDATE_URLS`, `SCRAPE_*_MAX_WORKERS`, dataset |
+| **Criterios de aceptación** | Estructura de paquetes clara; documentación oficial en `docs/`; tipado en TypeScript y tipado/chequeos en el backend según tooling del repo. |
+| **Trazabilidad** | Árbol `identificador-api/`, `identificador-web/`, `docs/` |
 
-### RNF-003 — Despliegue y disponibilidad
+### RNF-005 — Portabilidad
 | | |
 |--|--|
-| **Descripción** | Frontend en Vercel; API en Render (Docker con Chrome para Selenium). |
+| **Descripción (1ª entrega)** | Compatible con Python 3.8+. |
+| **Descripción actual** | Backend fijado a **Python 3.11** (Render/Docker y tipado moderno). Frontend: Node.js compatible con la versión de Next.js del proyecto. |
 | **Prioridad** | Must |
-| **Criterios de aceptación** | Health check `/health`; blueprint `render.yaml`; keep-alive documentado en README. |
-| **Trazabilidad** | `render.yaml`, `identificador-api/Dockerfile`, README |
+| **Criterios de aceptación** | Arranque documentado en README/manual; blueprint `render.yaml` / Dockerfile reproducibles. |
+| **Trazabilidad** | `identificador-api/Dockerfile`, `.python-version` si aplica, README |
 
-### RNF-004 — Protección ante abuso
+### RNF-006 — Seguridad
 | | |
 |--|--|
-| **Descripción** | Rate limiting por IP en endpoints de búsqueda, deep y resultados. |
-| **Prioridad** | Should |
-| **Criterios de aceptación** | Activo en producción (`RATE_LIMIT_*` en `render.yaml`). |
-| **Trazabilidad** | `rate_limit.py` |
-
-### RNF-005 — Configurabilidad
-| | |
-|--|--|
-| **Descripción** | Motores, umbrales, TTL y features se controlan por variables de entorno sin recompilar. |
+| **Descripción** | API keys almacenadas en variables de entorno (nunca en el repositorio). |
 | **Prioridad** | Must |
-| **Criterios de aceptación** | Plantilla `.env.example`; documentado en manual y README. |
-| **Trazabilidad** | `env_util.py`, `.env.example` |
-
-### RNF-006 — Observabilidad
-| | |
-|--|--|
-| **Descripción** | Logs estructurados de eventos de búsqueda, errores de API y fases de scrape. |
-| **Prioridad** | Must |
-| **Criterios de aceptación** | Formato JSON en producción; campos `event`, `search_id`, códigos de error. |
-| **Trazabilidad** | `logging_config.py`, llamadas `logger.*` en `search_service` / engines |
+| **Criterios de aceptación** | `SERPAPI_API_KEY`, credenciales Supabase y `DATABASE_URL` solo por env / secretos del host; plantilla `.env.example` sin secretos; `.env` en `.gitignore`. |
+| **Trazabilidad** | `.env.example`, `.gitignore`, `render.yaml` (`sync: false` en secretos) |
 
 ---
 
@@ -148,6 +182,6 @@
 
 | Ítem | Motivo |
 |------|--------|
-| Entrenar un modelo propio de embeddings visuales | Fuera de alcance PPS; se usan motores externos. |
-| API pública multi-tenant con autenticación de usuarios finales | El producto es herramienta de demostración / uso abierto con rate limit. |
-| Integración nativa TinEye (API propia) | Evaluada; se priorizó Bing/Yandex vía SerpAPI (ver alternativas). |
+| Entrenar un modelo propio de embeddings visuales | Fuera de alcance PPS. |
+| Autenticación de usuarios finales multi-tenant | Herramienta de demostración con rate limiting. |
+| API TinEye nativa | Evaluada; se priorizó Bing/Yandex vía SerpAPI ([alternativas](alternativas-tecnologicas.md)). |

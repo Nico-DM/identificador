@@ -18,7 +18,8 @@ Google Lens, expuesto vía API, pasó a comportarse de forma coherente con un bu
 - Pierde utilidad para cadenas de reposteo y para datar la primera publicación.
 - La experiencia web de Google (“Find image source” / coincidencias exactas) **no se mapea 1:1** al endpoint Lens de SerpAPI usado en el proyecto.
 
-Esto no fue un “apagón” total de la API (las llamadas seguían respondiendo), sino una **degradación funcional** respecto de RF-002…RF-005.
+Esto no fue un “apagón” total de la API (las llamadas seguían respondiendo), sino una **degradación funcional** respecto del núcleo Must Have: **RF-002** (búsqueda inversa útil), **RF-003** (fechas sobre candidatos relevantes), **RF-004** y **RF-005** (identificar y devolver la publicación original).
+
 
 ---
 
@@ -26,10 +27,11 @@ Esto no fue un “apagón” total de la API (las llamadas seguían respondiendo
 
 | Requisito | Impacto |
 |-----------|---------|
-| **RF-002** Búsqueda inversa | Cumplimiento formal (hay respuesta), incumplimiento semántico (candidatos poco útiles). |
-| **RF-003** Candidatos | Volumen de URLs podía mantenerse, pero con bajo valor para origen artístico. |
-| **RF-004 / RF-005** Fechas y ranking | El scoring operaba sobre un conjunto sesgado → fechas y “original” poco confiables. |
-| **RNF-001** Precisión | El dataset no puede validar el producto si el motor primario no aporta fuentes correctas. |
+| **RF-002** Búsqueda inversa | Cumplimiento formal (hay respuesta), incumplimiento semántico (candidatos poco útiles para origen). |
+| **RF-003** Extracción de fechas | El scraping operaba sobre un conjunto sesgado → fechas poco representativas del original. |
+| **RF-004 / RF-005** Más antigua + URL/fecha | Ranking y “publicación original” poco confiables. |
+| **RF-006** Errores | La API respondía 200; el fallo era de *calidad*, no siempre de conexión. |
+| **RNF-003** Confiabilidad (≥ 70 %) | El dataset no valida el producto si el motor primario no aporta fuentes correctas. |
 | Arquitectura | Riesgo materializado: dependencia única de un proveedor externo (señalado ya en la 1ª entrega). |
 
 No se trata de un bug local de parsing exclusivamente: el cambio es del **producto upstream**.

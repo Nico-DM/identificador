@@ -1,18 +1,18 @@
 # Plan de pruebas estructurado
 
-Plan alineado a los RF/RNF ([requerimientos.md](requerimientos.md)) y al dataset formal ([dataset-prueba.md](dataset-prueba.md)).
+Plan alineado a los RF/RNF de la primera entrega actualizados ([requerimientos.md](requerimientos.md)) y al dataset formal ([dataset-prueba.md](dataset-prueba.md)).
 
 ---
 
 ## 1. Alcance
 
-| Nivel              | Objetivo                                                                   | Ubicación                                      |
-| ------------------ | -------------------------------------------------------------------------- | ---------------------------------------------- |
-| Unitarias          | Lógica pura del backend (scoring, parsers, fusión, validación, rate limit) | `identificador-api/tests/`                     |
-| Unitarias frontend | Utilidades y componentes aislados                                          | `identificador-web` (Vitest)                   |
-| Integración        | API HTTP + orquestación; proxy Next → FastAPI                              | `tests/test_routes.py`, smoke, flujos manuales |
-| Regresión          | Dataset de 10 imágenes                                                     | `scripts/run_dataset.py`                       |
-| Aceptación         | Criterios RF frente a la aplicación desplegada o local                     | Checklist §5                                   |
+| Nivel | Objetivo | Ubicación |
+|-------|----------|-----------|
+| Unitarias | Lógica pura del backend (scoring, parsers, fusión, validación, rate limit) | `identificador-api/tests/` |
+| Unitarias frontend | Utilidades y componentes aislados | `identificador-web` (Vitest) |
+| Integración | API HTTP + orquestación; proxy Next → FastAPI | `tests/test_routes.py`, smoke, flujos manuales |
+| Regresión | Dataset de 10 imágenes | `scripts/run_dataset.py` |
+| Aceptación | Criterios RF frente a la aplicación desplegada o local | Checklist §5 |
 
 ---
 
@@ -38,17 +38,18 @@ pytest --cov=. --cov-report=term-missing \
 
 ### Módulos cubiertos (mapa)
 
-| Archivo de test                                                 | Módulo bajo prueba             | RF / RNF               |
-| --------------------------------------------------------------- | ------------------------------ | ---------------------- |
-| `test_publication_scorer.py`                                    | Scoring, plataformas, merge    | RF-005, RF-007, RF-008 |
-| `test_parsers.py`                                               | Parsers Google / Bing / Yandex | RF-002, RF-011         |
-| `test_fusion.py`                                                | RRF y `FusedSearchEngine`      | RF-011                 |
-| `test_search_service.py`                                        | Formato de respuesta, factory  | RF-002, RF-009         |
-| `test_static_scraper.py`                                        | Extracción estática de fechas  | RF-004, RF-007         |
-| `test_image_validation.py`                                      | Validación de URL/imagen       | RF-001                 |
-| `test_rate_limit.py`                                            | Limitación por IP              | RNF-004                |
-| `test_routes.py`                                                | Health, search, deep (estados) | RF-009, RF-008         |
-| `test_env_util.py` / `test_json_util.py` / `test_exceptions.py` | Utilidades                     | RNF-005, RNF-006       |
+| Archivo de test | Módulo bajo prueba | RF / RNF |
+|-----------------|--------------------|----------|
+| `test_publication_scorer.py` | Scoring, plataformas, merge | RF-003, RF-004, RF-007, RF-008 |
+| `test_parsers.py` | Parsers Google / Bing / Yandex | RF-002 |
+| `test_fusion.py` | RRF y `FusedSearchEngine` | RF-002 |
+| `test_search_service.py` | Formato de respuesta, factory | RF-002, RF-005 |
+| `test_static_scraper.py` | Extracción estática de fechas | RF-003 |
+| `test_image_validation.py` | Validación de URL/imagen | RF-001, RF-006, RF-009 |
+| `test_rate_limit.py` | Limitación por IP | RNF-006 (abuso / operación segura) |
+| `test_routes.py` | Health, search, deep (estados) | RF-001, RF-005, RF-006 |
+| `test_env_util.py` / `test_json_util.py` / `test_exceptions.py` | Utilidades | RNF-004, RNF-006 |
+| Logging / eventos (inspección manual o tests de integración) | `logging_config` | RF-011 |
 
 ---
 
@@ -68,11 +69,11 @@ Verifica: `POST /api/search` → polling hasta `done` (incluye auto-deep si apli
 
 1. `./scripts/dev.sh` (o API + `npm run dev`).
 2. Pegar URL de imagen y/o subir archivo.
-3. Confirmar progreso, resultados y ausencia de errores de proxy.
+3. Confirmar progreso, resultados y ausencia de errores de proxy (RNF-002).
 
 ### 3.3 API externa (SerpAPI)
 
-Requiere `SERPAPI_API_KEY` válida. El smoke y el dataset ejercitan el camino real motor → scrape. Fallos de red/cuota deben aparecer en logs estructurados (`event=search_failed` / errores de engine).
+Requiere `SERPAPI_API_KEY` válida (RNF-006). El smoke y el dataset ejercitan el camino real motor → scrape. Fallos de red/cuota deben aparecer en logs estructurados (RF-006, RF-011).
 
 ---
 
@@ -88,28 +89,31 @@ python scripts/generate_dataset_doc.py   # regenera docs/dataset-prueba.md
 - **Entrada:** `dataset/manifest.json` (10 imágenes: histórica, arte tradicional, meme, stock, digital).
 - **Salida:** `dataset/results.json` + informe [dataset-prueba.md](dataset-prueba.md).
 - **Criterio de caso correcto:** dominio esperado presente en el top 10 (tras fase dinámica si corre).
-- **Métrica de aceptación (RNF-001):** precisión ≥ 70 %.
+- **Métrica de aceptación (RNF-003):** tasa de éxito ≥ **70 %**.
+- **Performance (RNF-001):** registrar tiempo promedio; objetivo de diseño ≤ 30 s por consulta.
 
 ---
 
-## 5. Pruebas de aceptación (checklist RF)
+## 5. Pruebas de aceptación (checklist RF / RNF)
 
-| ID      | Criterio                               | Cómo verificar                                          | OK  |
-| ------- | -------------------------------------- | ------------------------------------------------------- | --- |
-| RF-001  | URL y (si hay storage) archivo         | UI local/prod                                           | ☐   |
-| RF-002  | Búsqueda inversa con motor configurado | Smoke + logs `engine_results`                           | ☐   |
-| RF-003  | Límite de candidatos                   | Inspeccionar `SEARCH_MAX_CANDIDATE_URLS` / logs         | ☐   |
-| RF-004  | Fechas en resultados                   | UI / dataset                                            | ☐   |
-| RF-005  | Orden por relevancia/fecha             | Comparar scores en UI                                   | ☐   |
-| RF-006  | Polling y listado                      | UI                                                      | ☐   |
-| RF-007  | Fase estática                          | Logs `static_phase_*`                                   | ☐   |
-| RF-008  | Selenium auto en JS / baja confianza   | Logs `deep_search_auto_start`; Docker Render            | ☐   |
-| RF-009  | Estados `processing`→`done`            | Network tab / smoke                                     | ☐   |
-| RF-010  | Persistencia con `DATABASE_URL`        | `/health` → supabase; reinicio no pierde caché reciente | ☐   |
-| RF-011  | Fallbacks                              | Configurar `SEARCH_FALLBACK_ENGINES`; logs de fusión    | ☐   |
-| RNF-001 | Precisión dataset                      | `dataset-prueba.md`                                     | ☐   |
-| RNF-004 | Rate limit                             | Exceder cuota horaria → 429                             | ☐   |
-| RNF-006 | Logs                                   | Render / consola JSON                                   | ☐   |
+| ID | Criterio | Cómo verificar | OK |
+|----|----------|----------------|----|
+| RF-001 | Acepta URL (y archivo si hay Storage) | UI local/prod | ☐ |
+| RF-002 | Búsqueda inversa SerpAPI (`google_reverse_image` ± fallbacks) | Smoke + logs `engine_results` | ☐ |
+| RF-003 | Extrae fechas (estático / Selenium) | UI / dataset / logs `*_phase_*` | ☐ |
+| RF-004 | Identifica publicación más antigua (ranking) | Primer resultado vs fechas | ☐ |
+| RF-005 | Retorna URL + fecha del mejor candidato | API / UI | ☐ |
+| RF-006 | Errores de conexión y URLs inválidas | URL mala → mensaje; SerpAPI down → `error` | ☐ |
+| RF-007 | Múltiples resultados ordenados | Lista en UI | ☐ |
+| RF-008 | Indicadores de confiabilidad | Campos confidence/score | ☐ |
+| RF-009 | Formatos JPG/PNG/WebP, etc. | URL/archivo de distintos tipos | ☐ |
+| RF-010 | Caché / persistencia | `DATABASE_URL`; repetir misma imagen | ☐ |
+| RF-011 | Logs detallados | Consola / Render JSON | ☐ |
+| RNF-001 | Performance (objetivo ≤ 30 s) | Dataset / cronómetro | ☐ |
+| RNF-002 | Usabilidad web | Flujo completo sin CLI | ☐ |
+| RNF-003 | Éxito ≥ 70 % en dataset | `dataset-prueba.md` | ☐ |
+| RNF-005 | Python 3.11 / stack documentado | README, Docker | ☐ |
+| RNF-006 | Secrets solo en env | `.gitignore`, Render secrets | ☐ |
 
 ---
 
@@ -118,4 +122,4 @@ python scripts/generate_dataset_doc.py   # regenera docs/dataset-prueba.md
 1. Suite unitaria backend en verde.
 2. Informe de dataset actualizado y archivado en `docs/`.
 3. Checklist de aceptación completado en entorno de demostración (local o producción).
-4. Cobertura backend medida ≥ 60 % (o justificación documentada si el omit set se acota a código de producto).
+4. Cobertura backend medida ≥ 60 % (exigencia de la devolución de la 2ª entrega).

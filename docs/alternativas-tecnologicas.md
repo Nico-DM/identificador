@@ -1,6 +1,6 @@
 # Análisis de alternativas tecnológicas — búsqueda inversa
 
-Comparativa de motores de búsqueda inversa de imágenes evaluados para el núcleo funcional (RF-002…RF-005). No se implementaron todos; se justifica la elección del stack actual.
+Comparativa de motores de búsqueda inversa de imágenes evaluados para el núcleo Must Have (**RF-002**…**RF-005**). No se implementaron todos; se justifica la elección del stack actual.
 
 ---
 
