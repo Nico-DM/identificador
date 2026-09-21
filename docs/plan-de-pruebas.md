@@ -56,25 +56,37 @@ El omit de `venv/`, `tests/` y `scripts/` está en `.coveragerc`.
 
 ## 3. Pruebas de integración
 
-### 3.1 Backend aislado (smoke)
+Suite explícita en `identificador-api/tests/integration/`. **No** son unitarias con mocks: pegan a SerpAPI real y, cuando hay servidores vivos, al proxy Next.js.
+
+| Test | Camino | Requisito |
+|------|--------|-----------|
+| `test_backend_serpapi.py::…Live` | HTTP → FastAPI → SerpAPI → scrape | API en `INTEGRATION_API_URL` + `SERPAPI_API_KEY` |
+| `test_backend_serpapi.py::…InProcess` | TestClient → FastAPI → SerpAPI | `SERPAPI_API_KEY` (sin uvicorn aparte) |
+| `test_frontend_backend_serpapi.py` | HTTP → Next `/api/*` → FastAPI → SerpAPI | Web + API vivos + `SERPAPI_API_KEY` |
+
+Por defecto `pytest` **excluye** el marker `integration` (`addopts = -m "not integration"`).
+
+### Cómo ejecutar
 
 ```bash
-# API en marcha en :8000
-python scripts/smoke_test.py \
-  --image-url "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Color_of_Friendship.jpg/960px-Color_of_Friendship.jpg"
+# Terminal A: API + web
+./scripts/dev.sh
+
+# Terminal B:
+./scripts/run_integration.sh
 ```
 
-Verifica: `POST /api/search` → polling hasta `done` (incluye auto-deep si aplica).
+Equivalente:
 
-### 3.2 Frontend ↔ backend
+```bash
+cd identificador-api
+source venv/bin/activate
+pytest -m integration tests/integration -v
+```
 
-1. `./scripts/dev.sh` (o API + `npm run dev`).
-2. Pegar URL de imagen y/o subir archivo.
-3. Confirmar progreso, resultados y ausencia de errores de proxy (RNF-002).
+Variables opcionales: `INTEGRATION_API_URL`, `INTEGRATION_WEB_URL`, `INTEGRATION_IMAGE_URL`, `INTEGRATION_TIMEOUT_SECONDS` (default 600).
 
-### 3.3 API externa (SerpAPI)
-
-Requiere `SERPAPI_API_KEY` válida (RNF-006). El smoke y el dataset ejercitan el camino real motor → scrape. Fallos de red/cuota deben aparecer en logs estructurados (RF-006, RF-011).
+Si falta la API, el web o la clave, los tests correspondientes hacen **skip**.
 
 ---
 

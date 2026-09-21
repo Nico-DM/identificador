@@ -123,6 +123,16 @@ source venv/bin/activate
 python scripts/smoke_test.py --image-url "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Color_of_Friendship.jpg/1920px-Color_of_Friendship.jpg"
 ```
 
+### Integración (frontend → backend → SerpAPI)
+
+Con API + web en marcha (`./scripts/dev.sh` en otra terminal) y `SERPAPI_API_KEY` real:
+
+```bash
+./scripts/run_integration.sh
+```
+
+Detalle en [`docs/plan-de-pruebas.md`](docs/plan-de-pruebas.md).
+
 ### Dataset de prueba (regresión)
 
 Documentación formal en [`docs/dataset-prueba.md`](docs/dataset-prueba.md).
