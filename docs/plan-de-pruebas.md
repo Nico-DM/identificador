@@ -107,32 +107,28 @@ python scripts/generate_dataset_doc.py   # regenera docs/dataset-prueba.md
 
 ---
 
-## 5. Pruebas de aceptación (checklist RF / RNF)
+## 5. Pruebas de aceptación (validación de criterios RF / RNF)
 
-| ID | Criterio | Cómo verificar | OK |
-|----|----------|----------------|----|
-| RF-001 | Acepta URL (y archivo si hay Storage) | UI local/prod | ☐ |
-| RF-002 | Búsqueda inversa SerpAPI (`google_reverse_image` ± fallbacks) | Smoke + logs `engine_results` | ☐ |
-| RF-003 | Extrae fechas (estático / Selenium) | UI / dataset / logs `*_phase_*` | ☐ |
-| RF-004 | Identifica publicación más antigua (ranking) | Primer resultado vs fechas | ☐ |
-| RF-005 | Retorna URL + fecha del mejor candidato | API / UI | ☐ |
-| RF-006 | Errores de conexión y URLs inválidas | URL mala → mensaje; SerpAPI down → `error` | ☐ |
-| RF-007 | Múltiples resultados ordenados | Lista en UI | ☐ |
-| RF-008 | Indicadores de confiabilidad | Campos confidence/score | ☐ |
-| RF-009 | Formatos JPG/PNG/WebP, etc. | URL/archivo de distintos tipos | ☐ |
-| RF-010 | Caché / persistencia | `DATABASE_URL`; repetir misma imagen | ☐ |
-| RF-011 | Logs detallados | Consola / Render JSON | ☐ |
-| RNF-001 | Performance (objetivo ≤ 30 s) | Dataset / cronómetro | ☐ |
-| RNF-002 | Usabilidad web | Flujo completo sin CLI | ☐ |
-| RNF-003 | Éxito ≥ 70 % en dataset | `dataset-prueba.md` | ☐ |
-| RNF-005 | Python 3.11 / stack documentado | README, Docker | ☐ |
-| RNF-006 | Secrets solo en env | `.gitignore`, Render secrets | ☐ |
+Suite ejecutable en `identificador-api/tests/acceptance/`. Cada test lleva `@pytest.mark.rf("RF-XXX")` y al terminar genera **`docs/aceptacion.md`** con PASS/FAIL/SKIP por requisito.
 
----
+| Archivo | Cobertura |
+|---------|-----------|
+| `test_rf_must.py` | RF-001 … RF-006 |
+| `test_rf_should_could.py` | RF-007 … RF-011 |
+| `test_rnf.py` | RNF-001 … RNF-006 |
 
-## 6. Criterios de salida para entrega
+### Cómo ejecutar
 
-1. Suite unitaria backend en verde.
-2. Informe de dataset actualizado y archivado en `docs/`.
-3. Checklist de aceptación completado en entorno de demostración (local o producción).
-4. Cobertura backend medida ≥ 60 % (exigencia de la devolución de la 2ª entrega).
+```bash
+./scripts/run_acceptance.sh
+```
+
+Equivalente:
+
+```bash
+cd identificador-api
+source venv/bin/activate
+pytest -m acceptance tests/acceptance -v
+```
+
+Por defecto `pytest` **excluye** acceptance e integration. Los criterios que necesitan SerpAPI se skippean sin clave.

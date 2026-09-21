@@ -133,6 +133,14 @@ Con API + web en marcha (`./scripts/dev.sh` en otra terminal) y `SERPAPI_API_KEY
 
 Detalle en [`docs/plan-de-pruebas.md`](docs/plan-de-pruebas.md).
 
+### Aceptación (criterios RF / RNF)
+
+```bash
+./scripts/run_acceptance.sh
+```
+
+Genera [`docs/aceptacion.md`](docs/aceptacion.md) con PASS/FAIL/SKIP por requisito.
+
 ### Dataset de prueba (regresión)
 
 Documentación formal en [`docs/dataset-prueba.md`](docs/dataset-prueba.md).
