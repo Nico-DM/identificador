@@ -31,10 +31,11 @@ pytest -q
 La devolución exige **≥ 60 %** de cobertura del backend. Medición recomendada:
 
 ```bash
-pip install pytest-cov
-pytest --cov=. --cov-report=term-missing \
-  --cov-omit='venv/*,tests/*,scripts/*'
+pip install -r requirements-dev.txt
+python -m pytest --cov=. --cov-report=term-missing
 ```
+
+El omit de `venv/`, `tests/` y `scripts/` está en `.coveragerc`.
 
 ### Módulos cubiertos (mapa)
 
