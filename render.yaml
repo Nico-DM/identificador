@@ -16,6 +16,10 @@ services:
         value: https://serpapi.com/search.json
       - key: SEARCH_ENGINE
         value: google_reverse_image
+      - key: SEARCH_FALLBACK_ENGINES
+        value: yandex_images,bing_reverse_image
+      - key: SEARCH_MIN_URLS_BEFORE_FALLBACK
+        value: "3"
       - key: SEARCH_TTL_SECONDS
         value: 900
       - key: ENVIRONMENT
