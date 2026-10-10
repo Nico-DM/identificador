@@ -38,6 +38,7 @@ jobs:
 
       - name: Lint with basedpyright
         run: |
+            cd ..
             basedpyright
 
       - name: Test with pytest
