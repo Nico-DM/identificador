@@ -1,4 +1,4 @@
-name: ci
+name: Tests
 
 on:
   push:
@@ -48,3 +48,30 @@ jobs:
       - name: Test with pytest
         run: |
             pytest
+
+  web:
+    name: Web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./identificador-web
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: identificador-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint with Biome
+        run: npm run lint
+
+      - name: Test with Vitest
+        run: npm run test
