@@ -48,6 +48,7 @@ TRACKING_PARAMS = {
 }
 
 SOURCE_SCORE = {
+    "htmldate": 0.55,
     "ld+json": 0.5,
     "meta": 0.4,
     "time": 0.3,
@@ -69,7 +70,7 @@ EXTRACTOR_SCORE = {
 PLATFORM_STATIC_BONUS = {"youtube", "reddit", "deviantart"}
 
 # Structured sources present in HTML without JS; deserve static-phase confidence.
-STATIC_STRUCTURED_SOURCES = {"meta", "ld+json", "time"}
+STATIC_STRUCTURED_SOURCES = {"htmldate", "meta", "ld+json", "time"}
 
 DOMAIN_AUTHORITY = {
     "wikipedia.org": 1.0,
@@ -185,7 +186,7 @@ def score_candidate(
     if platform in PLATFORM_STATIC_BONUS and normalized in STATIC_STRUCTURED_SOURCES:
         score += 0.2
 
-    if candidate.extractor == "static" and normalized in {"meta", "ld+json"}:
+    if candidate.extractor == "static" and normalized in {"htmldate", "meta", "ld+json"}:
         score += 0.1
 
     if flags.get("is_comment"):

@@ -16,8 +16,7 @@ load_dotenv(ROOT / ".env")
 
 # Stable public image used across smoke/dataset.
 DEFAULT_IMAGE_URL = (
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/"
-    "1/10/Color_of_Friendship.jpg/960px-Color_of_Friendship.jpg"
+    "https://images-wixmp-ed30a86b8c4ca887773594c2.wixmp.com/f/6c5329df-ff97-41d6-a1c0-306053a68d43/dhk2ysn-a588ec66-1dab-4ff0-abe6-4d52c885aa81.png/v1/fill/w_892,h_896,q_70,strp/dnd_gunslinger_character_by_qoentari_dhk2ysn-pre.jpg?token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1cm46YXBwOjdlMGQxODg5ODIyNjQzNzNhNWYwZDQxNWVhMGQyNmUwIiwiaXNzIjoidXJuOmFwcDo3ZTBkMTg4OTgyMjY0MzczYTVmMGQ0MTVlYTBkMjZlMCIsIm9iaiI6W1t7ImhlaWdodCI6Ijw9MTI4NSIsInBhdGgiOiIvZi82YzUzMjlkZi1mZjk3LTQxZDYtYTFjMC0zMDYwNTNhNjhkNDMvZGhrMnlzbi1hNTg4ZWM2Ni0xZGFiLTRmZjAtYWJlNi00ZDUyYzg4NWFhODEucG5nIiwid2lkdGgiOiI8PTEyODAifV1dLCJhdWQiOlsidXJuOnNlcnZpY2U6aW1hZ2Uub3BlcmF0aW9ucyJdfQ.PwTiCHcSP0pFDIcSYWSI0f0CWmDBiME67TItzPygM6g"
 )
 
 TERMINAL = frozenset({"done", "error"})

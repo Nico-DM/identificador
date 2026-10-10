@@ -66,6 +66,25 @@ class TestClassifyContext:
 
 
 class TestScoreCandidate:
+    def test_htmldate_scores_above_ld_json(self):
+        htmldate = DateCandidate(
+            date=utc_dt(2024, 1, 1),
+            source="htmldate",
+            raw="2024-01-01",
+            extractor="static",
+            url="https://example.com",
+        )
+        ld_json = DateCandidate(
+            date=utc_dt(2024, 1, 1),
+            source="ld+json",
+            raw="",
+            extractor="static",
+            url="https://example.com",
+        )
+        assert score_candidate(htmldate, "unknown", {}) > score_candidate(
+            ld_json, "unknown", {}
+        )
+
     def test_ld_json_scores_high(self):
         candidate = DateCandidate(
             date=utc_dt(2024, 1, 1),

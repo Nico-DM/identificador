@@ -5,6 +5,7 @@ from datetime import timezone
 import dateparser
 import requests
 from bs4 import BeautifulSoup
+from htmldate import find_date
 from logging_config import get_logger
 from models import DateCandidate
 
@@ -97,30 +98,58 @@ def extract_candidate_dates(html):
     return dates
 
 
+def extract_htmldate(html: str, url: str | None = None) -> str | None:
+    """Best-effort publication date via htmldate (original date preferred)."""
+    try:
+        return find_date(
+            html,
+            original_date=True,
+            extensive_search=True,
+            url=url,
+            outputformat="%Y-%m-%d",
+        )
+    except Exception:
+        logger.debug(
+            "htmldate extraction failed",
+            extra={"event": "htmldate_failed", "url": url},
+            exc_info=True,
+        )
+        return None
+
+
+def _candidate_from_raw(text: str, source: str, url: str) -> DateCandidate | None:
+    parsed_date = dateparser.parse(text)
+    if not parsed_date:
+        return None
+    naive_date = _to_naive_utc(parsed_date)
+    if naive_date is None:
+        return None
+    return DateCandidate(
+        date=naive_date,
+        source=source,
+        raw=text,
+        extractor="static",
+        url=url,
+    )
+
+
 def fetch_static_candidates(url: str) -> list[DateCandidate]:
     try:
         r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
         if r.status_code != 200:
             return []
         html = r.text
-        raw_dates = extract_candidate_dates(html)
         candidates: list[DateCandidate] = []
-        for text, source in raw_dates:
-            parsed_date = dateparser.parse(text)
-            if not parsed_date:
-                continue
-            naive_date = _to_naive_utc(parsed_date)
-            if naive_date is None:
-                continue
-            candidates.append(
-                DateCandidate(
-                    date=naive_date,
-                    source=source,
-                    raw=text,
-                    extractor="static",
-                    url=url,
-                )
-            )
+        htmldate_raw = extract_htmldate(html, url=url)
+        if htmldate_raw:
+            htmldate_candidate = _candidate_from_raw(htmldate_raw, "htmldate", url)
+            if htmldate_candidate is not None:
+                candidates.append(htmldate_candidate)
+
+        for text, source in extract_candidate_dates(html):
+            candidate = _candidate_from_raw(text, source, url)
+            if candidate is not None:
+                candidates.append(candidate)
         return candidates
     except requests.RequestException:
         logger.debug(
