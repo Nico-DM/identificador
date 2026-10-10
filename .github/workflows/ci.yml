@@ -1,0 +1,77 @@
+name: Tests
+
+on:
+  push:
+    branches: 
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  api:
+    name: API
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./identificador-api
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+      
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+
+      - name: Set up uv and venv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv venv
+          echo "VIRTUAL_ENV=$PWD/venv" >> "$GITHUB_ENV"
+          echo "$PWD/venv/bin" >> "$GITHUB_PATH"
+
+      - name: Install dev dependencies
+        run: |
+            uv pip install basedpyright
+            uv pip install -r requirements-dev.txt
+
+      - name: Lint with basedpyright
+        run: |
+            cd ..
+            basedpyright
+
+      - name: Test with pytest
+        run: |
+            pytest
+
+  web:
+    name: Web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./identificador-web
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: identificador-web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint with Biome
+        run: npm run lint
+
+      - name: Test with Vitest
+        run: npm run test
