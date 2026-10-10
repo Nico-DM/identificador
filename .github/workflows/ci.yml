@@ -28,8 +28,12 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Set up uv
-        uses: andgineer/uv-venv@v3
+      - name: Set up uv and venv
+        run: |
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          uv venv .venv
+          echo "VIRTUAL_ENV=$PWD/.venv" >> "$GITHUB_ENV"
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
 
       - name: Install dev dependencies
         run: |
