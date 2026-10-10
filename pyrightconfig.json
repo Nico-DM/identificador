@@ -2,7 +2,7 @@
   "typeCheckingMode": "standard",
   "ignore": ["**/__pycache__"],
   "venvPath": "identificador-api",
-  "venv": "venv",
+  "venv": ".venv",
   "executionEnvironments": [
     {
       "root": "identificador-api"
