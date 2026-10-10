@@ -31,9 +31,9 @@ jobs:
       - name: Set up uv and venv
         run: |
           curl -LsSf https://astral.sh/uv/install.sh | sh
-          uv venv .venv
-          echo "VIRTUAL_ENV=$PWD/.venv" >> "$GITHUB_ENV"
-          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          uv venv venv
+          echo "VIRTUAL_ENV=$PWD/venv" >> "$GITHUB_ENV"
+          echo "$PWD/venv/bin" >> "$GITHUB_PATH"
 
       - name: Install dev dependencies
         run: |
