@@ -67,7 +67,7 @@ class TestRF002ReverseSearch:
 @pytest.mark.rf("RF-003", title="Extraer fechas (estático + plataformas JS dinámicas)")
 class TestRF003Dates:
     def test_static_extraction_from_public_page(self):
-        url = "https://en.wikipedia.org/wiki/Mona_Lisa"
+        url = "https://www.peppercarrot.com/en/webcomic/ep01_Potion-of-Flight.html"
         candidates = fetch_static_candidates(url)
         assert isinstance(candidates, list)
         if not candidates:

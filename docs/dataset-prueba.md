@@ -2,14 +2,14 @@
 
 ## 1. Descripción general
 
-Dataset de regresión ejecutado con el motor `unknown` sobre URLs públicas definidas en el manifest. Cada caso corre fase estática y, si está disponible, búsqueda profunda.
+Dataset de regresión ejecutado con el motor `google_reverse_image` sobre URLs públicas definidas en el manifest. Cada caso corre fase estática y, si está disponible, búsqueda profunda.
 
-- **Fecha de ejecución:** 2026-10-10T00:19:41.789722+00:00
+- **Fecha de ejecución:** 2026-10-14T04:27:14.529506+00:00
 - **Backend evaluado:** `http://localhost:8000`
 - **Total de imágenes:** 10
 - **Ventana de evaluación:** top 10
-- **Búsqueda profunda ejecutada:** 9/10
-- **Categorías cubiertas:** Fotografía histórica, Arte tradicional digitalizado, Meme, Fotografía de stock, Arte digital
+- **Búsqueda profunda ejecutada:** 10/10
+- **Categorías cubiertas:** Fotografía contemporánea, Arte digital, Webcomic, Meme nativo (publicación original)
 
 Archivos relacionados:
 
@@ -28,54 +28,141 @@ Archivos relacionados:
 
 ## 3. Resultados por imagen
 
-| ID | Categoría | Imagen | Resultado esperado | Coincidencia | Posición | Fecha detectada | URL fuente | Veredicto | Observaciones |
-|----|-----------|--------|--------------------|--------------|----------|-----------------|------------|-----------|---------------|
-| hist-01 | Fotografía histórica | [Migrant Mother (Dorothea Lange, 1936)](https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Lange-MigrantMother02.jpg/960px-Lange-MigrantMother02.jpg) | Artista: Dorothea Lange; Fecha: 1936; Dominios esperados: wikipedia.org, loc.gov, moma.org | Wikipedia | 1 | 2004-09-18T00:00:00 | [Wikipedia](https://en.wikipedia.org/wiki/Florence_Owens_Thompson) | Correcto | Coincidencia en posición 1; búsqueda profunda: sí. |
-| hist-02 | Fotografía histórica | [V-J Day in Times Square (Alfred Eisenstaedt, 1945)](https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Kissing_the_War_Goodbye.jpg/960px-Kissing_the_War_Goodbye.jpg) | Artista: Alfred Eisenstaedt; Fecha: 1945; Dominios esperados: wikipedia.org, gettyimages, life.com | — | — | 2026-10-06T00:00:00 | — | Incorrecto | Sin coincidencia en el top 10 (30 candidatos). |
-| trad-01 | Arte tradicional digitalizado | [La Gioconda (Leonardo da Vinci)](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/960px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg) | Artista: Leonardo da Vinci; Fecha: 1503; Dominios esperados: wikipedia.org, louvre, wikimedia.org | Wikipedia | 1 | 2002-08-12T00:00:00 | [Wikipedia](https://en.wikipedia.org/wiki/Mona_Lisa) | Correcto | Coincidencia en posición 1; búsqueda profunda: sí. |
-| trad-02 | Arte tradicional digitalizado | [La noche estrellada (Vincent van Gogh, 1889)](https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg) | Artista: Vincent van Gogh; Fecha: 1889; Dominios esperados: wikipedia.org, moma.org, vangoghmuseum | — | — | 2018-02-12T00:00:00 | — | Incorrecto | Sin coincidencia en el top 10 (30 candidatos). |
-| meme-01 | Meme | [Success Kid (Laney Griner, 2007)](https://upload.wikimedia.org/wikipedia/en/thumb/f/ff/SuccessKid.jpg/250px-SuccessKid.jpg) | Artista: Laney Griner; Fecha: 2007; Dominios esperados: wikipedia.org, knowyourmeme, reddit.com | — | — | 2026-10-08T00:00:00 | — | Incorrecto | Sin coincidencia en el top 10 (30 candidatos). |
-| meme-02 | Meme | [Doge (Kabosu)](https://upload.wikimedia.org/wikipedia/en/5/5f/Original_Doge_meme.jpg) | Artista: Atsuko Sato; Fecha: 2010; Dominios esperados: wikipedia.org, knowyourmeme, reddit.com | Reddit · r/popculturechat | 1 | 2014-08-03T17:23:41.216000 | [Reddit · r/popculturechat](https://www.reddit.com/r/popculturechat/comments/1czpefl/kabosu_the_shiba_inu_face_of_the_doge_meme_has/) | Correcto | Coincidencia en posición 1; búsqueda profunda: sí. |
-| stock-01 | Fotografía de stock | [Gato doméstico (foto de stock, Wikimedia)](https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/960px-Cat03.jpg) | Artista: desconocido; Fecha: —; Dominios esperados: wikipedia.org, commons.wikimedia, pixabay | — | — | 2014-10-01T19:04:02.948000 | — | Incorrecto | Sin coincidencia en el top 10 (9 candidatos). |
-| stock-02 | Fotografía de stock | [Retrato de gaviota (foto de stock, Wikimedia)](https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Gull_portrait_ca_usa.jpg/960px-Gull_portrait_ca_usa.jpg) | Artista: desconocido; Fecha: —; Dominios esperados: wikipedia.org, unsplash, commons.wikimedia | ru.wikipedia.org | 1 | 2009-04-01T00:00:00 | [ru.wikipedia.org](https://ru.wikipedia.org/wiki/%D0%A8%D0%B0%D0%B1%D0%BB%D0%BE%D0%BD:Potd/2009-04?oldformat=true) | Correcto | Coincidencia en posición 1; búsqueda profunda: sí. |
-| digital-01 | Arte digital | [Color of Friendship (arte digital, Wikimedia)](https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Color_of_Friendship.jpg/960px-Color_of_Friendship.jpg) | Artista: desconocido; Fecha: —; Dominios esperados: wikipedia.org, wikimedia.org, deviantart | ru.wikipedia.org | 1 | 2018-03-04T00:00:00 | [ru.wikipedia.org](https://ru.wikipedia.org/wiki/%D0%A4%D0%B0%D0%B9%D0%BB:Color_of_Friendship.jpg) | Correcto | Coincidencia en posición 1; búsqueda profunda: no. |
-| digital-02 | Arte digital | [Paisaje en pixel art](https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Landscape_pixel_art.png/960px-Landscape_pixel_art.png) | Artista: desconocido; Fecha: —; Dominios esperados: wikipedia.org, wikimedia.org, opengameart | — | — | 2026-01-01T00:00:00 | — | Incorrecto | Sin coincidencia en el top 10 (30 candidatos). |
+### `photo-01` — Incorrecto
+
+- **Imagen:** [Success Kid / Why I oughta... (Laney Griner)](https://upload.wikimedia.org/wikipedia/en/f/ff/SuccessKid.jpg)
+- **Categoría:** Fotografía contemporánea
+- **Esperado:** Artista: Laney Griner; Fecha: 2007-08-31; Dominios esperados: flickr.com/photos/sammyjammy, flickr.com
+- **Coincidencia:** — (posición —)
+- **Fecha detectada:** 2026-10-11T00:00:00
+- **URL fuente:** —
+- **Notas:** Sin coincidencia en el top 10 (30 candidatos).
+
+### `photo-02` — Correcto
+
+- **Imagen:** [York Floods 2015 #1 (Richard Scott)](https://commons.wikimedia.org/wiki/Special:FilePath/York_Floods_2015_-1_residential_street.jpg)
+- **Categoría:** Fotografía contemporánea
+- **Esperado:** Artista: Richard Scott; Fecha: 2015-12-27; Dominios esperados: flickr.com/photos/rjscott, flickr.com
+- **Coincidencia:** flickr.com (posición 1)
+- **Fecha detectada:** 2026-10-14T00:00:00
+- **URL fuente:** [flickr.com](https://www.flickr.com/photos/rjscott/with/19847575443/)
+- **Notas:** Coincidencia en posición 1; búsqueda profunda: sí.
+
+### `photo-03` — Incorrecto
+
+- **Imagen:** [Reaching For Light (Alan Levine / cogdogblog)](https://commons.wikimedia.org/wiki/Special:FilePath/2014-365-178_Reaching_For_Light_(14501169726).jpg)
+- **Categoría:** Fotografía contemporánea
+- **Esperado:** Artista: Alan Levine; Fecha: 2014-06-28; Dominios esperados: flickr.com/photos/cogdog, flickr.com
+- **Coincidencia:** — (posición —)
+- **Fecha detectada:** 2025-04-15T17:03:06
+- **URL fuente:** —
+- **Notas:** Sin coincidencia en el top 10 (30 candidatos).
+
+### `digital-01` — Correcto
+
+- **Imagen:** [The Watcher (David Revoy)](https://www.davidrevoy.com/data/images/blog/2012/10/2012-10-08_the-watcher_final_by_David_Revoy.jpg)
+- **Categoría:** Arte digital
+- **Esperado:** Artista: David Revoy; Fecha: 2012-10-08; Dominios esperados: deviantart.com/deevad, davidrevoy.com, deviantart.com
+- **Coincidencia:** David Revoy (posición 7)
+- **Fecha detectada:** 2024-12-20T00:00:00
+- **URL fuente:** [David Revoy](https://www.davidrevoy.com/article1056/when-world-collides-the-new-and-improved-peppercarrot-website)
+- **Notas:** Coincidencia en posición 7; búsqueda profunda: sí.
+
+### `digital-02` — Incorrecto
+
+- **Imagen:** [TMIM Heroine (Bleed)](https://opengameart.org/sites/default/files/sprite0_3.png)
+- **Categoría:** Arte digital
+- **Esperado:** Artista: Bleed; Fecha: 2014-03-23; Dominios esperados: opengameart.org/content/tmim-heroine, opengameart.org
+- **Coincidencia:** — (posición —)
+- **Fecha detectada:** 2026-08-24T00:00:00
+- **URL fuente:** —
+- **Notas:** Sin coincidencia en el top 10 (9 candidatos).
+
+### `digital-03` — Correcto
+
+- **Imagen:** [Aqua Dream (David Revoy)](https://commons.wikimedia.org/wiki/Special:FilePath/Aqua_dream_by_deevad.png)
+- **Categoría:** Arte digital
+- **Esperado:** Artista: David Revoy; Fecha: 2013-07-23; Dominios esperados: deviantart.com/deevad, davidrevoy.com, deviantart.com
+- **Coincidencia:** davidrevoy.com (posición 3)
+- **Fecha detectada:** 2013-07-23T00:00:00
+- **URL fuente:** [davidrevoy.com](https://www.davidrevoy.com/article177/video-timelapse-aqua-dream)
+- **Notas:** Coincidencia en posición 3; búsqueda profunda: sí.
+
+### `digital-04` — Correcto
+
+- **Imagen:** [Pepper first artwork (David Revoy)](https://www.peppercarrot.com/0_sources/0ther/artworks/low-res/2014-06-14_pepper_first-artwork_by-David-Revoy.jpg)
+- **Categoría:** Arte digital
+- **Esperado:** Artista: David Revoy; Fecha: 2014-06-14; Dominios esperados: peppercarrot.com, davidrevoy.com
+- **Coincidencia:** David Revoy (posición 1)
+- **Fecha detectada:** 2014-06-14T00:00:00
+- **URL fuente:** [David Revoy](https://www.davidrevoy.com/article449/pepper)
+- **Notas:** Coincidencia en posición 1; búsqueda profunda: sí.
+
+### `comic-01` — Correcto
+
+- **Imagen:** [Pepper&Carrot Ep.1 p.01 — The Potion of Flight (David Revoy)](https://www.peppercarrot.com/0_sources/ep01_Potion-of-Flight/low-res/en_Pepper-and-Carrot_by-David-Revoy_E01P01.jpg)
+- **Categoría:** Webcomic
+- **Esperado:** Artista: David Revoy; Fecha: 2014-05-10; Dominios esperados: peppercarrot.com, davidrevoy.com
+- **Coincidencia:** Pepper&Carrot (posición 1)
+- **Fecha detectada:** 2016-05-05T00:00:00
+- **URL fuente:** [Pepper&Carrot](https://www.peppercarrot.com/th/webcomic/ep01_Potion-of-Flight__hd.html)
+- **Notas:** Coincidencia en posición 1; búsqueda profunda: sí.
+
+### `meme-01` — Incorrecto
+
+- **Imagen:** [Doge / Kabosu (Atsuko Sato)](https://upload.wikimedia.org/wikipedia/en/5/5f/Original_Doge_meme.jpg)
+- **Categoría:** Meme nativo (publicación original)
+- **Esperado:** Artista: Atsuko Sato; Fecha: 2010-02-13; Dominios esperados: kabosu112.exblog.jp, kabochan.blog.jp, exblog.jp
+- **Coincidencia:** — (posición —)
+- **Fecha detectada:** 2018-08-30T13:38:31.671000
+- **URL fuente:** —
+- **Notas:** Sin coincidencia en el top 10 (8 candidatos).
+
+### `meme-02` — Correcto
+
+- **Imagen:** [Plenkton / Cursed Plankton (Moopintot)](https://i.kym-cdn.com/photos/images/original/002/963/026/31b.jpg)
+- **Categoría:** Meme nativo (publicación original)
+- **Esperado:** Artista: Moopintot; Fecha: 2010-04-22; Dominios esperados: deviantart.com/moopintot, deviantart.com
+- **Coincidencia:** DeviantArt · Moopintot (posición 1)
+- **Fecha detectada:** 2010-04-22T00:00:00
+- **URL fuente:** [DeviantArt · Moopintot](https://www.deviantart.com/moopintot/art/Plenkton-161635958)
+- **Notas:** Coincidencia en posición 1; búsqueda profunda: sí.
+
 
 ## 4. Métricas finales
 
 | Métrica | Valor |
 |---------|-------|
-| Precisión (Correcto / total) | **50.0%** (5/10) |
-| Casos correctos | 5 |
-| Casos incorrectos | 5 |
-| Búsqueda profunda ejecutada | 9/10 |
+| Precisión (Correcto / total) | **60.0%** (6/10) |
+| Casos correctos | 6 |
+| Casos incorrectos | 4 |
+| Búsqueda profunda ejecutada | 10/10 |
 | Imágenes con candidatos | 10 |
 | Imágenes sin candidatos | 0 |
-| Tiempo promedio de respuesta | 49.95 s |
-| Tiempo mínimo / máximo | 0.01 s / 96.29 s |
-| Posiciones de acierto | 1, 1, 1, 1, 1 |
+| Tiempo promedio de respuesta | 67.76 s |
+| Tiempo mínimo / máximo | 8.02 s / 238.47 s |
+| Posiciones de acierto | 1, 7, 3, 1, 1, 1 |
 | Tasa de error (fallas de API/excepción) | 0.0% |
 
 ### Desglose por veredicto
 
 | Veredicto | Cantidad |
 |-----------|----------|
-| Correcto | 5 |
-| Incorrecto | 5 |
+| Correcto | 6 |
+| Incorrecto | 4 |
 
 ### Motivos de evaluación
 
 | Motivo | Cantidad |
 |--------|----------|
-| Fuera del top N | 5 |
-| Coincide en el top N | 5 |
+| Fuera del top N | 4 |
+| Coincide en el top N | 6 |
 
 ### Desglose por categoría
 
 | Categoría | Total | Correctos |
 |-----------|-------|-----------|
-| Arte digital | 2 | 1 |
-| Arte tradicional digitalizado | 2 | 1 |
-| Fotografía histórica | 2 | 1 |
-| Meme | 2 | 1 |
-| Fotografía de stock | 2 | 1 |
+| Arte digital | 4 | 3 |
+| Fotografía contemporánea | 3 | 1 |
+| Meme nativo (publicación original) | 2 | 1 |
+| Webcomic | 1 | 1 |

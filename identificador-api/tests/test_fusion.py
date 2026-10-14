@@ -33,17 +33,26 @@ class TestFusionHelpers:
 
     def test_merge_outcomes_rrf_prefers_urls_in_multiple_engines(self):
         google = SearchOutcome(
-            urls=["https://en.wikipedia.org/wiki/Mona_Lisa", "https://pinterest.com/pin/1"],
+            urls=[
+                "https://www.deviantart.com/deevad/art/Aqua-Dream-387602053",
+                "https://pinterest.com/pin/1",
+            ],
             match_metadata={},
             raw_payload={},
         )
         yandex = SearchOutcome(
-            urls=["https://en.wikipedia.org/wiki/Mona_Lisa", "https://knowyourmeme.com/meme"],
+            urls=[
+                "https://www.deviantart.com/deevad/art/Aqua-Dream-387602053",
+                "https://knowyourmeme.com/meme",
+            ],
             match_metadata={},
             raw_payload={},
         )
         merged = merge_outcomes([("google_reverse_image", google), ("yandex_images", yandex)])
-        assert merged.urls[0] == "https://en.wikipedia.org/wiki/Mona_Lisa"
+        assert (
+            merged.urls[0]
+            == "https://www.deviantart.com/deevad/art/Aqua-Dream-387602053"
+        )
         assert "https://pinterest.com/pin/1" in merged.urls
 
 
@@ -59,8 +68,11 @@ class TestFusedSearchEngine:
 
     def test_runs_fallback_when_primary_is_sparse(self):
         primary = StubEngine("google_reverse_image", [])
-        fallback = StubEngine("yandex_images", ["https://en.wikipedia.org/wiki/Test"])
+        fallback = StubEngine(
+            "yandex_images",
+            ["https://www.flickr.com/photos/sammyjammy/1285612321"],
+        )
         engine = FusedSearchEngine(primary, [fallback], min_urls_before_fallback=3)
 
         outcome = engine.search("https://example.com/image.jpg")
-        assert outcome.urls == ["https://en.wikipedia.org/wiki/Test"]
+        assert outcome.urls == ["https://www.flickr.com/photos/sammyjammy/1285612321"]

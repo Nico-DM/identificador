@@ -99,9 +99,9 @@ python scripts/run_dataset.py
 python scripts/generate_dataset_doc.py   # regenera docs/dataset-prueba.md
 ```
 
-- **Entrada:** `dataset/manifest.json` (10 imágenes: histórica, arte tradicional, meme, stock, digital).
+- **Entrada:** `dataset/manifest.json` v2 (10 imágenes con publicación online original del autor: fotografía contemporánea, arte digital, webcomic, meme nativo). Excluye obras pre-internet solo presentes como reupload.
 - **Salida:** `dataset/results.json` + informe [dataset-prueba.md](dataset-prueba.md).
-- **Criterio de caso correcto:** dominio esperado presente en el top 10 (tras fase dinámica si corre).
+- **Criterio de caso correcto:** dominio/URL del post original presente en el top 10 (tras fase dinámica si corre). La fecha sirve para rankear el original (suele ser la más antigua); la exactitud día-a-día es secundaria.
 - **Métrica de aceptación (RNF-003):** tasa de éxito ≥ **70 %**.
 - **Performance (RNF-001):** registrar tiempo promedio; objetivo de diseño ≤ 30 s por consulta.
 

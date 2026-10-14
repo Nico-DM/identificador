@@ -58,7 +58,6 @@ SOURCE_SCORE = {
     "time-datetime": 0.3,
     "time-text": 0.2,
     "plain-text": 0.1,
-    "texto": 0.1,  # legacy cache entries
 }
 
 EXTRACTOR_SCORE = {
@@ -73,26 +72,37 @@ PLATFORM_STATIC_BONUS = {"youtube", "reddit", "deviantart"}
 STATIC_STRUCTURED_SOURCES = {"htmldate", "meta", "ld+json", "time"}
 
 DOMAIN_AUTHORITY = {
-    "wikipedia.org": 1.0,
-    "wikimedia.org": 0.95,
-    "commons.wikimedia.org": 0.95,
-    "loc.gov": 0.9,
-    "moma.org": 0.85,
-    "vangoghmuseum.nl": 0.85,
-    "louvre.fr": 0.85,
-    "knowyourmeme.com": 0.8,
-    "deviantart.com": 0.75,
-    "artstation.com": 0.75,
+    "deviantart.com": 1.0,
+    "artstation.com": 0.95,
+    "flickr.com": 0.95,
+    "pixiv.net": 0.95,
+    "opengameart.org": 0.9,
+    "behance.net": 0.85,
+    "dribbble.com": 0.85,
+    "500px.com": 0.85,
+    "cara.app": 0.8,
+    "newgrounds.com": 0.75,
+    "tumblr.com": 0.7,
+    "furaffinity.net": 0.7,
+    "inkbunny.net": 0.7,
     "reddit.com": 0.65,
-    "youtube.com": 0.6,
-    "britannica.com": 0.6,
 }
 
 DOMAIN_REPOST_PENALTY = {
     "pinterest.com": 0.45,
+    "imgur.com": 0.4,
+    "tiktok.com": 0.4,
+    "knowyourmeme.com": 0.4,
+    "9gag.com": 0.4,
+    "boredpanda.com": 0.4,
     "facebook.com": 0.35,
     "amazon.com": 0.35,
+    "gettyimages.com": 0.35,
+    "shutterstock.com": 0.35,
+    "istockphoto.com": 0.35,
     "ebay.com": 0.3,
+    "wikipedia.org": 0.3,
+    "wikimedia.org": 0.3,
 }
 
 

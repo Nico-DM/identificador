@@ -178,13 +178,21 @@ class TestSelectBestCandidate:
 
 
 class TestDomainAuthority:
-    def test_wikipedia_scores_high(self):
-        assert domain_authority_score("https://en.wikipedia.org/wiki/Test") == 1.0
+    def test_artist_platform_scores_high(self):
+        assert domain_authority_score("https://www.deviantart.com/deevad/art/Watcher") == 1.0
 
-    def test_pinterest_scores_lower_than_wikipedia(self):
+    def test_wikipedia_is_penalized_as_repost(self):
         wiki = domain_authority_score("https://en.wikipedia.org/wiki/Test")
+        defaultish = domain_authority_score("https://example.com/post/1")
+        assert wiki < defaultish
+
+    def test_pinterest_scores_lower_than_artist_platform(self):
+        da = domain_authority_score("https://www.deviantart.com/deevad/art/Watcher")
         pin = domain_authority_score("https://www.pinterest.com/pin/1")
-        assert wiki > pin
+        assert da > pin
+
+    def test_pixiv_scores_as_artist_platform(self):
+        assert domain_authority_score("https://www.pixiv.net/en/artworks/1") == 0.95
 
     def test_sort_prefers_authoritative_source(self):
         publications = [
@@ -196,7 +204,7 @@ class TestDomainAuthority:
                 "engine_rank": 1,
             },
             {
-                "link": "https://en.wikipedia.org/wiki/Test",
+                "link": "https://www.deviantart.com/deevad/art/Watcher",
                 "confidence": "provisional",
                 "created_utc": utc_dt(2020, 1, 1),
                 "score": 0.2,
@@ -204,7 +212,7 @@ class TestDomainAuthority:
             },
         ]
         _sort_publications(publications)
-        assert publications[0]["link"].startswith("https://en.wikipedia.org")
+        assert publications[0]["link"].startswith("https://www.deviantart.com")
 
 
 class TestMergePublications:

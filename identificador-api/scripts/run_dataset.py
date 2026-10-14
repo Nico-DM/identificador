@@ -394,7 +394,7 @@ def summarize(rows: list[dict], engine: str, base_url: str, *, top_n: int) -> di
 def main() -> int:
     parser = argparse.ArgumentParser(description="Ejecuta el dataset de regresión documentado")
     parser.add_argument("--base-url", default="http://localhost:8000")
-    parser.add_argument("--search-engine", default=None, help="Solo informativo en el reporte")
+    parser.add_argument("--search-engine", default="google_reverse_image", help="Solo informativo en el reporte")
     parser.add_argument("--ids", nargs="*", help="Ejecutar solo estos IDs del manifest")
     parser.add_argument("--output", default=str(RESULTS_PATH))
     parser.add_argument("--top-n", type=int, default=DEFAULT_TOP_N, help="Ventana de evaluación (default: 10)")

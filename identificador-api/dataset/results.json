@@ -1,522 +1,51 @@
 {
-  "generated_at": "2026-10-10T00:19:41.789722+00:00",
+  "generated_at": "2026-10-14T04:27:14.529506+00:00",
   "base_url": "http://localhost:8000",
-  "search_engine": "unknown",
+  "search_engine": "google_reverse_image",
   "evaluation_window": 10,
-  "deep_search_used_count": 9,
+  "deep_search_used_count": 10,
   "total_images": 10,
-  "correct": 5,
-  "precision": 0.5,
+  "correct": 6,
+  "precision": 0.6,
   "error_rate": 0.0,
-  "avg_response_time_seconds": 49.95,
+  "avg_response_time_seconds": 67.76,
   "by_category": {
     "arte_digital": {
+      "total": 4,
+      "correct": 3
+    },
+    "fotografia_contemporanea": {
+      "total": 3,
+      "correct": 1
+    },
+    "meme_nativo": {
       "total": 2,
       "correct": 1
     },
-    "arte_tradicional_digitalizado": {
-      "total": 2,
-      "correct": 1
-    },
-    "fotografia_historica": {
-      "total": 2,
-      "correct": 1
-    },
-    "meme": {
-      "total": 2,
-      "correct": 1
-    },
-    "stock": {
-      "total": 2,
+    "webcomic": {
+      "total": 1,
       "correct": 1
     }
   },
   "rows": [
     {
-      "id": "hist-01",
-      "category": "fotografia_historica",
-      "title": "Migrant Mother (Dorothea Lange, 1936)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Lange-MigrantMother02.jpg/960px-Lange-MigrantMother02.jpg",
-      "expected": {
-        "artist": "Dorothea Lange",
-        "date": "1936",
-        "url_contains": [
-          "wikipedia.org",
-          "loc.gov",
-          "moma.org"
-        ]
-      },
-      "started_at": "2026-10-10T00:11:22.309036+00:00",
-      "search_id": "42977dee-535c-432c-8e47-671e0faf9992",
-      "status": "done",
-      "response_time_seconds": 22.05,
-      "static_poll_seconds": 22.04,
-      "deep_poll_seconds": 0.0,
-      "deep_search_used": true,
-      "deep_search_available": false,
-      "timed_out": false,
-      "result_count": 8,
-      "top_results": [
-        {
-          "url": "https://en.wikipedia.org/wiki/Florence_Owens_Thompson",
-          "date": "2004-09-18T00:00:00",
-          "platform": "unknown",
-          "site_name": "Wikipedia",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://en.wikipedia.org/wiki/Migrant_Mother",
-          "date": "2016-12-09T00:00:00",
-          "platform": "unknown",
-          "site_name": "Wikipedia",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.history.com/articles/migrant-mother-new-deal-great-depression",
-          "date": "2026-10-06T00:00:00",
-          "platform": "unknown",
-          "site_name": "History.com",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.instagram.com/p/Dd5xq7CRJQZ/",
-          "date": "2026-09-30T00:00:00",
-          "platform": "instagram",
-          "site_name": "Instagram · 28mmbw",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.pbs.org/wgbh/roadshow/articles/the-story-of-the-migrant-mother/",
-          "date": "2014-04-15T00:00:00",
-          "platform": "unknown",
-          "site_name": "PBS",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.si.edu/object/migrant-mother-dorothea-lange%3Anmah_1313354",
-          "date": null,
-          "platform": "unknown",
-          "site_name": "Smithsonian",
-          "score": null,
-          "confidence": "pending"
-        },
-        {
-          "url": "https://www.kennedy-center.org/education/resources-for-educators/classroom-resources/media-and-interactives/media/media-arts/dorothea-lange-migrant--mother/",
-          "date": null,
-          "platform": "unknown",
-          "site_name": "The Kennedy Center",
-          "score": null,
-          "confidence": "pending"
-        },
-        {
-          "url": "https://www.facebook.com/historicalsnapshots/posts/it-was-march-1936-and-the-us-was-in-the-throes-of-a-struggle-that-seemed-never-e/1151283173704179/",
-          "date": "1995-01-01T00:00:00",
-          "platform": "facebook",
-          "site_name": "Facebook · Historical Snapshots",
-          "score": 0.75,
-          "confidence": "confirmed"
-        }
-      ],
-      "obtained": {
-        "url": "https://en.wikipedia.org/wiki/Florence_Owens_Thompson",
-        "date": "2004-09-18T00:00:00",
-        "platform": "unknown",
-        "site_name": "Wikipedia",
-        "score": 0.75,
-        "confidence": "confirmed"
-      },
-      "evaluation": {
-        "correct": true,
-        "reason": "ok",
-        "match_rank": 1,
-        "evaluation_window": 10,
-        "url_match": true,
-        "date_match": false
-      },
-      "error": null
-    },
-    {
-      "id": "hist-02",
-      "category": "fotografia_historica",
-      "title": "V-J Day in Times Square (Alfred Eisenstaedt, 1945)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Kissing_the_War_Goodbye.jpg/960px-Kissing_the_War_Goodbye.jpg",
-      "expected": {
-        "artist": "Alfred Eisenstaedt",
-        "date": "1945",
-        "url_contains": [
-          "wikipedia.org",
-          "gettyimages",
-          "life.com"
-        ]
-      },
-      "started_at": "2026-10-10T00:11:44.356593+00:00",
-      "search_id": "04a32cf4-54a0-49f8-a937-e86f027fc8b0",
-      "status": "done",
-      "response_time_seconds": 96.29,
-      "static_poll_seconds": 96.29,
-      "deep_poll_seconds": 0.0,
-      "deep_search_used": true,
-      "deep_search_available": false,
-      "timed_out": false,
-      "result_count": 30,
-      "top_results": [
-        {
-          "url": "https://www.youtube.com/channel/UCm5ox3L-7ZkPnznQDQvi_Kw",
-          "date": "2026-10-06T00:00:00",
-          "platform": "youtube",
-          "site_name": "youtube.com",
-          "score": 0.9500000000000001,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.behance.net/moodboard/188875061/ILUSTRACION-SOBRE-IMAGEN",
-          "date": "2025-01-23T00:00:00",
-          "platform": "unknown",
-          "site_name": "behance.net",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=65532DAE57ACBAFAA41B575D0F67A924166FF3FE&simid=608052484595319498",
-          "date": "2026-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "Rhode Island Is the Only State That Celebrates V-J Day - Neatorama",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://geopedrados.blogspot.com/search/label/II%20Grande%20Guerra?updated-max=2025-09-01T08%3A06%3A00%2B01%3A00&max-results=20&start=13&by-date=false",
-          "date": "2025-09-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "geopedrados.blogspot.com",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.dnes24.sk/galeria/zomrel-bozkavajuci-namornik-z-ikonickej-fotografie-79736/fotografia-2",
-          "date": "2019-02-19T00:00:00",
-          "platform": "unknown",
-          "site_name": "dnes24.sk",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=7EEF6C25582BAAB96E1CEC247E898F6CE567461D&simid=608024855047143105",
-          "date": "2026-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "4 Great Ideas for Valentine's Day",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=8DBAA9637BB43CF46F3DF25413EB85269DA07092&simid=608028351155694843",
-          "date": "2026-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "\"kissing The War Goodbye In Times Square 1945 Ii\" By Victor Jorgense",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://ange-aerien.blogspot.com/2017/04/11-le-fameux-baiser.html?showComment=1493497911867",
-          "date": "2017-04-11T00:00:00",
-          "platform": "unknown",
-          "site_name": "ange-aerien.blogspot.com",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=967017C66C7DF3BCF983B2FBEC34C9A23D8A3E26&simid=608052506061313808",
-          "date": "2026-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "'Kissing on VJ Day' Prints - Alfred Eisenstaedt | AllPosters.com ...",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://telegra.ph/CHerno-Belaya-Kartinka-Pobeda-03-25",
-          "date": "2022-03-25T00:00:00",
-          "platform": "unknown",
-          "site_name": "telegra.ph",
-          "score": 0.75,
-          "confidence": "confirmed"
-        }
-      ],
-      "obtained": {
-        "url": "https://www.youtube.com/channel/UCm5ox3L-7ZkPnznQDQvi_Kw",
-        "date": "2026-10-06T00:00:00",
-        "platform": "youtube",
-        "site_name": "youtube.com",
-        "score": 0.9500000000000001,
-        "confidence": "confirmed"
-      },
-      "evaluation": {
-        "correct": false,
-        "reason": "fuera_del_top",
-        "detail": "Ninguna fuente esperada en el top 10",
-        "match_rank": null,
-        "evaluation_window": 10,
-        "url_match": false,
-        "date_match": false
-      },
-      "error": null
-    },
-    {
-      "id": "trad-01",
-      "category": "arte_tradicional_digitalizado",
-      "title": "La Gioconda (Leonardo da Vinci)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/960px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg",
-      "expected": {
-        "artist": "Leonardo da Vinci",
-        "date": "1503",
-        "url_contains": [
-          "wikipedia.org",
-          "louvre",
-          "wikimedia.org"
-        ]
-      },
-      "started_at": "2026-10-10T00:13:20.646305+00:00",
-      "search_id": "5f3d8f5c-652c-4b32-9011-14a224c75bd6",
-      "status": "done",
-      "response_time_seconds": 18.03,
-      "static_poll_seconds": 18.03,
-      "deep_poll_seconds": 0.0,
-      "deep_search_used": true,
-      "deep_search_available": false,
-      "timed_out": false,
-      "result_count": 8,
-      "top_results": [
-        {
-          "url": "https://en.wikipedia.org/wiki/Mona_Lisa",
-          "date": "2002-08-12T00:00:00",
-          "platform": "unknown",
-          "site_name": "Wikipedia",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.artandobject.com/news/mona-lisa-brief-history-da-vincis-famous-painting",
-          "date": "2025-01-23T00:00:00",
-          "platform": "unknown",
-          "site_name": "Art & Object",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.pbs.org/kenburns/leonardo-da-vinci/the-mona-lisa",
-          "date": "2024-11-04T00:00:00",
-          "platform": "unknown",
-          "site_name": "PBS",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.instagram.com/p/C8bPcOoN7dG/",
-          "date": "2026-01-01T00:00:00",
-          "platform": "instagram",
-          "site_name": "Instagram · art_museum_walker",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://horscadre.paris/en/the-mona-lisa-the-worlds-most-famous-smile/",
-          "date": "2026-07-14T00:00:00",
-          "platform": "unknown",
-          "site_name": "horscadre.paris",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.bbc.com/culture/article/20210211-the-detail-that-unlocks-the-mona-lisa",
-          "date": "2021-02-12T00:00:00",
-          "platform": "unknown",
-          "site_name": "BBC",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://painterskeys.com/mona-lisa/",
-          "date": "2006-06-06T00:00:00",
-          "platform": "unknown",
-          "site_name": "The Painters Keys",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.getty.edu/cona/CONAFullSubject.aspx?subid=700000213",
-          "date": "2014-03-28T00:00:00",
-          "platform": "unknown",
-          "site_name": "Getty Museum",
-          "score": 0.75,
-          "confidence": "confirmed"
-        }
-      ],
-      "obtained": {
-        "url": "https://en.wikipedia.org/wiki/Mona_Lisa",
-        "date": "2002-08-12T00:00:00",
-        "platform": "unknown",
-        "site_name": "Wikipedia",
-        "score": 0.75,
-        "confidence": "confirmed"
-      },
-      "evaluation": {
-        "correct": true,
-        "reason": "ok",
-        "match_rank": 1,
-        "evaluation_window": 10,
-        "url_match": true,
-        "date_match": false
-      },
-      "error": null
-    },
-    {
-      "id": "trad-02",
-      "category": "arte_tradicional_digitalizado",
-      "title": "La noche estrellada (Vincent van Gogh, 1889)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
-      "expected": {
-        "artist": "Vincent van Gogh",
-        "date": "1889",
-        "url_contains": [
-          "wikipedia.org",
-          "moma.org",
-          "vangoghmuseum"
-        ]
-      },
-      "started_at": "2026-10-10T00:13:38.680676+00:00",
-      "search_id": "36cff1fc-a7b2-4290-a205-95e7f6fd85cb",
-      "status": "done",
-      "response_time_seconds": 78.29,
-      "static_poll_seconds": 78.29,
-      "deep_poll_seconds": 0.0,
-      "deep_search_used": true,
-      "deep_search_available": false,
-      "timed_out": false,
-      "result_count": 30,
-      "top_results": [
-        {
-          "url": "https://bootandpencil.com/blog/%D0%BF%D1%80%D0%BE-%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B8%D0%BA%D0%BE%D0%B2-%D0%B2-%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D0%B8%D0%B8/",
-          "date": "2018-02-12T00:00:00",
-          "platform": "unknown",
-          "site_name": "bootandpencil.com",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=DC60B96A528F1D6AECD5E4E278359554D1AD1ADA&simid=608049619827446732",
-          "date": "2026-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "The Starry Night - TRG Fine Art",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.language-trainers.de/blog/erlebnis-amsterdam/",
-          "date": "2015-03-12T00:00:00",
-          "platform": "unknown",
-          "site_name": "language-trainers.de",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.birminghamtimes.com/2016/01/daily-quote-%E2%99%9Bjanuary-20-2016%E2%99%9B/",
-          "date": "2016-01-20T00:00:00",
-          "platform": "unknown",
-          "site_name": "birminghamtimes.com",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "http://www.birminghamtimes.com/author/admin/page/339/",
-          "date": "2021-04-14T00:00:00",
-          "platform": "unknown",
-          "site_name": "birminghamtimes.com",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=6C3543507E8B12296EBF339DB212D6BEE1EC3484&simid=607986436591923254",
-          "date": "2026-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "Starry night",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=93227A60C0790A7DE0820D151F7AF704938E874B&simid=608003899881759711",
-          "date": "2026-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "TESINA - LA FOLLIA (Liceo Linguistico) | Dispense di Italiano | Docsity",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.ilgiardinodellacultura.com/2021/01/17/la-notte-stellata-di-vincent-van-gogh/",
-          "date": "2021-01-17T00:00:00",
-          "platform": "unknown",
-          "site_name": "ilgiardinodellacultura.com",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.artst.org/dutch-paintings/",
-          "date": "2021-11-15T00:00:00",
-          "platform": "unknown",
-          "site_name": "artst.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.artst.org/paintings-at-the-moma/",
-          "date": "2022-01-11T00:00:00",
-          "platform": "unknown",
-          "site_name": "artst.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        }
-      ],
-      "obtained": {
-        "url": "https://bootandpencil.com/blog/%D0%BF%D1%80%D0%BE-%D0%BF%D1%81%D0%B8%D1%85%D0%BE%D1%82%D0%B8%D0%BA%D0%BE%D0%B2-%D0%B2-%D1%82%D0%B5%D1%80%D0%B0%D0%BF%D0%B8%D0%B8/",
-        "date": "2018-02-12T00:00:00",
-        "platform": "unknown",
-        "site_name": "bootandpencil.com",
-        "score": 0.75,
-        "confidence": "confirmed"
-      },
-      "evaluation": {
-        "correct": false,
-        "reason": "fuera_del_top",
-        "detail": "Ninguna fuente esperada en el top 10",
-        "match_rank": null,
-        "evaluation_window": 10,
-        "url_match": false,
-        "date_match": false
-      },
-      "error": null
-    },
-    {
-      "id": "meme-01",
-      "category": "meme",
-      "title": "Success Kid (Laney Griner, 2007)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/en/thumb/f/ff/SuccessKid.jpg/250px-SuccessKid.jpg",
+      "id": "photo-01",
+      "category": "fotografia_contemporanea",
+      "title": "Success Kid / Why I oughta... (Laney Griner)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/en/f/ff/SuccessKid.jpg",
       "expected": {
         "artist": "Laney Griner",
-        "date": "2007",
+        "date": "2007-08-31",
         "url_contains": [
-          "wikipedia.org",
-          "knowyourmeme",
-          "reddit.com"
+          "flickr.com/photos/sammyjammy",
+          "flickr.com"
         ]
       },
-      "started_at": "2026-10-10T00:14:56.972920+00:00",
-      "search_id": "72ef5587-d41a-4691-8bfb-29355fcbbd27",
+      "started_at": "2026-10-14T04:15:56.939819+00:00",
+      "search_id": "c93d0a8a-da2c-4f0b-9066-66323ff27a8f",
       "status": "done",
-      "response_time_seconds": 58.22,
-      "static_poll_seconds": 58.22,
+      "response_time_seconds": 44.13,
+      "static_poll_seconds": 44.11,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -525,10 +54,18 @@
       "top_results": [
         {
           "url": "https://www.youtube.com/watch?v=zCkOXqtrGzU",
-          "date": "2026-10-08T00:00:00",
+          "date": "2026-10-11T00:00:00",
           "platform": "youtube",
           "site_name": "youtube.com",
           "score": 0.9500000000000001,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=EB21A359E399B6C09B4C693C4A0789B6CC5045F9&simid=608028527233877714",
+          "date": "2026-01-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "Success Kid Original – Meme Generator",
+          "score": 0.75,
           "confidence": "confirmed"
         },
         {
@@ -544,6 +81,14 @@
           "date": "2023-01-07T00:00:00",
           "platform": "unknown",
           "site_name": "webreaper.dev",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=BE158CC64709BA488FA2077FEFE4052C31C07EF4&simid=608010217813649389",
+          "date": "2026-01-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "success-kid-meme-blank – Dust Off The Bible",
           "score": 0.75,
           "confidence": "confirmed"
         },
@@ -564,6 +109,14 @@
           "confidence": "confirmed"
         },
         {
+          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=4483779D8A783072A6D81EDCF89085010F263E02&simid=608046725020330342",
+          "date": "2026-01-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "successkid - Discord Emoji",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
           "url": "https://www.mundoescopio.com/2014/07/las-fotos-mas-graciosas-del-internet.html",
           "date": "2020-04-30T00:00:00",
           "platform": "unknown",
@@ -578,35 +131,11 @@
           "site_name": "wacowny.com",
           "score": 0.75,
           "confidence": "confirmed"
-        },
-        {
-          "url": "https://ok.ru/group/51578946715805/topic/64227812109213?nomr=",
-          "date": "2015-09-16T00:00:00",
-          "platform": "unknown",
-          "site_name": "ok.ru",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://ok.ru/group/51578946715805/topic/64227812109213",
-          "date": "2015-09-16T00:00:00",
-          "platform": "unknown",
-          "site_name": "ok.ru",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://sangperaihimpian.blogspot.com/2012/05/3-formula-kesuksesan.html?showComment=1337699973279",
-          "date": "2012-05-03T00:00:00",
-          "platform": "unknown",
-          "site_name": "sangperaihimpian.blogspot.com",
-          "score": 0.75,
-          "confidence": "confirmed"
         }
       ],
       "obtained": {
         "url": "https://www.youtube.com/watch?v=zCkOXqtrGzU",
-        "date": "2026-10-08T00:00:00",
+        "date": "2026-10-11T00:00:00",
         "platform": "youtube",
         "site_name": "youtube.com",
         "score": 0.9500000000000001,
@@ -624,24 +153,857 @@
       "error": null
     },
     {
-      "id": "meme-02",
-      "category": "meme",
-      "title": "Doge (Kabosu)",
+      "id": "photo-02",
+      "category": "fotografia_contemporanea",
+      "title": "York Floods 2015 #1 (Richard Scott)",
+      "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/York_Floods_2015_-1_residential_street.jpg",
+      "expected": {
+        "artist": "Richard Scott",
+        "date": "2015-12-27",
+        "url_contains": [
+          "flickr.com/photos/rjscott",
+          "flickr.com"
+        ]
+      },
+      "started_at": "2026-10-14T04:16:41.067602+00:00",
+      "search_id": "bd49973f-c46f-47c3-9d3c-c55593ca82a9",
+      "status": "done",
+      "response_time_seconds": 182.35,
+      "static_poll_seconds": 182.35,
+      "deep_poll_seconds": 0.0,
+      "deep_search_used": true,
+      "deep_search_available": false,
+      "timed_out": false,
+      "result_count": 30,
+      "top_results": [
+        {
+          "url": "https://www.flickr.com/photos/rjscott/with/19847575443/",
+          "date": "2026-10-14T00:00:00",
+          "platform": "unknown",
+          "site_name": "flickr.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://friendsoftheearth.uk/climate-change/how-is-global-warming-affecting-the-uk",
+          "date": "2018-11-14T00:00:00",
+          "platform": "unknown",
+          "site_name": "friendsoftheearth.uk",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.huffingtonpost.co.uk/emma-louise-thompson/uk-floods_b_9067242.html?_guc_consent_skip=1612973527",
+          "date": "2016-01-25T00:00:00",
+          "platform": "unknown",
+          "site_name": "huffingtonpost.co.uk",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.huffingtonpost.co.uk/emma-louise-thompson/uk-floods_b_9067242.html",
+          "date": "2016-01-25T00:00:00",
+          "platform": "unknown",
+          "site_name": "huffingtonpost.co.uk",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.huffingtonpost.co.uk/emma-louise-thompson/uk-floods_b_9067242.html?_guc_consent_skip=1606847076",
+          "date": "2016-01-25T00:00:00",
+          "platform": "unknown",
+          "site_name": "huffingtonpost.co.uk",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://soundcloud.com/tim-holmes-684316951/unprecedented-yes-unpredictable-no-friends-of-the-earths-guy-shrubsole-on-climate-floods/sets",
+          "date": "2016-01-09T00:00:00",
+          "platform": "unknown",
+          "site_name": "soundcloud.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.axa.co.uk/home-insurance/tips-and-guides/flooding-advice/",
+          "date": "2025-02-10T00:00:00",
+          "platform": "unknown",
+          "site_name": "axa.co.uk",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://storage.googleapis.com/dbnvajoyjjvbee/axa-car-insurance-flood-damage.html",
+          "date": "2024-10-23T00:00:00",
+          "platform": "unknown",
+          "site_name": "storage.googleapis.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.axa.co.uk/home-insurance/tips-and-guides/how-to-fortify-your-home-against-flood-damage/",
+          "date": "2025-10-21T00:00:00",
+          "platform": "unknown",
+          "site_name": "axa.co.uk",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.axa.co.uk/home-insurance/tips-and-guides/8/",
+          "date": "2025-11-19T00:00:00",
+          "platform": "unknown",
+          "site_name": "axa.co.uk",
+          "score": 0.75,
+          "confidence": "confirmed"
+        }
+      ],
+      "obtained": {
+        "url": "https://www.flickr.com/photos/rjscott/with/19847575443/",
+        "date": "2026-10-14T00:00:00",
+        "platform": "unknown",
+        "site_name": "flickr.com",
+        "score": 0.75,
+        "confidence": "confirmed"
+      },
+      "evaluation": {
+        "correct": true,
+        "reason": "ok",
+        "match_rank": 1,
+        "evaluation_window": 10,
+        "url_match": true,
+        "date_match": false
+      },
+      "error": null
+    },
+    {
+      "id": "photo-03",
+      "category": "fotografia_contemporanea",
+      "title": "Reaching For Light (Alan Levine / cogdogblog)",
+      "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/2014-365-178_Reaching_For_Light_(14501169726).jpg",
+      "expected": {
+        "artist": "Alan Levine",
+        "date": "2014-06-28",
+        "url_contains": [
+          "flickr.com/photos/cogdog",
+          "flickr.com"
+        ]
+      },
+      "started_at": "2026-10-14T04:19:43.418152+00:00",
+      "search_id": "129298dc-c784-42f2-bde9-9f51367b5e33",
+      "status": "done",
+      "response_time_seconds": 238.47,
+      "static_poll_seconds": 238.47,
+      "deep_poll_seconds": 0.0,
+      "deep_search_used": true,
+      "deep_search_available": false,
+      "timed_out": false,
+      "result_count": 30,
+      "top_results": [
+        {
+          "url": "https://cinema.pravda.ru/news/2207179-rami-malek-emma-corrin-split/",
+          "date": "2025-04-15T17:03:06",
+          "platform": "unknown",
+          "site_name": "cinema.pravda.ru",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://pxhere.com/pl/photo/207113",
+          "date": "2017-03-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "pxhere.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://pxhere.com/en/photo/207113",
+          "date": "2017-03-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "pxhere.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://pxhere.com/id/photo/207113",
+          "date": "2017-03-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "pxhere.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://myseldon.com/ru/news/index/328103027",
+          "date": "2025-04-17T00:00:00",
+          "platform": "unknown",
+          "site_name": "myseldon.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://pxhere.com/pl/photos?page=1032&color=000000&direction=horizontal&order=popular",
+          "date": "2000-01-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "pxhere.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://pxhere.com/id/tag/32080?order=popular",
+          "date": "2017-01-03T00:00:00",
+          "platform": "unknown",
+          "site_name": "pxhere.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2381173%2FawAuNcf3I7xxZBs34hblhg9375%2Forig&img_url=https%3A%2F%2Fget.pxhere.com%2Fphoto%2Fblossom-plant-photography-flower-petal-darkness-flora-close-up-2014365-phonar-nationlooking4light-macro-photography-flowering-plant-plant-stem-computer-wallpaper-land-plant-207113.jpg&search_client=unknown&rpt=imageview&lr=86&cbir_id=2381173%2FawAuNcf3I7xxZBs34hblhg9375",
+          "date": "2019-12-19T00:00:00",
+          "platform": "x",
+          "site_name": "yandex.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2381173%2FawAuNcf3I7xxZBs34hblhg9375%2Forig&img_url=https%3A%2F%2Fget.pxhere.com%2Fphoto%2Fplant-flower-petal-flora-macro-photography-flowering-plant-plant-stem-land-plant-347054.jpg&search_client=unknown&rpt=imageview&lr=86&cbir_id=2381173%2FawAuNcf3I7xxZBs34hblhg9375",
+          "date": "2019-12-19T00:00:00",
+          "platform": "x",
+          "site_name": "yandex.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2381173%2FawAuNcf3I7xxZBs34hblhg9375%2Forig&img_url=https%3A%2F%2Fget.pxhere.com%2Fphoto%2Fnature-blossom-plant-photography-leaf-flower-petal-botany-flora-wildflower-close-up-evening-primrose-macro-photography-flowering-plant-annual-plant-plant-stem-land-plant-193600.jpg&search_client=unknown&rpt=imageview&lr=86&cbir_id=2381173%2FawAuNcf3I7xxZBs34hblhg9375",
+          "date": "2019-12-19T00:00:00",
+          "platform": "x",
+          "site_name": "yandex.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        }
+      ],
+      "obtained": {
+        "url": "https://cinema.pravda.ru/news/2207179-rami-malek-emma-corrin-split/",
+        "date": "2025-04-15T17:03:06",
+        "platform": "unknown",
+        "site_name": "cinema.pravda.ru",
+        "score": 0.7,
+        "confidence": "confirmed"
+      },
+      "evaluation": {
+        "correct": false,
+        "reason": "fuera_del_top",
+        "detail": "Ninguna fuente esperada en el top 10",
+        "match_rank": null,
+        "evaluation_window": 10,
+        "url_match": false,
+        "date_match": false
+      },
+      "error": null
+    },
+    {
+      "id": "digital-01",
+      "category": "arte_digital",
+      "title": "The Watcher (David Revoy)",
+      "image_url": "https://www.davidrevoy.com/data/images/blog/2012/10/2012-10-08_the-watcher_final_by_David_Revoy.jpg",
+      "expected": {
+        "artist": "David Revoy",
+        "date": "2012-10-08",
+        "url_contains": [
+          "deviantart.com/deevad",
+          "davidrevoy.com",
+          "deviantart.com"
+        ]
+      },
+      "started_at": "2026-10-14T04:23:41.887337+00:00",
+      "search_id": "6902901c-e33c-4e20-8b31-d5418cba689b",
+      "status": "done",
+      "response_time_seconds": 10.1,
+      "static_poll_seconds": 10.09,
+      "deep_poll_seconds": 0.0,
+      "deep_search_used": true,
+      "deep_search_available": false,
+      "timed_out": false,
+      "result_count": 9,
+      "top_results": [
+        {
+          "url": "https://www.reddit.com/r/ImaginaryMonsterBoys/comments/9nx3p5/watcher_by_david_revoy/",
+          "date": "2018-10-13T20:44:59.813000",
+          "platform": "reddit",
+          "site_name": "Reddit · r/ImaginaryMonsterBoys",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/en/viewer/misc-src__2012-10-08_The-Watcher_by-David-Revoy.html",
+          "date": "2012-10-08T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/hi/viewer/misc__2012-10-08_The-Watcher_by-David-Revoy.html",
+          "date": "2012-10-08T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/no/viewer/misc-src__2012-10-08_The-Watcher_by-David-Revoy.html",
+          "date": "2012-10-08T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://lawrencedagstine.com/category/deviant-art/",
+          "date": "2013-11-02T00:00:00",
+          "platform": "unknown",
+          "site_name": "Lawrence Dagstine",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/tp/viewer/misc-src__2012-10-08_The-Watcher_by-David-Revoy.html",
+          "date": "2012-10-08T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.davidrevoy.com/article1056/when-world-collides-the-new-and-improved-peppercarrot-website",
+          "date": "2024-12-20T00:00:00",
+          "platform": "unknown",
+          "site_name": "David Revoy",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/kr/viewer/misc-src__2012-10-08_The-Watcher_by-David-Revoy.html",
+          "date": "2012-10-08T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/David_Revoy",
+          "date": "2022-01-05T00:00:00",
+          "platform": "unknown",
+          "site_name": "Wikipedia",
+          "score": 0.75,
+          "confidence": "confirmed"
+        }
+      ],
+      "obtained": {
+        "url": "https://www.davidrevoy.com/article1056/when-world-collides-the-new-and-improved-peppercarrot-website",
+        "date": "2024-12-20T00:00:00",
+        "platform": "unknown",
+        "site_name": "David Revoy",
+        "score": 0.75,
+        "confidence": "confirmed"
+      },
+      "evaluation": {
+        "correct": true,
+        "reason": "ok",
+        "match_rank": 7,
+        "evaluation_window": 10,
+        "url_match": true,
+        "date_match": false
+      },
+      "error": null
+    },
+    {
+      "id": "digital-02",
+      "category": "arte_digital",
+      "title": "TMIM Heroine (Bleed)",
+      "image_url": "https://opengameart.org/sites/default/files/sprite0_3.png",
+      "expected": {
+        "artist": "Bleed",
+        "date": "2014-03-23",
+        "url_contains": [
+          "opengameart.org/content/tmim-heroine",
+          "opengameart.org"
+        ]
+      },
+      "started_at": "2026-10-14T04:23:51.985324+00:00",
+      "search_id": "0d91e8f5-aa66-4fe7-b843-08d2139140f7",
+      "status": "done",
+      "response_time_seconds": 34.08,
+      "static_poll_seconds": 34.08,
+      "deep_poll_seconds": 0.0,
+      "deep_search_used": true,
+      "deep_search_available": false,
+      "timed_out": false,
+      "result_count": 9,
+      "top_results": [
+        {
+          "url": "https://www.deviantart.com/morelikethis/MartinWalker1997/1239314858?page=2",
+          "date": "2026-08-24T00:00:00",
+          "platform": "deviantart",
+          "site_name": "DeviantArt",
+          "score": 0.9500000000000001,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "http://www.deviantart.com/morelikethis/stalsky/462150355?page=5",
+          "date": "2026-04-09T00:00:00",
+          "platform": "deviantart",
+          "site_name": "DeviantArt",
+          "score": 0.9500000000000001,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.reddit.com/r/MortalKombat/comments/1ub4p0m/mk4_sonya_is_the_best_shes_ever_looked_no_idea/",
+          "date": "2019-12-30T15:40:05.845000",
+          "platform": "reddit",
+          "site_name": "Reddit · r/MortalKombat",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.ae.com/us/en/p/aerie/bottoms/leggings-yoga-pants/offline-by-aerie-real-me-xtra-high-waisted-trouser/0784_1093_618",
+          "date": "2026-10-13T20:06:59",
+          "platform": "unknown",
+          "site_name": "American Eagle",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=gMkuV5hh7-s",
+          "date": "2026-09-18T00:00:00",
+          "platform": "youtube",
+          "site_name": "YouTube · League of Legends",
+          "score": 0.9500000000000001,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://gamebanana.com/mods/233107",
+          "date": "2006-09-02T00:00:00",
+          "platform": "unknown",
+          "site_name": "GameBanana",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.streetfighter.com/6/buckler/en",
+          "date": "2025-10-07T00:00:00",
+          "platform": "unknown",
+          "site_name": "streetfighter.com",
+          "score": 0.30000000000000004,
+          "confidence": "provisional"
+        },
+        {
+          "url": "https://deadspace.fandom.com/wiki/Kendra_Daniels",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "Dead Space Wiki",
+          "score": null,
+          "confidence": "pending"
+        },
+        {
+          "url": "https://www.callofduty.com/cdn/invite/west/system_en_US.html",
+          "date": null,
+          "platform": "unknown",
+          "site_name": "Call of Duty® | Best-Selling Video Game Franchise",
+          "score": null,
+          "confidence": "pending"
+        }
+      ],
+      "obtained": {
+        "url": "https://www.deviantart.com/morelikethis/MartinWalker1997/1239314858?page=2",
+        "date": "2026-08-24T00:00:00",
+        "platform": "deviantart",
+        "site_name": "DeviantArt",
+        "score": 0.9500000000000001,
+        "confidence": "confirmed"
+      },
+      "evaluation": {
+        "correct": false,
+        "reason": "fuera_del_top",
+        "detail": "Ninguna fuente esperada en el top 10",
+        "match_rank": null,
+        "evaluation_window": 10,
+        "url_match": false,
+        "date_match": false
+      },
+      "error": null
+    },
+    {
+      "id": "digital-03",
+      "category": "arte_digital",
+      "title": "Aqua Dream (David Revoy)",
+      "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Aqua_dream_by_deevad.png",
+      "expected": {
+        "artist": "David Revoy",
+        "date": "2013-07-23",
+        "url_contains": [
+          "deviantart.com/deevad",
+          "davidrevoy.com",
+          "deviantart.com"
+        ]
+      },
+      "started_at": "2026-10-14T04:24:26.063435+00:00",
+      "search_id": "31277c33-850f-4118-a88f-3353090dfbac",
+      "status": "done",
+      "response_time_seconds": 76.21,
+      "static_poll_seconds": 76.2,
+      "deep_poll_seconds": 0.0,
+      "deep_search_used": true,
+      "deep_search_available": false,
+      "timed_out": false,
+      "result_count": 30,
+      "top_results": [
+        {
+          "url": "https://telegra.ph/Kartinki-Devushka-Ryba-04-12",
+          "date": "2022-04-12T00:00:00",
+          "platform": "unknown",
+          "site_name": "telegra.ph",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://crosti.org/patterns/view/735639",
+          "date": "2026-01-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "crosti.org",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.davidrevoy.com/article177/video-timelapse-aqua-dream",
+          "date": "2013-07-23T00:00:00",
+          "platform": "unknown",
+          "site_name": "davidrevoy.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://vk.ru/wall-173434233_4346",
+          "date": "2013-01-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "vk.ru",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://crosti.ru/patterns/user/tag/92252/%D0%BF%D0%BE%D1%80%D1%82%D1%80%D0%B5%D1%82/2",
+          "date": "2014-07-23T00:00:00",
+          "platform": "unknown",
+          "site_name": "crosti.ru",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://crosti.ru/patterns/user/recent/244516/25",
+          "date": "2018-12-09T00:00:00",
+          "platform": "unknown",
+          "site_name": "crosti.ru",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://topdb.ru/id220896016",
+          "date": "2017-01-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "topdb.ru",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.adhdrus.com/wonder-woman/",
+          "date": "2017-09-27T00:00:00",
+          "platform": "unknown",
+          "site_name": "adhdrus.com",
+          "score": 0.6000000000000001,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.artfile.ru/i.php?i=809370",
+          "date": "2004-01-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "artfile.ru",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=9xlKF6v-fgU",
+          "date": "2014-01-13T00:00:00",
+          "platform": "youtube",
+          "site_name": "youtube.com",
+          "score": 0.9500000000000001,
+          "confidence": "confirmed"
+        }
+      ],
+      "obtained": {
+        "url": "https://www.davidrevoy.com/article177/video-timelapse-aqua-dream",
+        "date": "2013-07-23T00:00:00",
+        "platform": "unknown",
+        "site_name": "davidrevoy.com",
+        "score": 0.75,
+        "confidence": "confirmed"
+      },
+      "evaluation": {
+        "correct": true,
+        "reason": "ok",
+        "match_rank": 3,
+        "evaluation_window": 10,
+        "url_match": true,
+        "date_match": true
+      },
+      "error": null
+    },
+    {
+      "id": "digital-04",
+      "category": "arte_digital",
+      "title": "Pepper first artwork (David Revoy)",
+      "image_url": "https://www.peppercarrot.com/0_sources/0ther/artworks/low-res/2014-06-14_pepper_first-artwork_by-David-Revoy.jpg",
+      "expected": {
+        "artist": "David Revoy",
+        "date": "2014-06-14",
+        "url_contains": [
+          "peppercarrot.com",
+          "davidrevoy.com"
+        ]
+      },
+      "started_at": "2026-10-14T04:25:42.270011+00:00",
+      "search_id": "1ecc06c6-6a49-425a-b601-da079b60ab47",
+      "status": "done",
+      "response_time_seconds": 8.02,
+      "static_poll_seconds": 8.02,
+      "deep_poll_seconds": 0.0,
+      "deep_search_used": true,
+      "deep_search_available": false,
+      "timed_out": false,
+      "result_count": 9,
+      "top_results": [
+        {
+          "url": "https://www.davidrevoy.com/article449/pepper",
+          "date": "2014-06-14T00:00:00",
+          "platform": "unknown",
+          "site_name": "David Revoy",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/sv/viewer/artworks__2014-06-14_pepper_first-artwork_by-David-Revoy.html",
+          "date": "2014-06-14T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/br/viewer/artworks-src__2014-06-14_pepper_first-artwork_by-David-Revoy.html",
+          "date": "2014-06-14T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/gd/viewer/artworks-src__2014-06-14_pepper_first-artwork_by-David-Revoy.html",
+          "date": "2014-06-14T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/ca/viewer/artworks-src__2014-06-14_pepper_first-artwork_by-David-Revoy.html",
+          "date": "2014-06-14T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/gd/viewer/artworks__2014-06-14_pepper_first-artwork_by-David-Revoy.html",
+          "date": "2014-06-14T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/br/viewer/artworks__2014-06-14_pepper_first-artwork_by-David-Revoy.html",
+          "date": "2014-06-14T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.davidrevoy.com/article586/making-of-the-second-cover-of-peppercarrot",
+          "date": "2016-11-16T00:00:00",
+          "platform": "unknown",
+          "site_name": "David Revoy",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.facebook.com/p/Pepper-Carrot-100069321226386/",
+          "date": "2000-01-01T00:00:00",
+          "platform": "facebook",
+          "site_name": "Facebook · Pepper & Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        }
+      ],
+      "obtained": {
+        "url": "https://www.davidrevoy.com/article449/pepper",
+        "date": "2014-06-14T00:00:00",
+        "platform": "unknown",
+        "site_name": "David Revoy",
+        "score": 0.75,
+        "confidence": "confirmed"
+      },
+      "evaluation": {
+        "correct": true,
+        "reason": "ok",
+        "match_rank": 1,
+        "evaluation_window": 10,
+        "url_match": true,
+        "date_match": true
+      },
+      "error": null
+    },
+    {
+      "id": "comic-01",
+      "category": "webcomic",
+      "title": "Pepper&Carrot Ep.1 p.01 — The Potion of Flight (David Revoy)",
+      "image_url": "https://www.peppercarrot.com/0_sources/ep01_Potion-of-Flight/low-res/en_Pepper-and-Carrot_by-David-Revoy_E01P01.jpg",
+      "expected": {
+        "artist": "David Revoy",
+        "date": "2014-05-10",
+        "url_contains": [
+          "peppercarrot.com",
+          "davidrevoy.com"
+        ]
+      },
+      "started_at": "2026-10-14T04:25:50.289956+00:00",
+      "search_id": "06d5f0e1-70aa-4889-953e-72d06b86b7c6",
+      "status": "done",
+      "response_time_seconds": 8.02,
+      "static_poll_seconds": 8.02,
+      "deep_poll_seconds": 0.0,
+      "deep_search_used": true,
+      "deep_search_available": false,
+      "timed_out": false,
+      "result_count": 9,
+      "top_results": [
+        {
+          "url": "https://www.peppercarrot.com/th/webcomic/ep01_Potion-of-Flight__hd.html",
+          "date": "2016-05-05T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.instagram.com/p/Dd4Nqc8kzFY/",
+          "date": "2026-09-29T00:00:00",
+          "platform": "instagram",
+          "site_name": "Instagram · voomcomix",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=pJLtranA6Z0&xstg=CAMSBhUDzO3xHw%3D%3D",
+          "date": "2024-05-14T00:00:00",
+          "platform": "youtube",
+          "site_name": "YouTube · Blabla Chinese - Comprehensible Input",
+          "score": 0.9500000000000001,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/tp/webcomic/ep01_Potion-of-Flight.html",
+          "date": "2016-05-05T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.storyberries.com/pepper-and-carrot-comic-episode-1/",
+          "date": "2017-10-31T19:17:52",
+          "platform": "unknown",
+          "site_name": "Bedtime Stories",
+          "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/ph/webcomic/ep01_Potion-of-Flight.html",
+          "date": "2016-05-05T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/File:Pepper&Carrot_en_episode_01_page_01.jpg",
+          "date": "2014-05-05T00:00:00",
+          "platform": "unknown",
+          "site_name": "Wikipedia",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://en.wikipedia.org/wiki/Pepper%26Carrot",
+          "date": "2015-10-10T00:00:00",
+          "platform": "unknown",
+          "site_name": "Wikipedia",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://commons.wikimedia.org/wiki/File:Pepper%26Carrot_zxx_episode_01_page_01.jpg",
+          "date": "2020-10-10T12:57:28",
+          "platform": "unknown",
+          "site_name": "Wikimedia Commons",
+          "score": 0.7,
+          "confidence": "confirmed"
+        }
+      ],
+      "obtained": {
+        "url": "https://www.peppercarrot.com/th/webcomic/ep01_Potion-of-Flight__hd.html",
+        "date": "2016-05-05T00:00:00",
+        "platform": "unknown",
+        "site_name": "Pepper&Carrot",
+        "score": 0.75,
+        "confidence": "confirmed"
+      },
+      "evaluation": {
+        "correct": true,
+        "reason": "ok",
+        "match_rank": 1,
+        "evaluation_window": 10,
+        "url_match": true,
+        "date_match": false
+      },
+      "error": null
+    },
+    {
+      "id": "meme-01",
+      "category": "meme_nativo",
+      "title": "Doge / Kabosu (Atsuko Sato)",
       "image_url": "https://upload.wikimedia.org/wikipedia/en/5/5f/Original_Doge_meme.jpg",
       "expected": {
         "artist": "Atsuko Sato",
-        "date": "2010",
+        "date": "2010-02-13",
         "url_contains": [
-          "wikipedia.org",
-          "knowyourmeme",
-          "reddit.com"
+          "kabosu112.exblog.jp",
+          "kabochan.blog.jp",
+          "exblog.jp"
         ]
       },
-      "started_at": "2026-10-10T00:15:55.197872+00:00",
-      "search_id": "c44848de-6b35-4eb5-a3b7-950b09d35631",
+      "started_at": "2026-10-14T04:25:58.310397+00:00",
+      "search_id": "eec6d9c3-6ace-4285-b238-115f6253323c",
       "status": "done",
-      "response_time_seconds": 58.16,
-      "static_poll_seconds": 58.15,
+      "response_time_seconds": 20.04,
+      "static_poll_seconds": 20.04,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -650,7 +1012,7 @@
       "top_results": [
         {
           "url": "https://www.reddit.com/r/popculturechat/comments/1czpefl/kabosu_the_shiba_inu_face_of_the_doge_meme_has/",
-          "date": "2014-08-03T17:23:41.216000",
+          "date": "2018-08-30T13:38:31.671000",
           "platform": "reddit",
           "site_name": "Reddit · r/popculturechat",
           "score": 0.7,
@@ -658,18 +1020,18 @@
         },
         {
           "url": "https://www.instagram.com/p/CVysMrsvd9t/?hl=en",
-          "date": "2026-01-01T00:00:00",
+          "date": "2021-11-02T00:00:00",
           "platform": "instagram",
           "site_name": "Instagram · weratedogs",
           "score": 0.75,
           "confidence": "confirmed"
         },
         {
-          "url": "https://internet-culture.vercel.app/memes/doge",
-          "date": "2026-07-16T00:00:00",
+          "url": "https://www.binance.com/en/square/post/8521419152114",
+          "date": "2024-05-24T07:09:56",
           "platform": "unknown",
-          "site_name": "Vercel",
-          "score": 0.75,
+          "site_name": "Binance",
+          "score": 0.7,
           "confidence": "confirmed"
         },
         {
@@ -681,16 +1043,16 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://www.washingtonpost.com/technology/2024/05/24/kabosu-doge-meme-shiba-inu-dead/",
-          "date": null,
-          "platform": "unknown",
-          "site_name": "The Washington Post",
-          "score": null,
-          "confidence": "pending"
+          "url": "https://www.instagram.com/p/C7YeANFytGI/?hl=en",
+          "date": "2026-01-01T00:00:00",
+          "platform": "instagram",
+          "site_name": "Instagram · ussfeeds",
+          "score": 0.75,
+          "confidence": "confirmed"
         },
         {
           "url": "https://www.facebook.com/9gag/posts/kabosu-the-original-doge-is-turning-16-today%EF%B8%8F-kabosumama-ig/10161913761141840/",
-          "date": "1995-01-01T00:00:00",
+          "date": "2000-01-01T00:00:00",
           "platform": "facebook",
           "site_name": "Facebook · 9GAG",
           "score": 0.75,
@@ -705,261 +1067,128 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://www.pinterest.com/pin/425519864763153998/",
-          "date": "2013-08-08T00:00:00",
+          "url": "https://www.pinterest.com/pin/dogiy-easy-twoingredient-homemade-dog-treats-dog-milk--1114781713986698377/",
+          "date": "2022-06-17T00:00:00",
           "platform": "unknown",
-          "site_name": "Pinterest",
+          "site_name": "Pinterest · prodarek99",
           "score": 0.75,
           "confidence": "confirmed"
         }
       ],
       "obtained": {
         "url": "https://www.reddit.com/r/popculturechat/comments/1czpefl/kabosu_the_shiba_inu_face_of_the_doge_meme_has/",
-        "date": "2014-08-03T17:23:41.216000",
+        "date": "2018-08-30T13:38:31.671000",
         "platform": "reddit",
         "site_name": "Reddit · r/popculturechat",
         "score": 0.7,
         "confidence": "confirmed"
       },
       "evaluation": {
-        "correct": true,
-        "reason": "ok",
-        "match_rank": 1,
+        "correct": false,
+        "reason": "fuera_del_top",
+        "detail": "Ninguna fuente esperada en el top 10",
+        "match_rank": null,
         "evaluation_window": 10,
-        "url_match": true,
+        "url_match": false,
         "date_match": false
       },
       "error": null
     },
     {
-      "id": "stock-01",
-      "category": "stock",
-      "title": "Gato doméstico (foto de stock, Wikimedia)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/960px-Cat03.jpg",
+      "id": "meme-02",
+      "category": "meme_nativo",
+      "title": "Plenkton / Cursed Plankton (Moopintot)",
+      "image_url": "https://i.kym-cdn.com/photos/images/original/002/963/026/31b.jpg",
       "expected": {
-        "artist": "desconocido",
-        "date": null,
+        "artist": "Moopintot",
+        "date": "2010-04-22",
         "url_contains": [
-          "wikipedia.org",
-          "commons.wikimedia",
-          "pixabay"
+          "deviantart.com/moopintot",
+          "deviantart.com"
         ]
       },
-      "started_at": "2026-10-10T00:16:53.353812+00:00",
-      "search_id": "cc7b5b22-c0c1-4c08-a279-ab38f5211081",
+      "started_at": "2026-10-14T04:26:18.353875+00:00",
+      "search_id": "4451ef97-fb81-4845-b27d-5401ea6c9d5f",
       "status": "done",
-      "response_time_seconds": 60.19,
-      "static_poll_seconds": 60.18,
+      "response_time_seconds": 56.18,
+      "static_poll_seconds": 56.17,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
       "timed_out": false,
-      "result_count": 9,
+      "result_count": 8,
       "top_results": [
         {
-          "url": "https://www.reddit.com/r/notinteresting/comments/2i0n02/the_word_cat_comes_from_the_latin_cattus_meaning/",
-          "date": "2014-10-01T19:04:02.948000",
+          "url": "https://www.deviantart.com/moopintot/art/Plenkton-161635958",
+          "date": "2010-04-22T00:00:00",
+          "platform": "deviantart",
+          "site_name": "DeviantArt · Moopintot",
+          "score": 0.9500000000000001,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.reddit.com/r/spongebob/comments/1gtxpo1/does_anyone_know_where_this_image_of_plankton/",
+          "date": "2021-10-15T15:22:14.291000",
           "platform": "reddit",
-          "site_name": "Reddit · r/notinteresting",
+          "site_name": "Reddit · r/spongebob",
           "score": 0.7,
           "confidence": "confirmed"
         },
         {
-          "url": "https://callmet.com/p/the-fascinating-world-of-cats-characteristics",
-          "date": "2025-01-12T00:00:00",
-          "platform": "unknown",
-          "site_name": "callmet.com",
+          "url": "https://www.youtube.com/watch?v=UjSOQFXlZks",
+          "date": "2023-09-20T00:00:00",
+          "platform": "youtube",
+          "site_name": "YouTube · BrookieIzDatYou",
+          "score": 0.9500000000000001,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://x.com/Jlop_the_Chop/status/2028859523419763115",
+          "date": "2026-03-03T00:00:00",
+          "platform": "x",
+          "site_name": "X · Jlop_the_Chop",
           "score": 0.75,
           "confidence": "confirmed"
         },
         {
-          "url": "https://anetoday.org/cats-origins-domestication/",
-          "date": "2019-01-17T09:00:30",
-          "platform": "unknown",
-          "site_name": "ANE Today",
-          "score": 0.7,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://alastairadversaria.com/2017/12/21/cat-person-and-the-traumatic-encounter-with-the-others-desire/",
-          "date": "2017-12-21T00:00:00",
-          "platform": "unknown",
-          "site_name": "Alastair's Adversaria",
+          "url": "https://x.com/BlackLanterrn/status/2105719136064295211",
+          "date": "2026-10-01T00:00:00",
+          "platform": "x",
+          "site_name": "X · BlackLanterrn",
           "score": 0.75,
           "confidence": "confirmed"
         },
         {
-          "url": "https://kimba.fandom.com/wiki/Cat",
+          "url": "https://meme.fandom.com/wiki/Cursed_Plankton",
           "date": null,
           "platform": "unknown",
-          "site_name": "Fandom",
+          "site_name": "Teh Meme Wiki",
           "score": null,
           "confidence": "pending"
         },
         {
-          "url": "https://anetoday.org/tag/feline/",
-          "date": null,
-          "platform": "unknown",
-          "site_name": "ANE Today",
-          "score": null,
-          "confidence": "pending"
-        },
-        {
-          "url": "https://purrsnickittycats.com/Home.html",
-          "date": null,
-          "platform": "unknown",
-          "site_name": "PurrsnicKitty, LLC",
-          "score": null,
-          "confidence": "pending"
-        },
-        {
-          "url": "https://georgetowner.com/articles/2018/08/08/downtowner-dc-aug-8-2018/",
-          "date": null,
-          "platform": "unknown",
-          "site_name": "The Georgetowner",
-          "score": null,
-          "confidence": "pending"
-        },
-        {
-          "url": "https://www.facebook.com/groups/meowlover88/posts/1257859545480440/",
+          "url": "https://www.facebook.com/groups/240276054837740/posts/1106950908170246/",
           "date": "2000-01-01T00:00:00",
           "platform": "facebook",
-          "site_name": "Facebook · Meow Lover",
+          "site_name": "Facebook · Wits, UP and UJ 2026™️",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://ru.pinterest.com/pin/921267667524460032/",
+          "date": "2025-02-18T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pinterest · scabralguajajara",
           "score": 0.75,
           "confidence": "confirmed"
         }
       ],
       "obtained": {
-        "url": "https://www.reddit.com/r/notinteresting/comments/2i0n02/the_word_cat_comes_from_the_latin_cattus_meaning/",
-        "date": "2014-10-01T19:04:02.948000",
-        "platform": "reddit",
-        "site_name": "Reddit · r/notinteresting",
-        "score": 0.7,
-        "confidence": "confirmed"
-      },
-      "evaluation": {
-        "correct": false,
-        "reason": "fuera_del_top",
-        "detail": "Ninguna fuente esperada en el top 10",
-        "match_rank": null,
-        "evaluation_window": 10,
-        "url_match": false,
-        "date_match": false
-      },
-      "error": null
-    },
-    {
-      "id": "stock-02",
-      "category": "stock",
-      "title": "Retrato de gaviota (foto de stock, Wikimedia)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Gull_portrait_ca_usa.jpg/960px-Gull_portrait_ca_usa.jpg",
-      "expected": {
-        "artist": "desconocido",
-        "date": null,
-        "url_contains": [
-          "wikipedia.org",
-          "unsplash",
-          "commons.wikimedia"
-        ]
-      },
-      "started_at": "2026-10-10T00:17:53.546116+00:00",
-      "search_id": "a1bb1e95-82f5-4b9f-89b3-3b5109be4106",
-      "status": "done",
-      "response_time_seconds": 52.11,
-      "static_poll_seconds": 52.11,
-      "deep_poll_seconds": 0.0,
-      "deep_search_used": true,
-      "deep_search_available": false,
-      "timed_out": false,
-      "result_count": 30,
-      "top_results": [
-        {
-          "url": "https://ru.wikipedia.org/wiki/%D0%A8%D0%B0%D0%B1%D0%BB%D0%BE%D0%BD:Potd/2009-04?oldformat=true",
-          "date": "2009-04-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "ru.wikipedia.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://ru.wikipedia.org/wiki/%D0%A8%D0%B0%D0%B1%D0%BB%D0%BE%D0%BD%3APotd%2F2009-04",
-          "date": "2009-04-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "ru.wikipedia.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://en.wikipedia.org/wiki/File:Gull_portrait_ca_usa.jpg",
-          "date": "2004-09-09T00:00:00",
-          "platform": "unknown",
-          "site_name": "en.wikipedia.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://commons.wikimedia.org/wiki/Template:Potd/2009-04-25_%28fr%29",
-          "date": "2009-04-25T00:00:00",
-          "platform": "unknown",
-          "site_name": "commons.wikimedia.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://commons.wikimedia.org/wiki/Commons:Valued_image_candidates/Gull_portrait_ca_usa.jpg",
-          "date": "2014-01-21T00:00:00",
-          "platform": "unknown",
-          "site_name": "commons.wikimedia.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.youtube.com/watch?app=desktop&v=ekyVuUYH2qQ",
-          "date": "2018-10-10T00:00:00",
-          "platform": "youtube",
-          "site_name": "youtube.com",
-          "score": 0.9500000000000001,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.youtube.com/watch?v=BmCEvagI8LQ&app=desktop",
-          "date": "2018-10-10T00:00:00",
-          "platform": "youtube",
-          "site_name": "youtube.com",
-          "score": 0.9500000000000001,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.youtube.com/watch?v=cW7T2tHgZF8",
-          "date": "2018-10-10T00:00:00",
-          "platform": "youtube",
-          "site_name": "youtube.com",
-          "score": 0.9500000000000001,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.youtube.com/watch?v=BmCEvagI8LQ",
-          "date": "2018-10-10T00:00:00",
-          "platform": "youtube",
-          "site_name": "youtube.com",
-          "score": 0.9500000000000001,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.youtube.com/watch?app=desktop&v=96_tw80T_fs",
-          "date": "2018-10-10T00:00:00",
-          "platform": "youtube",
-          "site_name": "youtube.com",
-          "score": 0.9500000000000001,
-          "confidence": "confirmed"
-        }
-      ],
-      "obtained": {
-        "url": "https://ru.wikipedia.org/wiki/%D0%A8%D0%B0%D0%B1%D0%BB%D0%BE%D0%BD:Potd/2009-04?oldformat=true",
-        "date": "2009-04-01T00:00:00",
-        "platform": "unknown",
-        "site_name": "ru.wikipedia.org",
-        "score": 0.75,
+        "url": "https://www.deviantart.com/moopintot/art/Plenkton-161635958",
+        "date": "2010-04-22T00:00:00",
+        "platform": "deviantart",
+        "site_name": "DeviantArt · Moopintot",
+        "score": 0.9500000000000001,
         "confidence": "confirmed"
       },
       "evaluation": {
@@ -969,255 +1198,6 @@
         "evaluation_window": 10,
         "url_match": true,
         "date_match": true
-      },
-      "error": null
-    },
-    {
-      "id": "digital-01",
-      "category": "arte_digital",
-      "title": "Color of Friendship (arte digital, Wikimedia)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Color_of_Friendship.jpg/960px-Color_of_Friendship.jpg",
-      "expected": {
-        "artist": "desconocido",
-        "date": null,
-        "url_contains": [
-          "wikipedia.org",
-          "wikimedia.org",
-          "deviantart"
-        ]
-      },
-      "started_at": "2026-10-10T00:18:45.657568+00:00",
-      "search_id": "4cea8f3d-49cf-485a-b030-6c8439f6071c",
-      "status": "done",
-      "response_time_seconds": 0.01,
-      "static_poll_seconds": 0.0,
-      "deep_poll_seconds": 0.0,
-      "deep_search_used": false,
-      "deep_search_available": false,
-      "timed_out": false,
-      "result_count": 30,
-      "top_results": [
-        {
-          "url": "https://ru.wikipedia.org/wiki/%D0%A4%D0%B0%D0%B9%D0%BB:Color_of_Friendship.jpg",
-          "date": "2018-03-04T00:00:00",
-          "platform": "unknown",
-          "site_name": "ru.wikipedia.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://zh.wikipedia.org/zh-tw/Wikipedia:%E6%AF%8F%E6%97%A5%E5%9B%BE%E7%89%87/2026%E5%B9%B43%E6%9C%88",
-          "date": "2017-03-11T00:00:00",
-          "platform": "unknown",
-          "site_name": "zh.wikipedia.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://vi.wikipedia.org/wiki/Wikipedia:H%C3%ACnh_%E1%BA%A3nh_ch%E1%BB%8Dn_l%E1%BB%8Dc/2026/03",
-          "date": "2026-03-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "vi.wikipedia.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://hu.wikipedia.org/wiki/Wikip%C3%A9dia:A_nap_k%C3%A9pe/2026-03",
-          "date": "2026-03-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "hu.wikipedia.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://commons.wikimedia.org/wiki/?axtar=Category%3AGeorge-%C3%89tienne_Cartier",
-          "date": "2004-09-07T00:00:00",
-          "platform": "unknown",
-          "site_name": "commons.wikimedia.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://commons.wikimedia.org/wiki/File:Color_of_Friendship.jpg",
-          "date": "2018-03-04T00:00:00",
-          "platform": "unknown",
-          "site_name": "commons.wikimedia.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=28A766DFBA264ECC2C53057E550C340132079741&simid=608000399505827979",
-          "date": "2026-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "50 happiest photos of the year from around the world named by ...",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.independenturdu.com/file/1jpg-51",
-          "date": "1998-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "independenturdu.com",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=700DE1B655F7C3264DBCB93EFB3984B87F74173D&simid=608051634161537258",
-          "date": "2026-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "Holi Kids Images – Browse 15,462 Stock Photos, Vectors, and Video ...",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://t4.ftcdn.net/jpg/04/91/97/69/360_F_491976957_p8J06O4YZzGobd2lLAo0LR9AfDNUEJHT.jpg",
-          "date": "1999-02-22T00:00:00",
-          "platform": "unknown",
-          "site_name": "t4.ftcdn.net",
-          "score": 0.75,
-          "confidence": "confirmed"
-        }
-      ],
-      "obtained": {
-        "url": "https://ru.wikipedia.org/wiki/%D0%A4%D0%B0%D0%B9%D0%BB:Color_of_Friendship.jpg",
-        "date": "2018-03-04T00:00:00",
-        "platform": "unknown",
-        "site_name": "ru.wikipedia.org",
-        "score": 0.75,
-        "confidence": "confirmed"
-      },
-      "evaluation": {
-        "correct": true,
-        "reason": "ok",
-        "match_rank": 1,
-        "evaluation_window": 10,
-        "url_match": true,
-        "date_match": true
-      },
-      "error": null
-    },
-    {
-      "id": "digital-02",
-      "category": "arte_digital",
-      "title": "Paisaje en pixel art",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Landscape_pixel_art.png/960px-Landscape_pixel_art.png",
-      "expected": {
-        "artist": "desconocido",
-        "date": null,
-        "url_contains": [
-          "wikipedia.org",
-          "wikimedia.org",
-          "opengameart"
-        ]
-      },
-      "started_at": "2026-10-10T00:18:45.665110+00:00",
-      "search_id": "4c4be9af-8a76-428b-89af-1f111a8656ca",
-      "status": "done",
-      "response_time_seconds": 56.12,
-      "static_poll_seconds": 56.12,
-      "deep_poll_seconds": 0.0,
-      "deep_search_used": true,
-      "deep_search_available": false,
-      "timed_out": false,
-      "result_count": 30,
-      "top_results": [
-        {
-          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=8A14C59B4D32A5913E6D8A3CF34DE0D4DC0157D6&simid=608053820254878053",
-          "date": "2026-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "Arcade game world and pixel scene design Vector Image",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://store.steampowered.com/app/1789210/Laypo_Simulator/?l=japanese&snr=2_9_100009__apphubheader",
-          "date": "2021-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "store.steampowered.com",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://dinopixel.com/blue-sky-pixel-art-23550",
-          "date": "2023-01-12T00:00:00",
-          "platform": "unknown",
-          "site_name": "dinopixel.com",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=BEBA2C88235B0CE5D925D9ADF410B67D74735A1A&simid=607999501851316724",
-          "date": "2026-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "Pixel art the overworld | Minecraft Skin",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://storage.googleapis.com/gcpmheysbgcfv/pixel-art-landscape-32x32.html",
-          "date": "2026-06-16T00:00:00",
-          "platform": "unknown",
-          "site_name": "storage.googleapis.com",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=D9D3F0BA56610D9B7B5DCD11B1467D86D957792F&simid=608009345920760724",
-          "date": "2026-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "2D Pixelated Minecraft by anonysmg4mous on DeviantArt",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.taptap.io/id/app/33758617",
-          "date": "2017-02-23T00:00:00",
-          "platform": "unknown",
-          "site_name": "taptap.io",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://community.aseprite.org/t/first-ever-draw-in-aseprite/16180",
-          "date": "2022-11-05T00:00:00",
-          "platform": "unknown",
-          "site_name": "community.aseprite.org",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=6C86527A4AC8489D116B3C2E76EEF40C32206709&simid=608015449081010231",
-          "date": "2026-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "For VIBRANT | Fandom",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://gamejolt.com/games/puzzle-the-game/161018?feed_last_id=%7B%22ver%22%3A%221%22%2C%22pos%22%3A%221467972825%22%7D",
-          "date": "2008-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "gamejolt.com",
-          "score": 0.75,
-          "confidence": "confirmed"
-        }
-      ],
-      "obtained": {
-        "url": "https://www.bing.com/images/search?view=detailv2&FORM=OIIRPO&id=8A14C59B4D32A5913E6D8A3CF34DE0D4DC0157D6&simid=608053820254878053",
-        "date": "2026-01-01T00:00:00",
-        "platform": "unknown",
-        "site_name": "Arcade game world and pixel scene design Vector Image",
-        "score": 0.75,
-        "confidence": "confirmed"
-      },
-      "evaluation": {
-        "correct": false,
-        "reason": "fuera_del_top",
-        "detail": "Ninguna fuente esperada en el top 10",
-        "match_rank": null,
-        "evaluation_window": 10,
-        "url_match": false,
-        "date_match": false
       },
       "error": null
     }

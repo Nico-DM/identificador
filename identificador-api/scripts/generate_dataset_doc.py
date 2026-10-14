@@ -13,11 +13,10 @@ RESULTS = ROOT / "identificador-api" / "dataset" / "results.json"
 OUTPUT = ROOT / "docs" / "dataset-prueba.md"
 
 CATEGORY_LABELS = {
-    "fotografia_historica": "Fotografía histórica",
-    "arte_tradicional_digitalizado": "Arte tradicional digitalizado",
-    "meme": "Meme",
-    "stock": "Fotografía de stock",
+    "fotografia_contemporanea": "Fotografía contemporánea",
     "arte_digital": "Arte digital",
+    "webcomic": "Webcomic",
+    "meme_nativo": "Meme nativo (publicación original)",
 }
 
 
@@ -152,8 +151,6 @@ def main() -> None:
         "",
         "## 3. Resultados por imagen",
         "",
-        "| ID | Categoría | Imagen | Resultado esperado | Coincidencia | Posición | Fecha detectada | URL fuente | Veredicto | Observaciones |",
-        "|----|-----------|--------|--------------------|--------------|----------|-----------------|------------|-----------|---------------|",
     ]
 
     correct = 0
@@ -166,20 +163,21 @@ def main() -> None:
         match_label = obtained.get("site_name") or "—"
         if not evaluation.get("correct"):
             match_label = "—"
-        lines.append(
-            "| {id} | {category} | [{title}]({image_url}) | {expected} | {match} | {rank} | {date} | {url} | {verdict} | {notes} |".format(
-                id=row["id"],
-                category=CATEGORY_LABELS.get(row["category"], row["category"]),
-                title=escape_cell(row["title"]),
-                image_url=row["image_url"],
-                expected=escape_cell(format_expected(row["expected"])),
-                match=escape_cell(match_label),
-                rank=evaluation.get("match_rank") or "—",
-                date=obtained.get("date") or "—",
-                url=format_source_link(obtained if evaluation.get("correct") else None),
-                verdict=verdict,
-                notes=escape_cell(observation_for_row(row)),
-            )
+        category = CATEGORY_LABELS.get(row["category"], row["category"])
+        source = format_source_link(obtained if evaluation.get("correct") else None)
+        lines.extend(
+            [
+                f"### `{row['id']}` — {verdict}",
+                "",
+                f"- **Imagen:** [{row['title']}]({row['image_url']})",
+                f"- **Categoría:** {category}",
+                f"- **Esperado:** {format_expected(row['expected'])}",
+                f"- **Coincidencia:** {match_label} (posición {evaluation.get('match_rank') or '—'})",
+                f"- **Fecha detectada:** {obtained.get('date') or '—'}",
+                f"- **URL fuente:** {source}",
+                f"- **Notas:** {observation_for_row(row)}",
+                "",
+            ]
         )
 
     precision = correct / results["total_images"] if results["total_images"] else 0

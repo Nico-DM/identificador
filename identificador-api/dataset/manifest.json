@@ -1,122 +1,192 @@
 {
-  "version": 1,
-  "description": "Dataset de regresión para Identificador de Artistas",
+  "version": 2,
+  "description": "Dataset de regresión para Identificador de Artistas. Evalúa si el sistema identifica la publicación original online (post del autor), no el año histórico de obras pre-internet.",
+  "objective": "Identificar cuál resultado es la publicación original. La fecha de publicación sirve para rankear (la más antigua suele ser el original); la fecha exacta es secundaria frente a acertar la URL/fuente original.",
+  "evaluation_priority": [
+    "Primario: url_contains del post original aparece en el top N (caso correcto).",
+    "Secundario: la fecha scrapada permite ordenar ese original antes que reposts posteriores.",
+    "La coincidencia exacta día-a-día de expected.date es métrica auxiliar, no el éxito del producto."
+  ],
+  "inclusion_criteria": [
+    "La imagen fue publicada en internet por el autor (o cuenta original) cerca del momento de creación/captura.",
+    "Existe una URL de primera publicación verificable y aún alcanzable (Flickr, DeviantArt, blog, OpenGameArt, webcomic propio, etc.).",
+    "url_contains apunta a esa publicación original, no a artículos enciclopédicos o agregadores posteriores.",
+    "expected.date es referencia de esa publicación (para validar ranking por antigüedad), no el KPI principal."
+  ],
+  "exclusion_criteria": [
+    "Obras creadas antes de internet cuya única presencia online son reuploads de terceros (museos, Wikipedia de obras históricas).",
+    "Escaneos de pintura/foto histórica sin publicación original del autor en la red.",
+    "Orígenes caídos (404) o cuentas desactivadas sin mirror estable del post original.",
+    "Ground truth solo en Wikipedia/KYM sin post original del autor."
+  ],
   "categories": [
-    "fotografia_historica",
-    "arte_tradicional_digitalizado",
-    "meme",
-    "stock",
-    "arte_digital"
+    "fotografia_contemporanea",
+    "arte_digital",
+    "webcomic",
+    "meme_nativo"
   ],
   "images": [
     {
-      "id": "hist-01",
-      "category": "fotografia_historica",
-      "title": "Migrant Mother (Dorothea Lange, 1936)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Lange-MigrantMother02.jpg/960px-Lange-MigrantMother02.jpg",
-      "expected": {
-        "artist": "Dorothea Lange",
-        "date": "1936",
-        "url_contains": ["wikipedia.org", "loc.gov", "moma.org"]
-      }
-    },
-    {
-      "id": "hist-02",
-      "category": "fotografia_historica",
-      "title": "V-J Day in Times Square (Alfred Eisenstaedt, 1945)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Kissing_the_War_Goodbye.jpg/960px-Kissing_the_War_Goodbye.jpg",
-      "expected": {
-        "artist": "Alfred Eisenstaedt",
-        "date": "1945",
-        "url_contains": ["wikipedia.org", "gettyimages", "life.com"]
-      }
-    },
-    {
-      "id": "trad-01",
-      "category": "arte_tradicional_digitalizado",
-      "title": "La Gioconda (Leonardo da Vinci)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg/960px-Mona_Lisa%2C_by_Leonardo_da_Vinci%2C_from_C2RMF_retouched.jpg",
-      "expected": {
-        "artist": "Leonardo da Vinci",
-        "date": "1503",
-        "url_contains": ["wikipedia.org", "louvre", "wikimedia.org"]
-      }
-    },
-    {
-      "id": "trad-02",
-      "category": "arte_tradicional_digitalizado",
-      "title": "La noche estrellada (Vincent van Gogh, 1889)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ea/Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg/1280px-Van_Gogh_-_Starry_Night_-_Google_Art_Project.jpg",
-      "expected": {
-        "artist": "Vincent van Gogh",
-        "date": "1889",
-        "url_contains": ["wikipedia.org", "moma.org", "vangoghmuseum"]
-      }
-    },
-    {
-      "id": "meme-01",
-      "category": "meme",
-      "title": "Success Kid (Laney Griner, 2007)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/en/thumb/f/ff/SuccessKid.jpg/250px-SuccessKid.jpg",
+      "id": "photo-01",
+      "category": "fotografia_contemporanea",
+      "title": "Success Kid / Why I oughta... (Laney Griner)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/en/f/ff/SuccessKid.jpg",
+      "notes": "Foto tomada el 2007-08-26; primera publicación de la autora en Flickr el 2007-08-31.",
+      "original_url": "https://www.flickr.com/photos/sammyjammy/1285612321",
       "expected": {
         "artist": "Laney Griner",
-        "date": "2007",
-        "url_contains": ["wikipedia.org", "knowyourmeme", "reddit.com"]
+        "date": "2007-08-31",
+        "url_contains": [
+          "flickr.com/photos/sammyjammy",
+          "flickr.com"
+        ]
       }
     },
     {
-      "id": "meme-02",
-      "category": "meme",
-      "title": "Doge (Kabosu)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/en/5/5f/Original_Doge_meme.jpg",
+      "id": "photo-02",
+      "category": "fotografia_contemporanea",
+      "title": "York Floods 2015 #1 (Richard Scott)",
+      "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/York_Floods_2015_-1_residential_street.jpg",
+      "notes": "Foto contemporánea publicada por el fotógrafo en Flickr; mirror en Commons con fuente Flickr.",
+      "original_url": "https://www.flickr.com/photos/rjscott/23376813673/",
       "expected": {
-        "artist": "Atsuko Sato",
-        "date": "2010",
-        "url_contains": ["wikipedia.org", "knowyourmeme", "reddit.com"]
+        "artist": "Richard Scott",
+        "date": "2015-12-27",
+        "url_contains": [
+          "flickr.com/photos/rjscott",
+          "flickr.com"
+        ]
       }
     },
     {
-      "id": "stock-01",
-      "category": "stock",
-      "title": "Gato doméstico (foto de stock, Wikimedia)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3a/Cat03.jpg/960px-Cat03.jpg",
+      "id": "photo-03",
+      "category": "fotografia_contemporanea",
+      "title": "Reaching For Light (Alan Levine / cogdogblog)",
+      "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/2014-365-178_Reaching_For_Light_(14501169726).jpg",
+      "notes": "Publicada por el autor en Flickr el 2014-06-28 (CC0).",
+      "original_url": "https://www.flickr.com/photos/cogdog/14501169726/",
       "expected": {
-        "artist": "desconocido",
-        "date": null,
-        "url_contains": ["wikipedia.org", "commons.wikimedia", "pixabay"]
-      }
-    },
-    {
-      "id": "stock-02",
-      "category": "stock",
-      "title": "Retrato de gaviota (foto de stock, Wikimedia)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9a/Gull_portrait_ca_usa.jpg/960px-Gull_portrait_ca_usa.jpg",
-      "expected": {
-        "artist": "desconocido",
-        "date": null,
-        "url_contains": ["wikipedia.org", "unsplash", "commons.wikimedia"]
+        "artist": "Alan Levine",
+        "date": "2014-06-28",
+        "url_contains": [
+          "flickr.com/photos/cogdog",
+          "flickr.com"
+        ]
       }
     },
     {
       "id": "digital-01",
       "category": "arte_digital",
-      "title": "Color of Friendship (arte digital, Wikimedia)",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Color_of_Friendship.jpg/960px-Color_of_Friendship.jpg",
+      "title": "The Watcher (David Revoy)",
+      "image_url": "https://www.davidrevoy.com/data/images/blog/2012/10/2012-10-08_the-watcher_final_by_David_Revoy.jpg",
+      "notes": "Publicado por el autor en DeviantArt el 2012-10-08 (también en su blog).",
+      "original_url": "https://www.deviantart.com/deevad/art/Watcher-331341290",
       "expected": {
-        "artist": "desconocido",
-        "date": null,
-        "url_contains": ["wikipedia.org", "wikimedia.org", "deviantart"]
+        "artist": "David Revoy",
+        "date": "2012-10-08",
+        "url_contains": [
+          "deviantart.com/deevad",
+          "davidrevoy.com",
+          "deviantart.com"
+        ]
       }
     },
     {
       "id": "digital-02",
       "category": "arte_digital",
-      "title": "Paisaje en pixel art",
-      "image_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Landscape_pixel_art.png/960px-Landscape_pixel_art.png",
+      "title": "TMIM Heroine (Bleed)",
+      "image_url": "https://opengameart.org/sites/default/files/sprite0_3.png",
+      "notes": "Sprite publicado por el autor en OpenGameArt el 2014-03-23. Diversifica orígenes fuera de DeviantArt/Revoy.",
+      "original_url": "https://opengameart.org/content/tmim-heroine-bleeds-game-art",
       "expected": {
-        "artist": "desconocido",
-        "date": null,
-        "url_contains": ["wikipedia.org", "wikimedia.org", "opengameart"]
+        "artist": "Bleed",
+        "date": "2014-03-23",
+        "url_contains": [
+          "opengameart.org/content/tmim-heroine",
+          "opengameart.org"
+        ]
+      }
+    },
+    {
+      "id": "digital-03",
+      "category": "arte_digital",
+      "title": "Aqua Dream (David Revoy)",
+      "image_url": "https://commons.wikimedia.org/wiki/Special:FilePath/Aqua_dream_by_deevad.png",
+      "notes": "Speed-painting publicado por el autor en DeviantArt (deevad) el 2013-07-23.",
+      "original_url": "https://www.deviantart.com/deevad/art/Aqua-Dream-387602053",
+      "expected": {
+        "artist": "David Revoy",
+        "date": "2013-07-23",
+        "url_contains": [
+          "deviantart.com/deevad",
+          "davidrevoy.com",
+          "deviantart.com"
+        ]
+      }
+    },
+    {
+      "id": "digital-04",
+      "category": "arte_digital",
+      "title": "Pepper first artwork (David Revoy)",
+      "image_url": "https://www.peppercarrot.com/0_sources/0ther/artworks/low-res/2014-06-14_pepper_first-artwork_by-David-Revoy.jpg",
+      "notes": "Concept art publicado por el autor en peppercarrot.com / blog el 2014-06-14.",
+      "original_url": "https://www.peppercarrot.com/en/viewer/artworks__2014-06-14_pepper_first-artwork_by-David-Revoy.html",
+      "expected": {
+        "artist": "David Revoy",
+        "date": "2014-06-14",
+        "url_contains": [
+          "peppercarrot.com",
+          "davidrevoy.com"
+        ]
+      }
+    },
+    {
+      "id": "comic-01",
+      "category": "webcomic",
+      "title": "Pepper&Carrot Ep.1 p.01 — The Potion of Flight (David Revoy)",
+      "image_url": "https://www.peppercarrot.com/0_sources/ep01_Potion-of-Flight/low-res/en_Pepper-and-Carrot_by-David-Revoy_E01P01.jpg",
+      "notes": "Primera página del episodio 1, publicado por el autor el 2014-05-10 en peppercarrot.com.",
+      "original_url": "https://www.peppercarrot.com/en/webcomic/ep01_Potion-of-Flight.html",
+      "expected": {
+        "artist": "David Revoy",
+        "date": "2014-05-10",
+        "url_contains": [
+          "peppercarrot.com",
+          "davidrevoy.com"
+        ]
+      }
+    },
+    {
+      "id": "meme-01",
+      "category": "meme_nativo",
+      "title": "Doge / Kabosu (Atsuko Sato)",
+      "image_url": "https://upload.wikimedia.org/wikipedia/en/5/5f/Original_Doge_meme.jpg",
+      "notes": "Foto publicada por la autora en su blog el 2010-02-13 (post 'What's for dinner tonight?' / archivo exblog). No evaluar Wikipedia como origen.",
+      "original_url": "http://kabosu112.exblog.jp/9944144/",
+      "expected": {
+        "artist": "Atsuko Sato",
+        "date": "2010-02-13",
+        "url_contains": [
+          "kabosu112.exblog.jp",
+          "kabochan.blog.jp",
+          "exblog.jp"
+        ]
+      }
+    },
+    {
+      "id": "meme-02",
+      "category": "meme_nativo",
+      "title": "Plenkton / Cursed Plankton (Moopintot)",
+      "image_url": "https://i.kym-cdn.com/photos/images/original/002/963/026/31b.jpg",
+      "notes": "Photoshop publicado por el autor en DeviantArt el 2010-04-22. image_url es copia documentada en KYM; el origen esperado es el post de DeviantArt.",
+      "original_url": "https://www.deviantart.com/moopintot/art/Plenkton-161635958",
+      "expected": {
+        "artist": "Moopintot",
+        "date": "2010-04-22",
+        "url_contains": [
+          "deviantart.com/moopintot",
+          "deviantart.com"
+        ]
       }
     }
   ]

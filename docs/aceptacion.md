@@ -1,6 +1,6 @@
 # Informe de pruebas de aceptación
 
-Generado automáticamente: 2026-10-10T00:07:55.667606+00:00
+Generado automáticamente: 2026-10-14T04:02:46.416085+00:00
 
 Cada fila corresponde a un criterio RF/RNF ejercitado por `pytest -m acceptance` (ver `identificador-api/tests/acceptance/`).
 
@@ -19,7 +19,7 @@ Cada fila corresponde a un criterio RF/RNF ejercitado por `pytest -m acceptance`
 | RF-011 | Logs detallados de búsqueda | **PASS** | `tests/acceptance/test_rf_should_could.py::TestRF011Logging::test_structured_logger_emits_event_extra` |  |
 | RNF-001 | Performance medible (parámetros + informe dataset) | **PASS** | `tests/acceptance/test_rnf.py::TestRNF001Performance::test_tunable_limits_exist` |  |
 | RNF-002 | Usabilidad web (UI disponible) | **PASS** | `tests/acceptance/test_rnf.py::TestRNF002Usability::test_web_page_or_source_exists` |  |
-| RNF-003 | Confiabilidad ≥ 70 % en dataset | **FAIL** | `tests/acceptance/test_rnf.py::TestRNF003Reliability::test_dataset_precision_meets_threshold` | tests/acceptance/test_rnf.py:77: in test_dataset_precision_meets_threshold     assert precision_f >= 0.70 E   assert 0.5 >= 0.7 |
+| RNF-003 | Confiabilidad ≥ 70 % en dataset | **FAIL** | `tests/acceptance/test_rnf.py::TestRNF003Reliability::test_dataset_precision_meets_threshold` | tests/acceptance/test_rnf.py:77: in test_dataset_precision_meets_threshold     assert precision_f >= 0.70 E   assert 0.6 >= 0.7 |
 | RNF-004 | Mantenibilidad (estructura + docs oficiales) | **PASS** | `tests/acceptance/test_rnf.py::TestRNF004Maintainability::test_docs_and_decoupled_engines_exist` |  |
 | RNF-005 | Portabilidad Python 3.11 / stack documentado | **PASS** | `tests/acceptance/test_rnf.py::TestRNF005Portability::test_runtime_is_python_311_plus` |  |
 | RNF-006 | API keys solo en variables de entorno | **PASS** | `tests/acceptance/test_rnf.py::TestRNF006Security::test_env_gitignored_and_example_has_no_real_secret` |  |
