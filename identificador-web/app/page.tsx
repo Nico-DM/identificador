@@ -2,7 +2,7 @@
 
 import { SearchProgressBar } from "@/components/search/SearchProgressBar";
 import {
-  DeepSearchPrompt,
+  ContinueBatchPrompt,
   IntroSection,
   QueryImagePreview,
   SearchForm,
@@ -22,16 +22,16 @@ export default function Home() {
         imageUrl={search.imageUrl}
         selectedFile={search.selectedFile}
         safeSearchEnabled={search.safeSearchEnabled}
-        pollTimeoutSeconds={search.pollTimeoutSeconds}
+        batchSize={search.batchSize}
         loading={search.loading}
-        deepLoading={search.deepLoading}
+        continuingBatch={search.continuingBatch}
         retryingPoll={search.retryingPoll}
         canSubmit={search.canSubmit}
         onInputModeChange={search.handleInputModeChange}
         onImageUrlChange={search.setImageUrl}
         onFileChange={search.handleFileChange}
         onSafeSearchChange={search.setSafeSearchEnabled}
-        onPollTimeoutChange={search.setPollTimeoutSeconds}
+        onBatchSizeChange={search.setBatchSize}
         onSubmit={search.handleSearch}
       />
       {search.showIntro && <IntroSection />}
@@ -52,8 +52,6 @@ export default function Home() {
           <SearchProgressBar
             progress={search.progress}
             phase={search.progressPhase}
-            secondsRemaining={search.pollSecondsRemaining}
-            onStop={search.handleStopPoll}
           />
         </div>
       )}
@@ -69,15 +67,14 @@ export default function Home() {
       )}
       {search.status === "partial" && !search.error && (
         <p className="mt-2 text-amber-700 dark:text-amber-400">
-          {search.pollStoppedByUser
-            ? "Espera detenida. Se muestran los resultados obtenidos hasta el momento."
-            : "Tiempo de espera agotado. Se muestran los resultados obtenidos hasta el momento."}
+          Se muestran los resultados obtenidos hasta el momento.
         </p>
       )}
-      {search.showDeepSearchButton && search.deepSearch && (
-        <DeepSearchPrompt
-          deepSearch={search.deepSearch}
-          onDeepSearch={search.handleDeepSearch}
+      {search.showContinueBatchButton && search.batch && (
+        <ContinueBatchPrompt
+          batch={search.batch}
+          onContinue={search.handleContinueBatch}
+          loading={search.continuingBatch}
         />
       )}
       {search.showResults && search.results && (

@@ -38,13 +38,14 @@ describe("POST /api/search", () => {
     expect(res.status).toBe(400);
   });
 
-  it("proxies valid JSON search request", async () => {
+  it("proxies valid JSON search request with batch_size", async () => {
     const req = new Request("http://localhost:3000/api/search", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
         image_url: "https://example.com/photo.jpg",
         safe_search: false,
+        batch_size: 5,
       }),
     });
     const res = await POST(req);
@@ -52,7 +53,14 @@ describe("POST /api/search", () => {
     expect(proxyToBackend).toHaveBeenCalledWith(
       req,
       "/api/search",
-      expect.objectContaining({ method: "POST" }),
+      expect.objectContaining({
+        method: "POST",
+        body: JSON.stringify({
+          image_url: "https://example.com/photo.jpg",
+          safe_search: false,
+          batch_size: 5,
+        }),
+      }),
     );
   });
 

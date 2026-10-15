@@ -1,6 +1,6 @@
 # Informe de pruebas de aceptación
 
-Generado automáticamente: 2026-10-15T01:59:59.826878+00:00
+Generado automáticamente: 2026-10-15T04:22:19.269140+00:00
 
 Cada fila corresponde a un criterio RF/RNF ejercitado por `pytest -m acceptance` (ver `identificador-api/tests/acceptance/`).
 

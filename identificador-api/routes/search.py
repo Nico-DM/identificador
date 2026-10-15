@@ -13,7 +13,9 @@ from pydantic import ValidationError as PydanticValidationError
 from rate_limit import rate_limit_deep, rate_limit_results, rate_limit_search
 from search_service import (
     build_results_response,
+    continue_search,
     now_utc,
+    parse_batch_size,
     process_deep_search,
     prune_expired_searches,
     search_get,
@@ -32,6 +34,7 @@ router = APIRouter()
 class SearchRequest(BaseModel):
     image_url: str
     safe_search: bool = True
+    batch_size: int | None = None
 
 
 @router.post("/api/search")
@@ -53,6 +56,7 @@ async def search(
         form = await request.form()
         upload = form.get("file")
         safe_search = parse_safe_search(form.get("safe_search"))
+        batch_size = parse_batch_size(form.get("batch_size"))
 
         if not isinstance(upload, UploadFile):
             raise ValidationError("Falta el archivo de imagen")
@@ -65,6 +69,7 @@ async def search(
             background_tasks,
             image_url,
             safe_search,
+            batch_size=batch_size,
             upload_object_path=object_path,
         )
 
@@ -83,7 +88,43 @@ async def search(
         )
         raise
 
-    return start_search(background_tasks, image_url, payload.safe_search)
+    return start_search(
+        background_tasks,
+        image_url,
+        payload.safe_search,
+        batch_size=parse_batch_size(payload.batch_size),
+    )
+
+
+@router.post("/api/search/{search_id}/continue")
+async def continue_batch(
+    search_id: str,
+    background_tasks: BackgroundTasks,
+    _: None = Depends(rate_limit_search),
+):
+    prune_expired_searches()
+
+    data = search_get(search_id)
+    if not data:
+        raise NotFoundError("Busqueda no encontrada")
+
+    if data["status"] == "processing" or data["status"] == "deep_processing":
+        raise ConflictError("Analisis de lote ya en curso")
+
+    if data["status"] != "batch_done":
+        raise ValidationError(
+            "Solo se pueden continuar busquedas con lotes pendientes"
+        )
+
+    remaining = max(
+        0,
+        len(data.get("candidate_inputs") or [])
+        - int(data.get("candidate_offset") or 0),
+    )
+    if remaining <= 0:
+        raise ValidationError("No quedan candidatos por analizar")
+
+    return continue_search(background_tasks, search_id)
 
 
 @router.post("/api/search/{search_id}/deep")

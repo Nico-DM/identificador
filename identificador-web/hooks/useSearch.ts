@@ -1,25 +1,27 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { clientImageFileRejectionMessage } from "@/lib/imageFile";
 import { clientImageUrlRejectionMessage } from "@/lib/imageUrl";
 import {
-  DEFAULT_POLL_TIMEOUT_SECONDS,
+  DEFAULT_BATCH_SIZE,
   POLL_DELAY_MS,
+  SAFETY_POLL_TIMEOUT_SECONDS,
   pollAttemptsForTimeout,
 } from "@/lib/pollConfig";
 import { apiErrorMessage, searchErrorMessage } from "@/lib/search/apiError";
 import { abortableDelay } from "@/lib/search/poll";
 import type {
-  DeepSearchInfo,
+  BatchInfo,
   InputMode,
   PollOutcome,
-  PollTarget,
   ProgressPhase,
   ResultsPayload,
   SearchProgress,
   SearchResult,
 } from "@/lib/search/types";
+
+const BATCH_TERMINAL_STATUSES = ["batch_done", "done", "error"];
 
 export function useSearch() {
   const [inputMode, setInputMode] = useState<InputMode>("url");
@@ -29,12 +31,12 @@ export function useSearch() {
   const [searchedImageUrl, setSearchedImageUrl] = useState<string | null>(null);
   const [queryImageError, setQueryImageError] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [deepLoading, setDeepLoading] = useState(false);
+  const [continuingBatch, setContinuingBatch] = useState(false);
   const [results, setResults] = useState<SearchResult[] | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [searchId, setSearchId] = useState<string | null>(null);
-  const [deepSearch, setDeepSearch] = useState<DeepSearchInfo | null>(null);
+  const [batch, setBatch] = useState<BatchInfo | null>(null);
   const [progressPhase, setProgressPhase] =
     useState<ProgressPhase>("reverse_image");
   const [progress, setProgress] = useState<SearchProgress>({
@@ -42,17 +44,9 @@ export function useSearch() {
     total: 0,
   });
   const [safeSearchEnabled, setSafeSearchEnabled] = useState(true);
-  const [pollTimeoutSeconds, setPollTimeoutSeconds] = useState(
-    DEFAULT_POLL_TIMEOUT_SECONDS,
-  );
+  const [batchSize, setBatchSize] = useState(DEFAULT_BATCH_SIZE);
   const [canRetryPoll, setCanRetryPoll] = useState(false);
-  const [pollTarget, setPollTarget] = useState<PollTarget>("static");
   const [retryingPoll, setRetryingPoll] = useState(false);
-  const [pollSecondsRemaining, setPollSecondsRemaining] = useState<
-    number | null
-  >(null);
-  const [pollStoppedByUser, setPollStoppedByUser] = useState(false);
-  const pollAbortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     return () => {
@@ -112,102 +106,29 @@ export function useSearch() {
     if (Array.isArray(data.results)) {
       setResults(data.results);
     }
-    if (data.deep_search) {
-      setDeepSearch(data.deep_search);
+    if (data.batch) {
+      setBatch(data.batch);
     }
     if (data.status) {
       setStatus(data.status);
       if (data.status === "deep_processing") {
         setProgressPhase("deep");
+      } else if (
+        data.status === "processing" &&
+        (data.progress?.total ?? 0) > 0
+      ) {
+        setProgressPhase("static");
       }
     }
   };
 
-  const beginPollSession = () => {
-    pollAbortRef.current?.abort();
-    const controller = new AbortController();
-    pollAbortRef.current = controller;
-    setPollSecondsRemaining(pollTimeoutSeconds);
-    setPollStoppedByUser(false);
-    return controller.signal;
-  };
-
-  const endPollSession = () => {
-    pollAbortRef.current = null;
-    setPollSecondsRemaining(null);
-  };
-
-  const handleStopPoll = () => {
-    pollAbortRef.current?.abort();
-  };
-
-  const resolveEarlyPoll = (
-    data: ResultsPayload,
-    lastResults: SearchResult[],
-    untilStatuses: string[],
-    stoppedByUser: boolean,
-  ): PollOutcome => {
-    if (
-      data.status &&
-      untilStatuses.includes(data.status) &&
-      data.status !== "error"
-    ) {
-      return "done";
-    }
-
-    if (lastResults.length > 0) {
-      setResults(lastResults);
-    }
-    setStatus("partial");
-    setError(null);
-    setPollStoppedByUser(stoppedByUser);
-    setCanRetryPoll(true);
-    return "partial";
-  };
-
-  const pollResults = async (
-    id: string,
-    options: {
-      untilStatuses: string[];
-      onStatus?: (data: ResultsPayload) => void;
-      progressPhase?: ProgressPhase;
-      signal?: AbortSignal;
-    },
-  ): Promise<PollOutcome> => {
-    const maxAttempts = pollAttemptsForTimeout(pollTimeoutSeconds);
+  const pollResults = async (id: string): Promise<PollOutcome> => {
+    const maxAttempts = pollAttemptsForTimeout(SAFETY_POLL_TIMEOUT_SECONDS);
     const delayMs = POLL_DELAY_MS;
     let lastResults: SearchResult[] = [];
 
-    if (options.progressPhase) {
-      setProgressPhase(options.progressPhase);
-    }
-
     for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-      setPollSecondsRemaining(
-        Math.max(0, Math.ceil(((maxAttempts - attempt) * delayMs) / 1000)),
-      );
-
-      try {
-        await abortableDelay(delayMs, options.signal);
-      } catch {
-        const res = await fetch(`/api/results/${id}`);
-        const data: ResultsPayload = await res.json();
-        if (res.ok) {
-          applyResultsPayload(data);
-          if (Array.isArray(data.results) && data.results.length > 0) {
-            lastResults = data.results;
-          }
-          return resolveEarlyPoll(
-            data,
-            lastResults,
-            options.untilStatuses,
-            true,
-          );
-        }
-        setError(apiErrorMessage(data, "Error consultando resultados"));
-        setStatus("error");
-        return "error";
-      }
+      await abortableDelay(delayMs);
 
       const res = await fetch(`/api/results/${id}`);
       const data: ResultsPayload = await res.json();
@@ -219,13 +140,12 @@ export function useSearch() {
       }
 
       applyResultsPayload(data);
-      options.onStatus?.(data);
 
       if (Array.isArray(data.results) && data.results.length > 0) {
         lastResults = data.results;
       }
 
-      if (data.status && options.untilStatuses.includes(data.status)) {
+      if (data.status && BATCH_TERMINAL_STATUSES.includes(data.status)) {
         if (data.status === "error") {
           if (lastResults.length > 0) {
             setResults(lastResults);
@@ -241,32 +161,18 @@ export function useSearch() {
         }
         return "done";
       }
-
-      if (data.status === "error") {
-        if (lastResults.length > 0) {
-          setResults(lastResults);
-          setStatus("partial");
-          setError(
-            "Error en el procesamiento. Se muestran los resultados obtenidos hasta el momento.",
-          );
-          return "partial";
-        }
-        setError(searchErrorMessage(data.error, "Error en el procesamiento"));
-        setStatus("error");
-        return "error";
-      }
     }
 
-    setPollSecondsRemaining(0);
     const finalRes = await fetch(`/api/results/${id}`);
     const finalData: ResultsPayload = await finalRes.json();
     if (finalRes.ok) {
       applyResultsPayload(finalData);
       if (
         finalData.status &&
-        options.untilStatuses.includes(finalData.status)
+        BATCH_TERMINAL_STATUSES.includes(finalData.status) &&
+        finalData.status !== "error"
       ) {
-        return finalData.status === "error" ? "error" : "done";
+        return "done";
       }
       if (Array.isArray(finalData.results) && finalData.results.length > 0) {
         lastResults = finalData.results;
@@ -287,39 +193,6 @@ export function useSearch() {
     return "timeout";
   };
 
-  const runPollForTarget = async (id: string, target: PollTarget) => {
-    const signal = beginPollSession();
-    const untilStatuses =
-      target === "deep" ? ["done"] : ["static_done", "done"];
-    const phase: ProgressPhase = target === "deep" ? "deep" : "static";
-
-    if (target === "deep") {
-      setDeepLoading(true);
-    } else {
-      setLoading(true);
-    }
-    setProgressPhase(phase);
-
-    try {
-      const outcome = await pollResults(id, {
-        untilStatuses,
-        progressPhase: phase,
-        signal,
-      });
-      if (outcome === "timeout" || outcome === "partial") {
-        setCanRetryPoll(true);
-      }
-      return outcome;
-    } finally {
-      if (target === "deep") {
-        setDeepLoading(false);
-      } else {
-        setLoading(false);
-      }
-      endPollSession();
-    }
-  };
-
   const handleRetryPoll = async () => {
     if (!searchId || retryingPoll) return;
 
@@ -328,7 +201,7 @@ export function useSearch() {
     setError(null);
 
     try {
-      const outcome = await runPollForTarget(searchId, pollTarget);
+      const outcome = await pollResults(searchId);
       if (outcome === "timeout" || outcome === "partial") {
         setCanRetryPoll(true);
       }
@@ -362,17 +235,15 @@ export function useSearch() {
     }
 
     setLoading(true);
-    setDeepLoading(false);
+    setContinuingBatch(false);
     setResults(null);
     setError(null);
     setStatus("processing");
     setSearchId(null);
-    setDeepSearch(null);
+    setBatch(null);
     setProgressPhase("reverse_image");
     setProgress({ processed: 0, total: 0 });
     setCanRetryPoll(false);
-    setPollTarget("static");
-    setPollStoppedByUser(false);
     setSearchedImageUrl(inputMode === "url" ? imageUrl.trim() : filePreviewUrl);
     setQueryImageError(false);
 
@@ -385,12 +256,14 @@ export function useSearch() {
           body: JSON.stringify({
             image_url: imageUrl.trim(),
             safe_search: safeSearchEnabled,
+            batch_size: batchSize,
           }),
         });
       } else if (selectedFile) {
         const formData = new FormData();
         formData.append("file", selectedFile);
         formData.append("safe_search", safeSearchEnabled ? "true" : "false");
+        formData.append("batch_size", String(batchSize));
         res = await fetch("/api/search", {
           method: "POST",
           body: formData,
@@ -408,16 +281,15 @@ export function useSearch() {
 
       setSearchId(data.search_id ?? null);
       setStatus(data.status ?? "processing");
-      setPollTarget("static");
 
       if (data.search_id) {
         const terminal =
-          data.status === "done" || data.status === "static_done";
+          data.status === "done" || data.status === "batch_done";
         const outcome = terminal
           ? await (async () => {
-              const res = await fetch(`/api/results/${data.search_id}`);
-              const payload: ResultsPayload = await res.json();
-              if (!res.ok) {
+              const resultsRes = await fetch(`/api/results/${data.search_id}`);
+              const payload: ResultsPayload = await resultsRes.json();
+              if (!resultsRes.ok) {
                 setError(
                   apiErrorMessage(payload, "Error consultando resultados"),
                 );
@@ -429,7 +301,7 @@ export function useSearch() {
                 ? ("error" as const)
                 : ("done" as const);
             })()
-          : await runPollForTarget(data.search_id, "static");
+          : await pollResults(data.search_id);
         if (outcome === "timeout" || outcome === "partial") {
           setCanRetryPoll(true);
         }
@@ -439,62 +311,71 @@ export function useSearch() {
       setStatus("error");
     } finally {
       setLoading(false);
-      endPollSession();
     }
   };
 
-  const handleDeepSearch = async () => {
-    if (!searchId || !deepSearch?.available || deepLoading) return;
+  const handleContinueBatch = async () => {
+    if (!searchId || continuingBatch || loading) return;
 
-    setDeepLoading(true);
+    setContinuingBatch(true);
     setError(null);
     setCanRetryPoll(false);
-    setPollTarget("deep");
-    setPollStoppedByUser(false);
+    setStatus("processing");
+    setProgressPhase("static");
+    setProgress({ processed: 0, total: 0 });
 
     try {
-      const res = await fetch(`/api/search/${searchId}/deep`, {
+      const res = await fetch(`/api/search/${searchId}/continue`, {
         method: "POST",
       });
       const data = await res.json();
 
       if (!res.ok) {
-        setError(apiErrorMessage(data, "Error iniciando búsqueda profunda"));
+        setError(apiErrorMessage(data, "Error continuando el análisis"));
+        setStatus("batch_done");
         return;
       }
 
-      setStatus(data.status ?? "deep_processing");
-      const outcome = await runPollForTarget(searchId, "deep");
+      setStatus(data.status ?? "processing");
+      const outcome = await pollResults(searchId);
       if (outcome === "timeout" || outcome === "partial") {
         setCanRetryPoll(true);
       }
     } catch {
       setError("No se pudo conectar con el backend");
+      setStatus("batch_done");
     } finally {
-      setDeepLoading(false);
-      endPollSession();
+      setContinuingBatch(false);
     }
   };
 
-  const showResults =
-    (status === "done" || status === "static_done" || status === "partial") &&
-    results;
+  const hasDatedResults =
+    Array.isArray(results) &&
+    results.some((result) => result.date !== null && result.date !== "");
+
+  const showResults = Boolean(
+    results &&
+      (status === "done" ||
+        status === "batch_done" ||
+        status === "partial" ||
+        hasDatedResults),
+  );
 
   const showProgress =
     loading ||
+    continuingBatch ||
     status === "processing" ||
     status === "deep_processing" ||
-    deepLoading ||
     retryingPoll;
 
   const showRetryPollButton =
-    canRetryPoll && searchId && !loading && !deepLoading && !retryingPoll;
+    canRetryPoll && searchId && !loading && !continuingBatch && !retryingPoll;
 
-  const showDeepSearchButton =
-    status === "static_done" &&
-    deepSearch?.available &&
-    !deepLoading &&
+  const showContinueBatchButton =
+    status === "batch_done" &&
+    Boolean(batch && batch.remaining > 0) &&
     !loading &&
+    !continuingBatch &&
     !retryingPoll;
 
   const canSubmit =
@@ -509,34 +390,31 @@ export function useSearch() {
     searchedImageUrl,
     queryImageError,
     loading,
-    deepLoading,
+    continuingBatch,
     results,
     status,
     error,
     searchId,
-    deepSearch,
+    batch,
     progressPhase,
     progress,
     safeSearchEnabled,
-    pollTimeoutSeconds,
+    batchSize,
     retryingPoll,
-    pollSecondsRemaining,
-    pollStoppedByUser,
     showResults,
     showProgress,
     showRetryPollButton,
-    showDeepSearchButton,
+    showContinueBatchButton,
     canSubmit,
     showIntro,
     setImageUrl,
     setQueryImageError,
     setSafeSearchEnabled,
-    setPollTimeoutSeconds,
+    setBatchSize,
     handleFileChange,
     handleInputModeChange,
-    handleStopPoll,
     handleRetryPoll,
     handleSearch,
-    handleDeepSearch,
+    handleContinueBatch,
   };
 }

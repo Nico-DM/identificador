@@ -64,6 +64,11 @@ def observation_for_row(row: dict) -> str:
         return evaluation.get("detail") or "Sin candidatos."
     if reason == "timeout_parcial":
         return evaluation.get("detail") or "Timeout; se evaluaron resultados parciales."
+    if reason == "batch_limit_parcial":
+        return (
+            evaluation.get("detail")
+            or "Límite de lotes; se evaluaron resultados parciales."
+        )
     if reason == "fuera_del_top":
         window = evaluation.get("evaluation_window", results_window())
         count = row.get("result_count", 0)
@@ -241,6 +246,7 @@ def main() -> None:
         "sin_resultados": "Sin resultados",
         "fuera_del_top": "Fuera del top N",
         "timeout_parcial": "Timeout con resultados parciales",
+        "batch_limit_parcial": "Límite de lotes con resultados parciales",
         "exception": "Excepción",
         "error": "Error de API",
     }

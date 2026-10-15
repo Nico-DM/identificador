@@ -1,4 +1,6 @@
 const DEFAULT_POLL_DELAY_MS = 2000;
+/** Safety ceiling so the client does not poll forever if the backend stalls. */
+const DEFAULT_SAFETY_POLL_TIMEOUT_SECONDS = 1800;
 
 function parsePositiveInt(value: string | undefined, fallback: number): number {
   if (!value?.trim()) return fallback;
@@ -13,15 +15,19 @@ export const POLL_DELAY_MS = parsePositiveInt(
   DEFAULT_POLL_DELAY_MS,
 );
 
-export const POLL_TIMEOUT_OPTIONS = [
-  { label: "30 s", seconds: 30 },
-  { label: "1 min", seconds: 60 },
-  { label: "2 min", seconds: 120 },
-  { label: "5 min", seconds: 300 },
-  { label: "10 min", seconds: 600 },
+export const SAFETY_POLL_TIMEOUT_SECONDS = parsePositiveInt(
+  process.env.NEXT_PUBLIC_SAFETY_POLL_TIMEOUT_SECONDS,
+  DEFAULT_SAFETY_POLL_TIMEOUT_SECONDS,
+);
+
+export const BATCH_SIZE_OPTIONS = [
+  { label: "5", size: 5 },
+  { label: "10", size: 10 },
+  { label: "15", size: 15 },
+  { label: "20", size: 20 },
 ] as const;
 
-export const DEFAULT_POLL_TIMEOUT_SECONDS = 120;
+export const DEFAULT_BATCH_SIZE = 10;
 
 export function pollAttemptsForTimeout(timeoutSeconds: number): number {
   return Math.max(1, Math.ceil((timeoutSeconds * 1000) / POLL_DELAY_MS));

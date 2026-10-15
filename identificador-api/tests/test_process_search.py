@@ -13,7 +13,9 @@ from exceptions import IdentificadorError
 from publication_scorer import _StaticPhaseOutcome
 from search_engines.base import SearchOutcome
 from search_service import (
+    continue_search,
     process_deep_search,
+    process_next_batch,
     process_search,
     prune_expired_searches,
     save_analysis_cache,
@@ -53,6 +55,9 @@ def _base_search(status: str = "processing", **extra) -> dict:
         "match_metadata": {},
         "pending_dynamic": [],
         "deep_search_available": False,
+        "candidate_inputs": [],
+        "candidate_offset": 0,
+        "batch_size": 10,
         "created_at": now,
         "updated_at": now,
     }
@@ -218,9 +223,9 @@ class TestProcessSearch:
         deep.assert_not_called()
         delete.assert_called_once_with("uploads/tmp.jpg")
 
-    def test_caps_urls_and_auto_deep(self, monkeypatch):
+    def test_caps_urls_and_runs_batch_deep(self, monkeypatch):
         search_id = "proc-deep"
-        search_create(search_id, _base_search())
+        search_create(search_id, _base_search(batch_size=10))
 
         class FakeEngine:
             name = "fake_engine"
@@ -252,15 +257,73 @@ class TestProcessSearch:
             "search_service.run_static_phase",
             lambda inputs, on_progress=None: ([], pending),
         )
-        deep = MagicMock()
-        monkeypatch.setattr("search_service.process_deep_search", deep)
+        dynamic = MagicMock(return_value=[])
+        monkeypatch.setattr("search_service.run_dynamic_phase", dynamic)
+        monkeypatch.setattr(cache, "db_enabled", lambda: False)
 
         process_search(search_id, "https://cdn.example/img.jpg")
-        deep.assert_called_once_with(search_id)
+        dynamic.assert_called_once()
         data = _require(search_get(search_id))
-        assert data["status"] == "deep_processing"
-        assert data["static_total_urls"] == 2
-        assert data["deep_search_available"] is True
+        assert data["status"] == "done"
+        assert data["candidate_offset"] == 2
+        assert len(data["candidate_inputs"]) == 2
+        assert data["deep_search_available"] is False
+
+    def test_batch_done_then_continue(self, monkeypatch):
+        search_id = "proc-batch"
+        search_create(search_id, _base_search(batch_size=1))
+
+        class FakeEngine:
+            name = "fake_engine"
+
+            def search(self, image_url, *, safe_search=True):
+                return SearchOutcome(
+                    urls=["https://example.com/a", "https://example.com/b"],
+                    match_metadata={},
+                    raw_payload={},
+                )
+
+        monkeypatch.setattr("search_service.get_search_engine", lambda: FakeEngine())
+        monkeypatch.setattr("search_service.SEARCH_MAX_CANDIDATE_URLS", 30)
+        monkeypatch.setattr("search_service.SCRAPE_DYNAMIC_ENABLED", False)
+
+        def fake_static(inputs, on_progress=None):
+            pubs = [
+                {
+                    "link": item["link"],
+                    "platform": "unknown",
+                    "created_utc": None,
+                    "score": None,
+                    "source": "fake_engine",
+                    "confidence": "pending",
+                }
+                for item in inputs
+            ]
+            if on_progress:
+                on_progress(len(inputs), len(inputs), pubs)
+            return pubs, []
+
+        monkeypatch.setattr("search_service.run_static_phase", fake_static)
+        monkeypatch.setattr(cache, "db_enabled", lambda: False)
+
+        process_search(search_id, "https://cdn.example/img.jpg")
+        data = _require(search_get(search_id))
+        assert data["status"] == "batch_done"
+        assert data["candidate_offset"] == 1
+        assert len(data["results"]) == 1
+
+        bg = FakeBackgroundTasks()
+        result = continue_search(bg, search_id)
+        assert result["status"] == "processing"
+        assert len(bg.tasks) == 1
+        fn, args, _ = bg.tasks[0]
+        assert fn is process_next_batch
+        fn(*args)
+
+        data = _require(search_get(search_id))
+        assert data["status"] == "done"
+        assert data["candidate_offset"] == 2
+        assert len(data["results"]) == 2
 
     def test_identificador_error_sets_error_status(self, monkeypatch):
         search_id = "proc-err"

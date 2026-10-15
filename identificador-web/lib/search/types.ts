@@ -12,11 +12,11 @@ export type SearchResult = {
   site_name?: string | null;
 };
 
-export type PollTarget = "static" | "deep";
-
-export type DeepSearchInfo = {
-  available: boolean;
-  pending_urls: number;
+export type BatchInfo = {
+  size: number;
+  processed_candidates: number;
+  total_candidates: number;
+  remaining: number;
 };
 
 export type ResultsPayload = {
@@ -25,7 +25,7 @@ export type ResultsPayload = {
   error?: string;
   detail?: string;
   progress?: { processed?: number; total?: number };
-  deep_search?: DeepSearchInfo;
+  batch?: BatchInfo;
 };
 
 export type SearchProgress = {

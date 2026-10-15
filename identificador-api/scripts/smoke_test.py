@@ -8,8 +8,8 @@ configure_logging()
 logger = get_logger(__name__)
 
 TERMINAL_STATUSES = {"done", "error"}
-# Includes deep_processing so we keep polling while auto-deep runs.
-POLL_STATUSES = {"static_done", "done", "error"}
+# batch_done is handled by auto-continue; keep polling through deep_processing.
+POLL_STATUSES = {"batch_done", "done", "error"}
 
 
 def poll_results(
@@ -58,7 +58,7 @@ def main():
 
     resp = requests.post(
         f"{args.base_url}/api/search",
-        json={"image_url": args.image_url},
+        json={"image_url": args.image_url, "batch_size": 30},
         timeout=30,
     )
 
@@ -84,15 +84,32 @@ def main():
     if not search_id:
         raise SystemExit("No se obtuvo search_id")
 
-    static_payload = poll_results(
+    payload = poll_results(
         args.base_url,
         search_id,
         until_statuses=POLL_STATUSES,
         label="busqueda",
     )
 
-    if args.deep and static_payload.get("status") == "static_done":
-        deep_info = static_payload.get("deep_search") or {}
+    # Continue candidate batches until terminal.
+    while payload.get("status") == "batch_done":
+        cont = requests.post(
+            f"{args.base_url}/api/search/{search_id}/continue",
+            timeout=30,
+        )
+        logger.info(
+            "POST /api/search/%s/continue: %s", search_id, cont.status_code
+        )
+        cont.raise_for_status()
+        payload = poll_results(
+            args.base_url,
+            search_id,
+            until_statuses=POLL_STATUSES,
+            label="lote siguiente",
+        )
+
+    if args.deep and payload.get("status") == "static_done":
+        deep_info = payload.get("deep_search") or {}
         if not deep_info.get("available"):
             logger.info("Deep search not available; skipping --deep")
             return

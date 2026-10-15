@@ -54,11 +54,12 @@ class TestSearchRoutes:
         mock_start.return_value = {"search_id": "test-id", "status": "processing"}
         response = client.post(
             "/api/search",
-            json={"image_url": "https://example.com/photo.jpg"},
+            json={"image_url": "https://example.com/photo.jpg", "batch_size": 5},
         )
         assert response.status_code == 200
         assert response.json()["search_id"] == "test-id"
         mock_start.assert_called_once()
+        assert mock_start.call_args.kwargs["batch_size"] == 5
 
     @patch("routes.search.search_get")
     def test_deep_search_wrong_status(self, mock_get):
@@ -67,4 +68,29 @@ class TestSearchRoutes:
             "deep_search_available": False,
         }
         response = client.post("/api/search/some-id/deep")
+        assert response.status_code == 400
+
+    @patch("routes.search.continue_search")
+    @patch("routes.search.search_get")
+    def test_continue_batch(self, mock_get, mock_continue):
+        mock_get.return_value = {
+            "status": "batch_done",
+            "candidate_inputs": [{"link": "https://a.com"}, {"link": "https://b.com"}],
+            "candidate_offset": 1,
+            "batch_size": 1,
+        }
+        mock_continue.return_value = {"search_id": "some-id", "status": "processing"}
+        response = client.post("/api/search/some-id/continue")
+        assert response.status_code == 200
+        assert response.json()["status"] == "processing"
+        mock_continue.assert_called_once()
+
+    @patch("routes.search.search_get")
+    def test_continue_wrong_status(self, mock_get):
+        mock_get.return_value = {
+            "status": "done",
+            "candidate_inputs": [],
+            "candidate_offset": 0,
+        }
+        response = client.post("/api/search/some-id/continue")
         assert response.status_code == 400

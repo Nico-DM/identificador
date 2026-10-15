@@ -21,6 +21,8 @@ DEFAULT_POLL_INTERVAL = 2.0
 DEFAULT_STATIC_MAX_WAIT_SECONDS = 600.0
 DEFAULT_DEEP_MAX_WAIT_SECONDS = 1200.0
 DEFAULT_TOP_N = 10
+# 0 = sin límite (continuar lotes hasta done/error).
+DEFAULT_MAX_BATCHES = 0
 
 
 def load_manifest() -> dict:
@@ -191,6 +193,7 @@ def finalize_row(
     deep_search_used: bool,
     deep_search_available: bool,
     timed_out: bool = False,
+    batch_limited: bool = False,
 ) -> dict:
     results = payload.get("results") or []
     evaluation = evaluate_case(item, payload, results, top_n=top_n)
@@ -200,6 +203,15 @@ def finalize_row(
             "reason": "timeout_parcial",
             "detail": (
                 "Tiempo de espera agotado; se evaluaron los resultados disponibles "
+                f"({len(results)} candidatos, status={payload.get('status')})."
+            ),
+        }
+    elif batch_limited and evaluation.get("reason") != "error":
+        evaluation = {
+            **evaluation,
+            "reason": "batch_limit_parcial",
+            "detail": (
+                "Límite de lotes alcanzado; se evaluaron los resultados disponibles "
                 f"({len(results)} candidatos, status={payload.get('status')})."
             ),
         }
@@ -222,6 +234,7 @@ def finalize_row(
             "deep_search_used": deep_search_used,
             "deep_search_available": deep_search_available,
             "timed_out": timed_out,
+            "batch_limited": batch_limited,
             "result_count": len(results),
             "top_results": [result_snapshot(result) for result in results[:top_n]],
             "obtained": result_snapshot(display),
@@ -240,6 +253,7 @@ def run_case(
     static_max_wait_seconds: float,
     deep_max_wait_seconds: float,
     poll_interval: float,
+    max_batches: int = DEFAULT_MAX_BATCHES,
 ) -> dict:
     started = time.monotonic()
     row: dict = {
@@ -254,7 +268,11 @@ def run_case(
     try:
         resp = requests.post(
             f"{base_url}/api/search",
-            json={"image_url": item["image_url"], "safe_search": True},
+            json={
+                "image_url": item["image_url"],
+                "safe_search": True,
+                "batch_size": 10,
+            },
             timeout=30,
         )
         resp.raise_for_status()
@@ -263,13 +281,12 @@ def run_case(
             raise RuntimeError("Respuesta sin search_id")
         row["search_id"] = search_id
 
-        # Wait through static and auto-deep (if any). static_done remains as
-        # a fallback when SCRAPE_DYNAMIC_ENABLED is off or deep was not needed.
+        # Each batch runs static + deep. max_batches=0 keeps going until done/error.
         combined_wait = static_max_wait_seconds + deep_max_wait_seconds
         payload, poll_seconds, saw_deep = poll_results(
             base_url,
             search_id,
-            until_statuses=TERMINAL | {"static_done"},
+            until_statuses=TERMINAL | {"batch_done"},
             max_wait_seconds=combined_wait,
             poll_interval=poll_interval,
             label="search",
@@ -277,9 +294,40 @@ def run_case(
         static_poll_seconds = poll_seconds
         deep_search_used = saw_deep
         deep_poll_seconds = 0.0
+        batches_completed = 1
+
+        while payload.get("status") == "batch_done":
+            if max_batches > 0 and batches_completed >= max_batches:
+                break
+            cont = requests.post(
+                f"{base_url}/api/search/{search_id}/continue",
+                timeout=30,
+            )
+            cont.raise_for_status()
+            payload, batch_seconds, batch_saw_deep = poll_results(
+                base_url,
+                search_id,
+                until_statuses=TERMINAL | {"batch_done"},
+                max_wait_seconds=combined_wait,
+                poll_interval=poll_interval,
+                label="batch",
+            )
+            static_poll_seconds += batch_seconds
+            deep_search_used = deep_search_used or batch_saw_deep
+            batches_completed += 1
+
+        batch_limited = (
+            max_batches > 0
+            and payload.get("status") == "batch_done"
+            and batches_completed >= max_batches
+        )
 
         deep_info = payload.get("deep_search") or {}
-        if payload.get("status") == "static_done" and deep_info.get("available"):
+        if (
+            not batch_limited
+            and payload.get("status") == "static_done"
+            and deep_info.get("available")
+        ):
             deep_started = time.monotonic()
             try:
                 payload, deep_poll_seconds, _ = run_deep_search(
@@ -316,6 +364,7 @@ def run_case(
             deep_poll_seconds=deep_poll_seconds,
             deep_search_used=deep_search_used,
             deep_search_available=bool(deep_info.get("available")),
+            batch_limited=batch_limited,
         )
     except TimeoutError:
         search_id = row.get("search_id")
@@ -416,11 +465,21 @@ def main() -> int:
         default=DEFAULT_POLL_INTERVAL,
         help="Intervalo entre polls en segundos (default: 2)",
     )
+    parser.add_argument(
+        "--max-batches",
+        type=int,
+        default=DEFAULT_MAX_BATCHES,
+        help=(
+            "Máximo de lotes a analizar por imagen antes de frenar "
+            "(0 = sin límite, default)"
+        ),
+    )
     args = parser.parse_args()
     top_n = max(1, args.top_n)
     poll_interval = max(0.5, args.poll_interval)
     static_max_wait = max(poll_interval, args.static_max_wait)
     deep_max_wait = max(poll_interval, args.deep_max_wait)
+    max_batches = max(0, args.max_batches)
 
     manifest = load_manifest()
     items = manifest["images"]
@@ -442,6 +501,7 @@ def main() -> int:
                 static_max_wait_seconds=static_max_wait,
                 deep_max_wait_seconds=deep_max_wait,
                 poll_interval=poll_interval,
+                max_batches=max_batches,
             )
         )
 
@@ -452,7 +512,11 @@ def main() -> int:
         json.dump(report, fh, ensure_ascii=False, indent=2)
 
     print()
-    print(f"Timeouts: static={static_max_wait:.0f}s, deep={deep_max_wait:.0f}s, poll={poll_interval}s")
+    batches_label = "sin límite" if max_batches == 0 else str(max_batches)
+    print(
+        f"Timeouts: static={static_max_wait:.0f}s, deep={deep_max_wait:.0f}s, "
+        f"poll={poll_interval}s, max_batches={batches_label}"
+    )
     print(f"Precisión (top {top_n} + deep): {report['precision'] * 100:.1f}% ({report['correct']}/{report['total_images']})")
     print(f"Búsqueda profunda usada: {report['deep_search_used_count']}/{report['total_images']}")
     print(f"Tiempo promedio: {report['avg_response_time_seconds']} s")

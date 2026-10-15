@@ -4,11 +4,11 @@
 
 Dataset de regresión ejecutado con el motor `google_reverse_image` sobre URLs públicas definidas en el manifest. Cada caso corre fase estática y, si está disponible, búsqueda profunda.
 
-- **Fecha de ejecución:** 2026-10-15T01:36:25.579443+00:00
+- **Fecha de ejecución:** 2026-10-15T04:21:08.402096+00:00
 - **Backend evaluado:** `http://localhost:8000`
 - **Total de imágenes:** 10
 - **Ventana de evaluación:** top 10
-- **Búsqueda profunda ejecutada:** 10/10
+- **Búsqueda profunda ejecutada:** 9/10
 - **Categorías cubiertas:** Fotografía contemporánea, Arte digital, Webcomic, Meme nativo (publicación original)
 
 Archivos relacionados:
@@ -44,9 +44,9 @@ Archivos relacionados:
 - **Categoría:** Fotografía contemporánea
 - **Esperado:** Artista: Richard Scott; Fecha: 2015-12-27; Dominios esperados: flickr.com/photos/rjscott, flickr.com
 - **Coincidencia:** flickr.com (posición 1)
-- **Fecha detectada:** 2013-05-30T00:00:00
+- **Fecha detectada:** 2026-10-15T00:00:00
 - **URL fuente:** [flickr.com](https://www.flickr.com/photos/rjscott/with/19847575443/)
-- **Notas:** Coincidencia en posición 1; búsqueda profunda: sí.
+- **Notas:** Límite de lotes alcanzado; se evaluaron los resultados disponibles (10 candidatos, status=batch_done).
 
 ### `photo-03` — Incorrecto
 
@@ -54,9 +54,9 @@ Archivos relacionados:
 - **Categoría:** Fotografía contemporánea
 - **Esperado:** Artista: Alan Levine; Fecha: 2014-06-28; Dominios esperados: flickr.com/photos/cogdog, flickr.com
 - **Coincidencia:** — (posición —)
-- **Fecha detectada:** 2000-01-01T00:00:00
+- **Fecha detectada:** 2017-01-03T00:00:00
 - **URL fuente:** —
-- **Notas:** Sin coincidencia en el top 10 (30 candidatos).
+- **Notas:** Límite de lotes alcanzado; se evaluaron los resultados disponibles (10 candidatos, status=batch_done).
 
 ### `digital-01` — Correcto
 
@@ -64,8 +64,8 @@ Archivos relacionados:
 - **Categoría:** Arte digital
 - **Esperado:** Artista: David Revoy; Fecha: 2012-10-08; Dominios esperados: deviantart.com/deevad, davidrevoy.com, deviantart.com
 - **Coincidencia:** David Revoy (posición 7)
-- **Fecha detectada:** 2024-12-20T00:00:00
-- **URL fuente:** [David Revoy](https://www.davidrevoy.com/article1056/when-world-collides-the-new-and-improved-peppercarrot-website)
+- **Fecha detectada:** 2015-05-01T00:00:00
+- **URL fuente:** [David Revoy](https://www.davidrevoy.com/static9/shop)
 - **Notas:** Coincidencia en posición 7; búsqueda profunda: sí.
 
 ### `digital-02` — Incorrecto
@@ -74,7 +74,7 @@ Archivos relacionados:
 - **Categoría:** Arte digital
 - **Esperado:** Artista: Bleed; Fecha: 2014-03-23; Dominios esperados: opengameart.org/content/tmim-heroine, opengameart.org
 - **Coincidencia:** — (posición —)
-- **Fecha detectada:** 2022-02-22T12:03:41.948000
+- **Fecha detectada:** 2023-11-07T00:00:00
 - **URL fuente:** —
 - **Notas:** Sin coincidencia en el top 10 (9 candidatos).
 
@@ -83,10 +83,10 @@ Archivos relacionados:
 - **Imagen:** [Aqua Dream (David Revoy)](https://commons.wikimedia.org/wiki/Special:FilePath/Aqua_dream_by_deevad.png)
 - **Categoría:** Arte digital
 - **Esperado:** Artista: David Revoy; Fecha: 2013-07-23; Dominios esperados: deviantart.com/deevad, davidrevoy.com, deviantart.com
-- **Coincidencia:** davidrevoy.com (posición 4)
+- **Coincidencia:** davidrevoy.com (posición 3)
 - **Fecha detectada:** 2013-07-23T00:00:00
 - **URL fuente:** [davidrevoy.com](https://www.davidrevoy.com/article177/video-timelapse-aqua-dream)
-- **Notas:** Coincidencia en posición 4; búsqueda profunda: sí.
+- **Notas:** Límite de lotes alcanzado; se evaluaron los resultados disponibles (10 candidatos, status=batch_done).
 
 ### `digital-04` — Correcto
 
@@ -114,7 +114,7 @@ Archivos relacionados:
 - **Categoría:** Meme nativo (publicación original)
 - **Esperado:** Artista: Atsuko Sato; Fecha: 2010-02-13; Dominios esperados: kabosu112.exblog.jp, kabochan.blog.jp, exblog.jp
 - **Coincidencia:** — (posición —)
-- **Fecha detectada:** 2019-02-15T15:42:21.521000
+- **Fecha detectada:** 2016-04-14T19:21:30.102000
 - **URL fuente:** —
 - **Notas:** Sin coincidencia en el top 10 (8 candidatos).
 
@@ -136,12 +136,12 @@ Archivos relacionados:
 | Precisión (Correcto / total) | **70.0%** (7/10) |
 | Casos correctos | 7 |
 | Casos incorrectos | 3 |
-| Búsqueda profunda ejecutada | 10/10 |
+| Búsqueda profunda ejecutada | 9/10 |
 | Imágenes con candidatos | 10 |
 | Imágenes sin candidatos | 0 |
-| Tiempo promedio de respuesta | 77.99 s |
-| Tiempo mínimo / máximo | 10.02 s / 248.48 s |
-| Posiciones de acierto | 1, 1, 7, 4, 1, 1, 1 |
+| Tiempo promedio de respuesta | 31.27 s |
+| Tiempo mínimo / máximo | 2.01 s / 78.13 s |
+| Posiciones de acierto | 1, 1, 7, 3, 1, 1, 1 |
 | Tasa de error (fallas de API/excepción) | 0.0% |
 
 ### Desglose por veredicto
@@ -155,8 +155,9 @@ Archivos relacionados:
 
 | Motivo | Cantidad |
 |--------|----------|
-| Fuera del top N | 3 |
-| Coincide en el top N | 7 |
+| Límite de lotes con resultados parciales | 3 |
+| Fuera del top N | 2 |
+| Coincide en el top N | 5 |
 
 ### Desglose por categoría
 

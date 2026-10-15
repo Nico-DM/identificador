@@ -2,28 +2,24 @@
 
 import { ResultCard } from "@/components/search/ResultCard";
 import { IMAGE_ACCEPT } from "@/lib/imageFile";
-import { POLL_TIMEOUT_OPTIONS } from "@/lib/pollConfig";
-import type {
-  DeepSearchInfo,
-  InputMode,
-  SearchResult,
-} from "@/lib/search/types";
+import { BATCH_SIZE_OPTIONS } from "@/lib/pollConfig";
+import type { BatchInfo, InputMode, SearchResult } from "@/lib/search/types";
 
 type SearchFormProps = {
   inputMode: InputMode;
   imageUrl: string;
   selectedFile: File | null;
   safeSearchEnabled: boolean;
-  pollTimeoutSeconds: number;
+  batchSize: number;
   loading: boolean;
-  deepLoading: boolean;
+  continuingBatch: boolean;
   retryingPoll: boolean;
   canSubmit: boolean;
   onInputModeChange: (mode: InputMode) => void;
   onImageUrlChange: (value: string) => void;
   onFileChange: (file: File | null) => void;
   onSafeSearchChange: (enabled: boolean) => void;
-  onPollTimeoutChange: (seconds: number) => void;
+  onBatchSizeChange: (size: number) => void;
   onSubmit: (event: React.SubmitEvent) => void;
 };
 
@@ -32,19 +28,19 @@ export function SearchForm({
   imageUrl,
   selectedFile,
   safeSearchEnabled,
-  pollTimeoutSeconds,
+  batchSize,
   loading,
-  deepLoading,
+  continuingBatch,
   retryingPoll,
   canSubmit,
   onInputModeChange,
   onImageUrlChange,
   onFileChange,
   onSafeSearchChange,
-  onPollTimeoutChange,
+  onBatchSizeChange,
   onSubmit,
 }: SearchFormProps) {
-  const busy = loading || deepLoading || retryingPoll;
+  const busy = loading || continuingBatch || retryingPoll;
 
   return (
     <form
@@ -133,17 +129,17 @@ export function SearchForm({
           SafeSearch (filtrar contenido explícito)
         </label>
         <label className="flex items-center gap-2 select-none">
-          <span>Tiempo máximo de espera</span>
+          <span>Resultados a analizar</span>
           <select
-            value={pollTimeoutSeconds}
+            value={batchSize}
             onChange={(e) =>
-              onPollTimeoutChange(Number.parseInt(e.target.value, 10))
+              onBatchSizeChange(Number.parseInt(e.target.value, 10))
             }
             disabled={busy}
             className="rounded border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 px-2 py-1 text-sm"
           >
-            {POLL_TIMEOUT_OPTIONS.map((option) => (
-              <option key={option.seconds} value={option.seconds}>
+            {BATCH_SIZE_OPTIONS.map((option) => (
+              <option key={option.size} value={option.size}>
                 {option.label}
               </option>
             ))}
@@ -168,23 +164,22 @@ export function IntroSection() {
           dispositivo (máx. 5 MB).
         </li>
         <li>
-          Presioná{" "}
+          Elegí cuántos resultados analizar por lote y presioná{" "}
           <span className="font-medium text-neutral-800 dark:text-neutral-200">
             Buscar
-          </span>{" "}
-          y esperá a que termine el análisis inicial.
+          </span>
+          . Los resultados aparecen a medida que se obtienen.
         </li>
         <li>
           Revisá los resultados con fecha; cada tarjeta enlaza a la fuente
           original.
         </li>
         <li>
-          Si hace falta, podés usar{" "}
+          Si quedan candidatos, podés analizar el siguiente lote con{" "}
           <span className="font-medium text-neutral-800 dark:text-neutral-200">
-            Búsqueda profunda
-          </span>{" "}
-          para intentar completar fechas faltantes o mejorar las poco fiables
-          (tarda más).
+            Analizar siguientes
+          </span>
+          .
         </li>
       </ol>
     </section>
@@ -226,33 +221,33 @@ export function QueryImagePreview({
   );
 }
 
-export function DeepSearchPrompt({
-  deepSearch,
-  onDeepSearch,
+export function ContinueBatchPrompt({
+  batch,
+  onContinue,
+  loading,
 }: {
-  deepSearch: DeepSearchInfo;
-  onDeepSearch: () => void;
+  batch: BatchInfo;
+  onContinue: () => void;
+  loading: boolean;
 }) {
+  const nextCount = Math.min(batch.size, batch.remaining);
   return (
     <section className="mt-6 w-full max-w-xl flex flex-col items-center gap-3">
       <p className="text-sm text-neutral-600 dark:text-neutral-400">
-        Análisis inicial completado
-        {deepSearch.pending_urls > 0
-          ? ` · ${deepSearch.pending_urls} publicacion${deepSearch.pending_urls !== 1 ? "es" : ""} pueden mejorarse`
-          : ""}
+        Lote completado · {batch.processed_candidates} de{" "}
+        {batch.total_candidates} candidatos analizados · quedan {batch.remaining}
         .
       </p>
       <button
         type="button"
-        onClick={onDeepSearch}
-        className="px-5 py-2.5 rounded border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors"
+        onClick={onContinue}
+        disabled={loading}
+        className="px-5 py-2.5 rounded border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors disabled:opacity-50"
       >
-        Búsqueda profunda
+        {loading
+          ? "Analizando..."
+          : `Analizar siguientes ${nextCount}`}
       </button>
-      <p className="text-xs text-neutral-500 dark:text-neutral-400">
-        Puede encontrar fechas faltantes o mejorar fechas poco fiables. Tarda
-        más que el análisis inicial.
-      </p>
     </section>
   );
 }
@@ -281,8 +276,11 @@ export function SearchResultsSection({
       <h2 className="text-lg font-semibold mb-4">
         {visibleResults.length} resultado
         {visibleResults.length !== 1 ? "s" : ""}
+        {status === "processing" || status === "deep_processing"
+          ? " (en curso)"
+          : ""}
+        {status === "batch_done" ? " (lote completado)" : ""}
         {status === "partial" ? " (parciales)" : ""}
-        {status === "static_done" ? " (análisis inicial)" : ""}
       </h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {visibleResults.map((result) => (

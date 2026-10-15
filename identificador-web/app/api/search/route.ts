@@ -2,6 +2,17 @@ import { proxyToBackend } from "@/lib/backendFetch";
 import { clientImageFileRejectionMessage } from "@/lib/imageFile";
 import { clientImageUrlRejectionMessage } from "@/lib/imageUrl";
 
+function parseBatchSize(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return Math.floor(value);
+  }
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return undefined;
+}
+
 export async function POST(req: Request) {
   const contentType = req.headers.get("content-type") ?? "";
 
@@ -28,6 +39,10 @@ export async function POST(req: Request) {
       "safe_search",
       safeSearch === "false" || safeSearch === "0" ? "false" : "true",
     );
+    const batchSize = parseBatchSize(formData.get("batch_size"));
+    if (batchSize !== undefined) {
+      outbound.append("batch_size", String(batchSize));
+    }
 
     return proxyToBackend(req, "/api/search", {
       method: "POST",
@@ -39,6 +54,7 @@ export async function POST(req: Request) {
   const imageUrl = body?.image_url;
   const safeSearch =
     typeof body?.safe_search === "boolean" ? body.safe_search : true;
+  const batchSize = parseBatchSize(body?.batch_size);
 
   if (typeof imageUrl !== "string" || !imageUrl.trim()) {
     return Response.json(
@@ -52,12 +68,21 @@ export async function POST(req: Request) {
     return Response.json({ detail: rejectMsg }, { status: 400 });
   }
 
+  const payload: {
+    image_url: string;
+    safe_search: boolean;
+    batch_size?: number;
+  } = {
+    image_url: imageUrl.trim(),
+    safe_search: safeSearch,
+  };
+  if (batchSize !== undefined) {
+    payload.batch_size = batchSize;
+  }
+
   return proxyToBackend(req, "/api/search", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      image_url: imageUrl.trim(),
-      safe_search: safeSearch,
-    }),
+    body: JSON.stringify(payload),
   });
 }

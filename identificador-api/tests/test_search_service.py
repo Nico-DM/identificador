@@ -89,23 +89,29 @@ class TestFormatResults:
 
 
 class TestBuildResultsResponse:
-    def test_includes_progress_and_deep_search(self):
+    def test_includes_progress_and_batch(self):
         data = {
-            "status": "static_done",
-            "phase": "static",
+            "status": "batch_done",
+            "phase": "batch",
             "results": [],
             "error": None,
             "processed_urls": 3,
             "total_urls": 5,
-            "deep_search_available": True,
-            "pending_dynamic": [{"url": "https://a.com"}, {"url": "https://b.com"}],
+            "deep_search_available": False,
+            "pending_dynamic": [],
+            "candidate_inputs": [{"link": f"https://a.com/{i}"} for i in range(5)],
+            "candidate_offset": 2,
+            "batch_size": 2,
         }
         response = build_results_response("abc-123", data)
         assert response["search_id"] == "abc-123"
-        assert response["status"] == "static_done"
+        assert response["status"] == "batch_done"
         assert response["progress"]["processed"] == 3
-        assert response["deep_search"]["available"] is True
-        assert response["deep_search"]["pending_urls"] == 2
+        assert response["batch"]["size"] == 2
+        assert response["batch"]["processed_candidates"] == 2
+        assert response["batch"]["total_candidates"] == 5
+        assert response["batch"]["remaining"] == 3
+        assert response["deep_search"]["available"] is False
 
     def test_deep_search_hidden_when_unavailable(self):
         data = {

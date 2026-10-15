@@ -1,18 +1,13 @@
 "use client";
 
-import { formatPollDuration } from "@/lib/pollConfig";
 import type { ProgressPhase, SearchProgress } from "@/lib/search/types";
 
 export function SearchProgressBar({
   progress,
   phase,
-  secondsRemaining,
-  onStop,
 }: {
   progress: SearchProgress;
   phase: ProgressPhase;
-  secondsRemaining: number | null;
-  onStop?: () => void;
 }) {
   const { processed, total } = progress;
   const hasTotal = total > 0;
@@ -35,16 +30,9 @@ export function SearchProgressBar({
         <p className="text-sm text-neutral-600 dark:text-neutral-400">
           {label}
         </p>
-        <div className="flex items-center gap-3 shrink-0">
-          {secondsRemaining !== null && (
-            <span className="text-sm tabular-nums text-neutral-500 dark:text-neutral-400">
-              {formatPollDuration(secondsRemaining)} restantes
-            </span>
-          )}
-          {hasTotal && (
-            <span className="text-sm font-medium tabular-nums">{percent}%</span>
-          )}
-        </div>
+        {hasTotal && (
+          <span className="text-sm font-medium tabular-nums">{percent}%</span>
+        )}
       </div>
       <div
         className="h-2 w-full overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800"
@@ -68,15 +56,6 @@ export function SearchProgressBar({
           />
         )}
       </div>
-      {onStop && (
-        <button
-          type="button"
-          onClick={onStop}
-          className="mt-3 text-sm text-neutral-600 dark:text-neutral-400 underline-offset-2 hover:underline"
-        >
-          Mostrar resultados parciales
-        </button>
-      )}
     </div>
   );
 }
