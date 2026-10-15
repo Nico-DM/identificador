@@ -214,6 +214,26 @@ class TestDomainAuthority:
         _sort_publications(publications)
         assert publications[0]["link"].startswith("https://www.deviantart.com")
 
+    def test_sort_prefers_older_date_over_engine_rank(self):
+        publications = [
+            {
+                "link": "https://www.youtube.com/watch?v=recent",
+                "confidence": "confirmed",
+                "created_utc": utc_dt(2026, 10, 11),
+                "score": 0.95,
+                "engine_rank": 1,
+            },
+            {
+                "link": "https://example.com/older-post",
+                "confidence": "confirmed",
+                "created_utc": utc_dt(2017, 1, 3),
+                "score": 0.75,
+                "engine_rank": 8,
+            },
+        ]
+        _sort_publications(publications)
+        assert publications[0]["link"] == "https://example.com/older-post"
+
 
 class TestMergePublications:
     def test_merges_by_url(self):

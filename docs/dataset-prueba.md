@@ -4,7 +4,7 @@
 
 Dataset de regresión ejecutado con el motor `google_reverse_image` sobre URLs públicas definidas en el manifest. Cada caso corre fase estática y, si está disponible, búsqueda profunda.
 
-- **Fecha de ejecución:** 2026-10-14T04:27:14.529506+00:00
+- **Fecha de ejecución:** 2026-10-15T01:36:25.579443+00:00
 - **Backend evaluado:** `http://localhost:8000`
 - **Total de imágenes:** 10
 - **Ventana de evaluación:** top 10
@@ -28,15 +28,15 @@ Archivos relacionados:
 
 ## 3. Resultados por imagen
 
-### `photo-01` — Incorrecto
+### `photo-01` — Correcto
 
 - **Imagen:** [Success Kid / Why I oughta... (Laney Griner)](https://upload.wikimedia.org/wikipedia/en/f/ff/SuccessKid.jpg)
 - **Categoría:** Fotografía contemporánea
 - **Esperado:** Artista: Laney Griner; Fecha: 2007-08-31; Dominios esperados: flickr.com/photos/sammyjammy, flickr.com
-- **Coincidencia:** — (posición —)
-- **Fecha detectada:** 2026-10-11T00:00:00
-- **URL fuente:** —
-- **Notas:** Sin coincidencia en el top 10 (30 candidatos).
+- **Coincidencia:** Flickr (posición 1)
+- **Fecha detectada:** 2007-08-31T00:00:00
+- **URL fuente:** [Flickr](https://www.flickr.com/photos/sammyjammy/1285612321)
+- **Notas:** Coincidencia en posición 1; búsqueda profunda: sí.
 
 ### `photo-02` — Correcto
 
@@ -44,7 +44,7 @@ Archivos relacionados:
 - **Categoría:** Fotografía contemporánea
 - **Esperado:** Artista: Richard Scott; Fecha: 2015-12-27; Dominios esperados: flickr.com/photos/rjscott, flickr.com
 - **Coincidencia:** flickr.com (posición 1)
-- **Fecha detectada:** 2026-10-14T00:00:00
+- **Fecha detectada:** 2013-05-30T00:00:00
 - **URL fuente:** [flickr.com](https://www.flickr.com/photos/rjscott/with/19847575443/)
 - **Notas:** Coincidencia en posición 1; búsqueda profunda: sí.
 
@@ -54,7 +54,7 @@ Archivos relacionados:
 - **Categoría:** Fotografía contemporánea
 - **Esperado:** Artista: Alan Levine; Fecha: 2014-06-28; Dominios esperados: flickr.com/photos/cogdog, flickr.com
 - **Coincidencia:** — (posición —)
-- **Fecha detectada:** 2025-04-15T17:03:06
+- **Fecha detectada:** 2000-01-01T00:00:00
 - **URL fuente:** —
 - **Notas:** Sin coincidencia en el top 10 (30 candidatos).
 
@@ -74,7 +74,7 @@ Archivos relacionados:
 - **Categoría:** Arte digital
 - **Esperado:** Artista: Bleed; Fecha: 2014-03-23; Dominios esperados: opengameart.org/content/tmim-heroine, opengameart.org
 - **Coincidencia:** — (posición —)
-- **Fecha detectada:** 2026-08-24T00:00:00
+- **Fecha detectada:** 2022-02-22T12:03:41.948000
 - **URL fuente:** —
 - **Notas:** Sin coincidencia en el top 10 (9 candidatos).
 
@@ -83,10 +83,10 @@ Archivos relacionados:
 - **Imagen:** [Aqua Dream (David Revoy)](https://commons.wikimedia.org/wiki/Special:FilePath/Aqua_dream_by_deevad.png)
 - **Categoría:** Arte digital
 - **Esperado:** Artista: David Revoy; Fecha: 2013-07-23; Dominios esperados: deviantart.com/deevad, davidrevoy.com, deviantart.com
-- **Coincidencia:** davidrevoy.com (posición 3)
+- **Coincidencia:** davidrevoy.com (posición 4)
 - **Fecha detectada:** 2013-07-23T00:00:00
 - **URL fuente:** [davidrevoy.com](https://www.davidrevoy.com/article177/video-timelapse-aqua-dream)
-- **Notas:** Coincidencia en posición 3; búsqueda profunda: sí.
+- **Notas:** Coincidencia en posición 4; búsqueda profunda: sí.
 
 ### `digital-04` — Correcto
 
@@ -114,7 +114,7 @@ Archivos relacionados:
 - **Categoría:** Meme nativo (publicación original)
 - **Esperado:** Artista: Atsuko Sato; Fecha: 2010-02-13; Dominios esperados: kabosu112.exblog.jp, kabochan.blog.jp, exblog.jp
 - **Coincidencia:** — (posición —)
-- **Fecha detectada:** 2018-08-30T13:38:31.671000
+- **Fecha detectada:** 2019-02-15T15:42:21.521000
 - **URL fuente:** —
 - **Notas:** Sin coincidencia en el top 10 (8 candidatos).
 
@@ -133,36 +133,36 @@ Archivos relacionados:
 
 | Métrica | Valor |
 |---------|-------|
-| Precisión (Correcto / total) | **60.0%** (6/10) |
-| Casos correctos | 6 |
-| Casos incorrectos | 4 |
+| Precisión (Correcto / total) | **70.0%** (7/10) |
+| Casos correctos | 7 |
+| Casos incorrectos | 3 |
 | Búsqueda profunda ejecutada | 10/10 |
 | Imágenes con candidatos | 10 |
 | Imágenes sin candidatos | 0 |
-| Tiempo promedio de respuesta | 67.76 s |
-| Tiempo mínimo / máximo | 8.02 s / 238.47 s |
-| Posiciones de acierto | 1, 7, 3, 1, 1, 1 |
+| Tiempo promedio de respuesta | 77.99 s |
+| Tiempo mínimo / máximo | 10.02 s / 248.48 s |
+| Posiciones de acierto | 1, 1, 7, 4, 1, 1, 1 |
 | Tasa de error (fallas de API/excepción) | 0.0% |
 
 ### Desglose por veredicto
 
 | Veredicto | Cantidad |
 |-----------|----------|
-| Correcto | 6 |
-| Incorrecto | 4 |
+| Correcto | 7 |
+| Incorrecto | 3 |
 
 ### Motivos de evaluación
 
 | Motivo | Cantidad |
 |--------|----------|
-| Fuera del top N | 4 |
-| Coincide en el top N | 6 |
+| Fuera del top N | 3 |
+| Coincide en el top N | 7 |
 
 ### Desglose por categoría
 
 | Categoría | Total | Correctos |
 |-----------|-------|-----------|
 | Arte digital | 4 | 3 |
-| Fotografía contemporánea | 3 | 1 |
+| Fotografía contemporánea | 3 | 2 |
 | Meme nativo (publicación original) | 2 | 1 |
 | Webcomic | 1 | 1 |

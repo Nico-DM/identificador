@@ -276,9 +276,9 @@ def _publication_rank_key(item: dict) -> tuple:
     return (
         -authority,
         _confidence_sort_order(item.get("confidence")),
-        engine_rank,
         date_key[0],
         date_key[1],
+        engine_rank,
         -scrape_score,
     )
 

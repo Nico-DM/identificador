@@ -97,12 +97,14 @@ class TestRF004Oldest:
                 "created_utc": utc_dt(2020, 1, 1),
                 "score": 0.5,
                 "confidence": "confirmed",
+                "engine_rank": 1,
             },
             {
                 "link": "https://a.example/early",
                 "created_utc": utc_dt(2010, 1, 1),
                 "score": 0.5,
                 "confidence": "confirmed",
+                "engine_rank": 9,
             },
         ]
         _sort_publications(pubs)
