@@ -48,13 +48,10 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
     title = rf_marker.kwargs.get("title") or item.name
     if report.skipped:
         status = "SKIP"
-        detail = str(report.longrepr)[:200] if report.longrepr else ""
     elif report.failed:
         status = "FAIL"
-        detail = str(report.longrepr)[:200] if report.longrepr else ""
     elif report.passed and report.when == "call":
         status = "PASS"
-        detail = ""
     else:
         return
 
@@ -64,7 +61,6 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
             "title": str(title),
             "status": status,
             "node": item.nodeid,
-            "detail": detail.replace("\n", " "),
         }
     )
 
@@ -72,31 +68,33 @@ def pytest_runtest_makereport(item: pytest.Item, call: pytest.CallInfo[Any]):
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     if not _ACCEPTANCE_ROWS:
         return
-    # Keep last result per requirement id (tests may share an RF).
+
+    # Prefer FAIL over SKIP over PASS when summarizing a criterion with several tests.
+    rank = {"FAIL": 0, "SKIP": 1, "PASS": 2}
     by_id: dict[str, dict[str, str]] = {}
     for row in _ACCEPTANCE_ROWS:
         prev = by_id.get(row["id"])
-        # Prefer FAIL over SKIP over PASS when aggregating.
-        rank = {"FAIL": 0, "SKIP": 1, "PASS": 2}
         if prev is None or rank[row["status"]] < rank[prev["status"]]:
             by_id[row["id"]] = row
+
+    rows_sorted = sorted(
+        _ACCEPTANCE_ROWS, key=lambda r: (r["id"], r["node"], r["status"])
+    )
 
     lines = [
         "# Informe de pruebas de aceptación",
         "",
         f"Generado automáticamente: {datetime.now(timezone.utc).isoformat()}",
         "",
-        "Cada fila corresponde a un criterio RF/RNF ejercitado por `pytest -m acceptance` (ver `identificador-api/tests/acceptance/`).",
+        "Cada fila es un test de `pytest -m acceptance`; un mismo criterio RF/RNF puede tener varias filas.",
         "",
-        "| ID | Criterio | Resultado | Test | Detalle |",
-        "|----|----------|-----------|------|---------|",
+        "| ID | Criterio | Resultado | Test |",
+        "|----|----------|-----------|------|",
     ]
-    for req_id in sorted(by_id.keys()):
-        row = by_id[req_id]
-        detail = row["detail"].replace("|", "\\|")
+    for row in rows_sorted:
         lines.append(
             f"| {row['id']} | {row['title']} | **{row['status']}** | "
-            f"`{row['node']}` | {detail} |"
+            f"`{row['node']}` |"
         )
 
     passed = sum(1 for r in by_id.values() if r["status"] == "PASS")
@@ -105,7 +103,8 @@ def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     lines.extend(
         [
             "",
-            f"**Resumen:** {passed} PASS · {failed} FAIL · {skipped} SKIP (exitstatus={exitstatus})",
+            f"**Resumen (por criterio):** {passed} PASS · {failed} FAIL · {skipped} SKIP "
+            f"· {len(_ACCEPTANCE_ROWS)} tests (exitstatus={exitstatus})",
             "",
             "Cómo regenerar:",
             "",

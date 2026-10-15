@@ -15,7 +15,7 @@ API_ROOT = Path(__file__).resolve().parents[2]
 REPO_ROOT = API_ROOT.parent
 
 
-@pytest.mark.rf("RNF-001", title="Performance medible (parámetros + informe dataset)")
+@pytest.mark.rf("RNF-001", title="Performance ≤ 30 s (parámetros + informe dataset)")
 class TestRNF001Performance:
     def test_tunable_limits_exist(self):
         import search_service
@@ -31,6 +31,18 @@ class TestRNF001Performance:
             pytest.skip("Falta docs/dataset-prueba.md (correr dataset)")
         text = report.read_text(encoding="utf-8")
         assert "Tiempo promedio" in text or "tiempo" in text.lower()
+
+    def test_average_response_under_30s(self):
+        """RNF-001: tiempo de respuesta promedio ≤ 30 s por consulta (dataset)."""
+        results_path = API_ROOT / "dataset" / "results.json"
+        if not results_path.is_file():
+            pytest.skip("Falta dataset/results.json — ejecutar scripts/run_dataset.py")
+        data = json.loads(results_path.read_text(encoding="utf-8"))
+        avg = data.get("avg_response_time_seconds")
+        assert avg is not None, "results.json sin avg_response_time_seconds"
+        assert float(avg) <= 30.0, (
+            f"Tiempo promedio {avg} s supera el objetivo RNF-001 de ≤ 30 s"
+        )
 
 
 @pytest.mark.rf("RNF-002", title="Usabilidad web (UI disponible)")
