@@ -4,13 +4,13 @@ Cronograma de la PPS _Identificador de Artistas_. Formato Mermaid (se renderiza 
 
 **Hitos de referencia**
 
-| Hito                       | Fecha                                       |
-| -------------------------- | ------------------------------------------- |
-| Inicio del proyecto        | Junio 2025                                  |
-| Primera entrega (CLI)      | Agosto 2025                                 |
-| Segunda entrega (web)      | 3 de junio de 2026                          |
-| Devolución segunda entrega | 18 de agosto de 2026                        |
-| Instancia extraordinaria   | Desde agosto 2026 (sin fecha límite formal) |
+| Hito                           | Fecha                     |
+| ------------------------------ | ------------------------- |
+| Inicio del proyecto            | Junio 2025                |
+| Primera entrega (CLI)          | Agosto 2025               |
+| Segunda entrega (web)          | 3 de junio de 2026        |
+| Devolución segunda entrega     | 18 de agosto de 2026      |
+| Entrega final (extraordinaria) | **15 de octubre de 2026** |
 
 ---
 
@@ -42,6 +42,12 @@ gantt
     Fallbacks Bing/Yandex           :c4, 2026-09-03, 2026-09-08
     Docs oficiales (docs/)          :c5, 2026-09-16, 2026-09-20
     Mejora métricas dataset         :c6, 2026-09-16, 2026-09-30
+    Suite tests + cobertura         :c7, 2026-09-21, 2026-09-21
+    Extracción fechas (htmldate)    :c8, 2026-10-09, 2026-10-09
+    CI GitHub Actions               :c9, 2026-10-10, 2026-10-10
+    Dataset + scoring + lotes       :c10, 2026-10-14, 2026-10-15
+    Aceptación RF/RNF (17 PASS)     :c11, 2026-10-15, 2026-10-15
+    Entrega final                   :milestone, m4, 2026-10-15, 0d
 ```
 
 ---
@@ -64,16 +70,18 @@ Producto: CLI Python + SerpAPI Google Lens.
 
 Evolución a arquitectura web: Next.js (Vercel), FastAPI (Render), Supabase, flujo asíncrono con polling, scoring y scraping estático. Entrega el **3 de junio de 2026**.
 
-### Instancia extraordinaria (desde 18/8/2026)
+### Instancia extraordinaria (18/8/2026 – 15/10/2026)
 
 Respuesta a la devolución: motor `google_reverse_image`, patrón Strategy, fallbacks Bing/Yandex, Selenium operativo en Docker, caché en DB, tests, dataset documentado y documentación formal en `docs/`.
+
+Cierre (sep–oct 2026): suite de tests unitarios/integración/aceptación con cobertura, extracción de fechas con `htmldate`, CI en GitHub Actions, dataset renovado con lotes parciales y scoring ajustado, informe de aceptación RF/RNF en verde (17 criterios PASS). **Entrega final: 15 de octubre de 2026.**
 
 ---
 
 ## Tabla compacta (accesible sin render Mermaid)
 
-| Fase                           | Periodo             | Entregable principal       |
-| ------------------------------ | ------------------- | -------------------------- |
-| CLI + Lens                     | jun–ago 2025        | Primera entrega            |
-| Web full-stack                 | sep 2025 – jun 2026 | Segunda entrega (3/6/2026) |
-| Contingencia motores + calidad | ago–sep 2026        | Instancia extraordinaria   |
+| Fase                           | Periodo             | Entregable principal              |
+| ------------------------------ | ------------------- | --------------------------------- |
+| CLI + Lens                     | jun–ago 2025        | Primera entrega                   |
+| Web full-stack                 | sep 2025 – jun 2026 | Segunda entrega (3/6/2026)        |
+| Contingencia motores + calidad | ago–oct 2026        | Entrega final (15/10/2026)        |
