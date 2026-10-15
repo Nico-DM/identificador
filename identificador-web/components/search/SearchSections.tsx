@@ -235,8 +235,8 @@ export function ContinueBatchPrompt({
     <section className="mt-6 w-full max-w-xl flex flex-col items-center gap-3">
       <p className="text-sm text-neutral-600 dark:text-neutral-400">
         Lote completado · {batch.processed_candidates} de{" "}
-        {batch.total_candidates} candidatos analizados · quedan {batch.remaining}
-        .
+        {batch.total_candidates} candidatos analizados · quedan{"·"}
+        {batch.remaining}.
       </p>
       <button
         type="button"
@@ -244,9 +244,7 @@ export function ContinueBatchPrompt({
         disabled={loading}
         className="px-5 py-2.5 rounded border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-colors disabled:opacity-50"
       >
-        {loading
-          ? "Analizando..."
-          : `Analizar siguientes ${nextCount}`}
+        {loading ? "Analizando..." : `Analizar siguientes ${nextCount}`}
       </button>
     </section>
   );

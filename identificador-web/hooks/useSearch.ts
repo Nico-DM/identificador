@@ -6,8 +6,8 @@ import { clientImageUrlRejectionMessage } from "@/lib/imageUrl";
 import {
   DEFAULT_BATCH_SIZE,
   POLL_DELAY_MS,
-  SAFETY_POLL_TIMEOUT_SECONDS,
   pollAttemptsForTimeout,
+  SAFETY_POLL_TIMEOUT_SECONDS,
 } from "@/lib/pollConfig";
 import { apiErrorMessage, searchErrorMessage } from "@/lib/search/apiError";
 import { abortableDelay } from "@/lib/search/poll";
@@ -283,8 +283,7 @@ export function useSearch() {
       setStatus(data.status ?? "processing");
 
       if (data.search_id) {
-        const terminal =
-          data.status === "done" || data.status === "batch_done";
+        const terminal = data.status === "done" || data.status === "batch_done";
         const outcome = terminal
           ? await (async () => {
               const resultsRes = await fetch(`/api/results/${data.search_id}`);

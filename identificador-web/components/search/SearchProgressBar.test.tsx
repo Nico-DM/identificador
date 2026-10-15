@@ -28,10 +28,7 @@ describe("SearchProgressBar", () => {
 
   it("shows deep search label", () => {
     render(
-      <SearchProgressBar
-        progress={{ processed: 2, total: 5 }}
-        phase="deep"
-      />,
+      <SearchProgressBar progress={{ processed: 2, total: 5 }} phase="deep" />,
     );
     expect(screen.getByText(/Búsqueda profunda/)).toBeInTheDocument();
   });
