@@ -1,5 +1,9 @@
+from unittest.mock import patch
+
 from models import DateCandidate
 from publication_scorer import (
+    _needs_dynamic,
+    _resolve_with_dynamic,
     _sort_publications,
     _StaticPhaseOutcome,
     classify_context,
@@ -12,6 +16,7 @@ from publication_scorer import (
     select_best_candidate,
     serialize_pending_outcome,
 )
+from scrape_config import SCRAPE_STATIC_CONFIDENCE_THRESHOLD
 from tests.helpers import utc_dt
 
 
@@ -290,3 +295,84 @@ class TestPendingOutcomeSerialization:
         assert restored.needs_dynamic is True
         assert restored.best_static is not None
         assert restored.best_static.score == 0.6
+
+
+class TestNeedsDynamic:
+    def test_low_score_always_needs_dynamic(self):
+        candidate = DateCandidate(
+            date=utc_dt(2024, 1, 1),
+            source="plain-text",
+            raw="",
+            extractor="static",
+            url="https://example.com",
+            score=0.1,
+        )
+        assert _needs_dynamic("unknown", candidate) is True
+        assert _needs_dynamic("instagram", candidate) is True
+
+    def test_high_score_non_js_skips_dynamic(self):
+        candidate = DateCandidate(
+            date=utc_dt(2024, 1, 1),
+            source="htmldate",
+            raw="",
+            extractor="static",
+            url="https://example.com",
+            score=SCRAPE_STATIC_CONFIDENCE_THRESHOLD,
+        )
+        assert _needs_dynamic("unknown", candidate) is False
+
+    def test_js_platform_still_needs_dynamic_with_high_static(self):
+        candidate = DateCandidate(
+            date=utc_dt(2024, 1, 1),
+            source="meta",
+            raw="",
+            extractor="static",
+            url="https://www.deviantart.com/x/art/1",
+            score=0.9,
+        )
+        assert _needs_dynamic("deviantart", candidate) is True
+        assert _needs_dynamic("instagram", candidate) is True
+
+    def test_cached_dynamic_extractor_skips_rescan(self):
+        candidate = DateCandidate(
+            date=utc_dt(2024, 1, 1),
+            source="time",
+            raw="",
+            extractor="dynamic",
+            url="https://instagram.com/p/abc",
+            score=0.7,
+        )
+        assert _needs_dynamic("instagram", candidate) is False
+
+
+class TestResolveWithDynamicCache:
+    def test_caches_winning_dynamic_candidate(self):
+        outcome = _StaticPhaseOutcome(
+            result={"link": "https://instagram.com/p/abc", "source": "google"},
+            url="https://instagram.com/p/abc",
+            platform="instagram",
+            static_candidates=[],
+            best_static=None,
+            needs_dynamic=True,
+            publication=None,
+        )
+        dynamic_hit = DateCandidate(
+            date=utc_dt(2023, 6, 1),
+            source="time",
+            raw="2023-06-01",
+            extractor="dynamic",
+            url="https://instagram.com/p/abc",
+        )
+        with (
+            patch(
+                "publication_scorer.fetch_dynamic_candidates",
+                return_value=[dynamic_hit],
+            ),
+            patch("publication_scorer.set_url_scrape_cache") as mock_cache,
+        ):
+            pub = _resolve_with_dynamic(outcome)
+
+        assert pub is not None
+        assert pub["confidence"] in {"confirmed", "provisional"}
+        mock_cache.assert_called_once()
+        assert mock_cache.call_args.kwargs["extractor"] == "dynamic"

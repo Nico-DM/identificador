@@ -201,3 +201,41 @@ class TestFetchDynamicCandidates:
         ):
             assert dyn.fetch_dynamic_candidates("https://example.com") == []
         fake_driver.quit.assert_called_once()
+
+    def test_pool_reuses_driver_without_quit(self):
+        html = "<html><body><p>no dates</p></body></html>"
+        fake_driver = FakeDriver(html)
+        pool = dyn.ChromeDriverPool(size=1)
+
+        with (
+            patch("dynamic_scraper.create_chrome_driver", return_value=fake_driver),
+            patch("dynamic_scraper.WebDriverWait") as wait_cls,
+            patch("dynamic_scraper.time.sleep"),
+        ):
+            wait_cls.return_value.until = MagicMock()
+            dyn.fetch_dynamic_candidates("https://example.com/a", pool=pool, wait_for=1)
+            dyn.fetch_dynamic_candidates("https://example.com/b", pool=pool, wait_for=1)
+
+        assert fake_driver.quit_called is False
+        pool.shutdown()
+        assert fake_driver.quit_called is True
+
+
+class TestChromeDriverPool:
+    def test_discards_broken_driver(self):
+        broken = FakeDriver("<html></html>")
+        replacement = FakeDriver("<html></html>")
+        pool = dyn.ChromeDriverPool(size=1)
+
+        with patch(
+            "dynamic_scraper.create_chrome_driver",
+            side_effect=[broken, replacement],
+        ):
+            first = pool.acquire()
+            pool.release(first, discard=True)
+            second = pool.acquire()
+
+        assert first is broken
+        assert second is replacement
+        assert broken.quit_called is True
+        pool.shutdown()

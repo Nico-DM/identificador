@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-10-15T01:36:25.579443+00:00",
+  "generated_at": "2026-10-15T03:03:18.373414+00:00",
   "base_url": "http://localhost:8000",
   "search_engine": "google_reverse_image",
   "evaluation_window": 10,
   "deep_search_used_count": 10,
   "total_images": 10,
-  "correct": 7,
-  "precision": 0.7,
+  "correct": 6,
+  "precision": 0.6,
   "error_rate": 0.0,
-  "avg_response_time_seconds": 77.99,
+  "avg_response_time_seconds": 67.76,
   "by_category": {
     "arte_digital": {
       "total": 4,
@@ -16,7 +16,7 @@
     },
     "fotografia_contemporanea": {
       "total": 3,
-      "correct": 2
+      "correct": 1
     },
     "meme_nativo": {
       "total": 2,
@@ -41,11 +41,11 @@
           "flickr.com"
         ]
       },
-      "started_at": "2026-10-15T01:23:25.685281+00:00",
-      "search_id": "c1cc85b1-63ab-408e-ad3a-db4db2fbc579",
+      "started_at": "2026-10-15T02:52:00.768467+00:00",
+      "search_id": "b5d2f6a3-bc67-448a-a393-8ec03f360446",
       "status": "done",
-      "response_time_seconds": 38.2,
-      "static_poll_seconds": 38.18,
+      "response_time_seconds": 26.08,
+      "static_poll_seconds": 26.06,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -53,18 +53,10 @@
       "result_count": 8,
       "top_results": [
         {
-          "url": "https://www.flickr.com/photos/sammyjammy/1285612321",
-          "date": "2007-08-31T00:00:00",
-          "platform": "unknown",
-          "site_name": "Flickr",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.reddit.com/r/interestingasfuck/comments/1fpbv8d/sammy_griner_known_as_success_kid_turns_18/",
-          "date": "2013-10-22T08:04:44.624000",
+          "url": "https://www.reddit.com/r/todayilearned/comments/hdmqoq/til_that_the_due_to_internet_popularity_sammy/",
+          "date": "2014-05-11T18:27:44.058000",
           "platform": "reddit",
-          "site_name": "Reddit · r/interestingasfuck",
+          "site_name": "Reddit · r/todayilearned",
           "score": 0.7,
           "confidence": "confirmed"
         },
@@ -73,6 +65,14 @@
           "date": "2015-04-14T00:00:00",
           "platform": "unknown",
           "site_name": "BuzzFeed News",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://fox59.com/news/the-boy-from-the-success-kid-meme-is-trying-to-get-his-dad-a-kidney/",
+          "date": "2015-04-14T00:00:00",
+          "platform": "unknown",
+          "site_name": "Fox 59",
           "score": 0.75,
           "confidence": "confirmed"
         },
@@ -93,6 +93,14 @@
           "confidence": "confirmed"
         },
         {
+          "url": "https://www.instagram.com/p/DRVRa4Xkp2b/",
+          "date": "2026-01-01T00:00:00",
+          "platform": "instagram",
+          "site_name": "Instagram · thetinderblog",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
           "url": "https://www.kgw.com/article/life/success-kid-now-9-years-old-helped-save-his-fathers-life/283-287682873",
           "date": null,
           "platform": "unknown",
@@ -101,37 +109,30 @@
           "confidence": "pending"
         },
         {
-          "url": "https://en.wikipedia.org/wiki/Success_Kid",
-          "date": "2015-04-17T00:00:00",
-          "platform": "unknown",
-          "site_name": "Wikipedia",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.facebook.com/brianbuffini/posts/q4-is-coming-in-hot-i-talked-about-starting-strong-this-year-now-lets-finish-it-/1085984989561156/",
+          "url": "https://www.facebook.com/thescottishsun/posts/world-famous-meme-boy-success-kid-unrecognisable-as-he-turns-18/945420357630215/",
           "date": "2000-01-01T00:00:00",
           "platform": "facebook",
-          "site_name": "Facebook · Brian Buffini",
+          "site_name": "Facebook · The Scottish Sun",
           "score": 0.75,
           "confidence": "confirmed"
         }
       ],
       "obtained": {
-        "url": "https://www.flickr.com/photos/sammyjammy/1285612321",
-        "date": "2007-08-31T00:00:00",
-        "platform": "unknown",
-        "site_name": "Flickr",
-        "score": 0.75,
+        "url": "https://www.reddit.com/r/todayilearned/comments/hdmqoq/til_that_the_due_to_internet_popularity_sammy/",
+        "date": "2014-05-11T18:27:44.058000",
+        "platform": "reddit",
+        "site_name": "Reddit · r/todayilearned",
+        "score": 0.7,
         "confidence": "confirmed"
       },
       "evaluation": {
-        "correct": true,
-        "reason": "ok",
-        "match_rank": 1,
+        "correct": false,
+        "reason": "fuera_del_top",
+        "detail": "Ninguna fuente esperada en el top 10",
+        "match_rank": null,
         "evaluation_window": 10,
-        "url_match": true,
-        "date_match": true
+        "url_match": false,
+        "date_match": false
       },
       "error": null
     },
@@ -148,11 +149,11 @@
           "flickr.com"
         ]
       },
-      "started_at": "2026-10-15T01:24:03.884512+00:00",
-      "search_id": "083b3767-0564-4157-97f6-d4147b05d336",
+      "started_at": "2026-10-15T02:52:26.848450+00:00",
+      "search_id": "52affb7d-11e6-4244-9b30-c77e13f91893",
       "status": "done",
-      "response_time_seconds": 196.39,
-      "static_poll_seconds": 196.39,
+      "response_time_seconds": 182.38,
+      "static_poll_seconds": 182.37,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -200,7 +201,7 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2947293%2FJybOiKVtIPJTdPjJDXePwQ7447%2Forig&img_url=https%3A%2F%2Fimages.huffingtonpost.com%2F2016-01-25-1453717849-1256153-ukfloods.jpg&search_client=unknown&lr=21206&rpt=imageview&cbir_id=2947293%2FJybOiKVtIPJTdPjJDXePwQ7447",
+          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2972862%2FJybOiKVtIPJTdPjJDXePwQ1411%2Forig&img_url=https%3A%2F%2Fimages.huffingtonpost.com%2F2016-01-25-1453717849-1256153-ukfloods.jpg&search_client=unknown&rpt=imageview&lr=223&cbir_id=2972862%2FJybOiKVtIPJTdPjJDXePwQ1411",
           "date": "2016-01-25T00:00:00",
           "platform": "x",
           "site_name": "yandex.com",
@@ -224,7 +225,7 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2947293%2FJybOiKVtIPJTdPjJDXePwQ7447%2Forig&img_url=https%3A%2F%2Fstatic.independent.co.uk%2Fs3fs-public%2Fthumbnails%2Fimage%2F2015%2F12%2F27%2F17%2FFlooding.jpg&search_client=unknown&lr=21206&rpt=imageview&cbir_id=2947293%2FJybOiKVtIPJTdPjJDXePwQ7447",
+          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2972862%2FJybOiKVtIPJTdPjJDXePwQ1411%2Forig&img_url=https%3A%2F%2Fstatic.independent.co.uk%2Fs3fs-public%2Fthumbnails%2Fimage%2F2015%2F12%2F27%2F17%2FFlooding.jpg&search_client=unknown&rpt=imageview&lr=223&cbir_id=2972862%2FJybOiKVtIPJTdPjJDXePwQ1411",
           "date": "2020-02-09T00:00:00",
           "platform": "x",
           "site_name": "yandex.com",
@@ -232,7 +233,7 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2947293%2FJybOiKVtIPJTdPjJDXePwQ7447%2Forig&img_url=https%3A%2F%2Funiversal.sk%2Fwp-content%2Fuploads%2F2023%2F06%2Fpovodne_1.jpg&search_client=unknown&lr=21206&rpt=imageview&cbir_id=2947293%2FJybOiKVtIPJTdPjJDXePwQ7447",
+          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2972862%2FJybOiKVtIPJTdPjJDXePwQ1411%2Forig&img_url=https%3A%2F%2Funiversal.sk%2Fwp-content%2Fuploads%2F2023%2F06%2Fpovodne_1.jpg&search_client=unknown&rpt=imageview&lr=223&cbir_id=2972862%2FJybOiKVtIPJTdPjJDXePwQ1411",
           "date": "2020-02-09T00:00:00",
           "platform": "x",
           "site_name": "yandex.com",
@@ -271,11 +272,11 @@
           "flickr.com"
         ]
       },
-      "started_at": "2026-10-15T01:27:20.276532+00:00",
-      "search_id": "bb970733-e126-4c12-b8c0-d1b05c7b97c1",
+      "started_at": "2026-10-15T02:55:29.226123+00:00",
+      "search_id": "459c95fa-ea26-4643-9a5f-5a5aee756a92",
       "status": "done",
-      "response_time_seconds": 248.48,
-      "static_poll_seconds": 248.47,
+      "response_time_seconds": 238.5,
+      "static_poll_seconds": 238.49,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -323,7 +324,7 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F1693978%2FawAuNcf3I7xxZBs34hblhg7646%2Forig&img_url=https%3A%2F%2Fget.pxhere.com%2Fphoto%2Fblossom-plant-photography-flower-petal-darkness-flora-close-up-2014365-phonar-nationlooking4light-macro-photography-flowering-plant-plant-stem-computer-wallpaper-land-plant-207113.jpg&search_client=unknown&lr=29641&rpt=imageview&cbir_id=1693978%2FawAuNcf3I7xxZBs34hblhg7646",
+          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2446230%2FawAuNcf3I7xxZBs34hblhg1613%2Forig&img_url=https%3A%2F%2Fget.pxhere.com%2Fphoto%2Fblossom-plant-photography-flower-petal-darkness-flora-close-up-2014365-phonar-nationlooking4light-macro-photography-flowering-plant-plant-stem-computer-wallpaper-land-plant-207113.jpg&search_client=unknown&lr=20993&rpt=imageview&cbir_id=2446230%2FawAuNcf3I7xxZBs34hblhg1613",
           "date": "2019-12-19T00:00:00",
           "platform": "x",
           "site_name": "yandex.com",
@@ -331,7 +332,7 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F1693978%2FawAuNcf3I7xxZBs34hblhg7646%2Forig&img_url=https%3A%2F%2Fget.pxhere.com%2Fphoto%2Fplant-flower-petal-flora-macro-photography-flowering-plant-plant-stem-land-plant-347054.jpg&search_client=unknown&lr=29641&rpt=imageview&cbir_id=1693978%2FawAuNcf3I7xxZBs34hblhg7646",
+          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2446230%2FawAuNcf3I7xxZBs34hblhg1613%2Forig&img_url=https%3A%2F%2Fget.pxhere.com%2Fphoto%2Fplant-flower-petal-flora-macro-photography-flowering-plant-plant-stem-land-plant-347054.jpg&search_client=unknown&lr=20993&rpt=imageview&cbir_id=2446230%2FawAuNcf3I7xxZBs34hblhg1613",
           "date": "2019-12-19T00:00:00",
           "platform": "x",
           "site_name": "yandex.com",
@@ -339,7 +340,7 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F1693978%2FawAuNcf3I7xxZBs34hblhg7646%2Forig&img_url=https%3A%2F%2Fget.pxhere.com%2Fphoto%2Fnature-blossom-plant-photography-leaf-flower-petal-botany-flora-wildflower-close-up-evening-primrose-macro-photography-flowering-plant-annual-plant-plant-stem-land-plant-193600.jpg&search_client=unknown&lr=29641&rpt=imageview&cbir_id=1693978%2FawAuNcf3I7xxZBs34hblhg7646",
+          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2446230%2FawAuNcf3I7xxZBs34hblhg1613%2Forig&img_url=https%3A%2F%2Fget.pxhere.com%2Fphoto%2Fnature-blossom-plant-photography-leaf-flower-petal-botany-flora-wildflower-close-up-evening-primrose-macro-photography-flowering-plant-annual-plant-plant-stem-land-plant-193600.jpg&search_client=unknown&lr=20993&rpt=imageview&cbir_id=2446230%2FawAuNcf3I7xxZBs34hblhg1613",
           "date": "2019-12-19T00:00:00",
           "platform": "x",
           "site_name": "yandex.com",
@@ -347,7 +348,7 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F1693978%2FawAuNcf3I7xxZBs34hblhg7646%2Forig&img_url=https%3A%2F%2Fget.pxhere.com%2Fphoto%2Fnature-blossom-plant-photography-leaf-flower-petal-green-botany-flora-wildflower-close-up-macro-photography-flowering-plant-plant-stem-land-plant-193364.jpg&search_client=unknown&lr=29641&rpt=imageview&cbir_id=1693978%2FawAuNcf3I7xxZBs34hblhg7646",
+          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2446230%2FawAuNcf3I7xxZBs34hblhg1613%2Forig&img_url=https%3A%2F%2Fget.pxhere.com%2Fphoto%2Fnature-blossom-plant-photography-leaf-flower-petal-green-botany-flora-wildflower-close-up-macro-photography-flowering-plant-plant-stem-land-plant-193364.jpg&search_client=unknown&lr=20993&rpt=imageview&cbir_id=2446230%2FawAuNcf3I7xxZBs34hblhg1613",
           "date": "2019-12-19T00:00:00",
           "platform": "x",
           "site_name": "yandex.com",
@@ -355,7 +356,7 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F1693978%2FawAuNcf3I7xxZBs34hblhg7646%2Forig&img_url=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fc%2Fcd%2F2014-365-165_Pretty_in_Pink_%252814424938405%2529.jpg&search_client=unknown&lr=29641&rpt=imageview&cbir_id=1693978%2FawAuNcf3I7xxZBs34hblhg7646",
+          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F2446230%2FawAuNcf3I7xxZBs34hblhg1613%2Forig&img_url=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2Fc%2Fcd%2F2014-365-165_Pretty_in_Pink_%252814424938405%2529.jpg&search_client=unknown&lr=20993&rpt=imageview&cbir_id=2446230%2FawAuNcf3I7xxZBs34hblhg1613",
           "date": "2019-12-19T00:00:00",
           "platform": "x",
           "site_name": "yandex.com",
@@ -396,11 +397,11 @@
           "deviantart.com"
         ]
       },
-      "started_at": "2026-10-15T01:31:28.753626+00:00",
-      "search_id": "8f8dd0e1-a108-4249-9495-caa62e852773",
+      "started_at": "2026-10-15T02:59:27.721960+00:00",
+      "search_id": "ed285641-07ac-49f0-a916-7ba53b151a09",
       "status": "done",
-      "response_time_seconds": 12.07,
-      "static_poll_seconds": 12.07,
+      "response_time_seconds": 8.02,
+      "static_poll_seconds": 8.02,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -448,6 +449,14 @@
           "confidence": "confirmed"
         },
         {
+          "url": "https://www.peppercarrot.com/kr/viewer/misc-src__2012-10-08_The-Watcher_by-David-Revoy.html",
+          "date": "2012-10-08T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
           "url": "https://lawrencedagstine.com/category/deviant-art/",
           "date": "2013-11-02T00:00:00",
           "platform": "unknown",
@@ -470,14 +479,6 @@
           "site_name": "rolis.net",
           "score": 0.75,
           "confidence": "confirmed"
-        },
-        {
-          "url": "https://en.wikipedia.org/wiki/David_Revoy",
-          "date": "2022-01-05T00:00:00",
-          "platform": "unknown",
-          "site_name": "Wikipedia",
-          "score": 0.75,
-          "confidence": "confirmed"
         }
       ],
       "obtained": {
@@ -491,7 +492,7 @@
       "evaluation": {
         "correct": true,
         "reason": "ok",
-        "match_rank": 7,
+        "match_rank": 8,
         "evaluation_window": 10,
         "url_match": true,
         "date_match": false
@@ -511,11 +512,11 @@
           "opengameart.org"
         ]
       },
-      "started_at": "2026-10-15T01:31:40.826467+00:00",
-      "search_id": "2a527377-6e86-4c24-a05e-c4b589c9af13",
+      "started_at": "2026-10-15T02:59:35.742823+00:00",
+      "search_id": "a817fd2e-5276-4b00-a9b4-ad35854c4f63",
       "status": "done",
-      "response_time_seconds": 44.19,
-      "static_poll_seconds": 44.19,
+      "response_time_seconds": 22.04,
+      "static_poll_seconds": 22.04,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -523,84 +524,84 @@
       "result_count": 9,
       "top_results": [
         {
-          "url": "https://www.reddit.com/r/PUBATTLEGROUNDS/comments/1pxnfmt/where_to_find_these_items/",
-          "date": "2022-02-22T12:03:41.948000",
+          "url": "https://www.deviantart.com/morelikethis/MartinWalker1997/1239314858?page=2",
+          "date": "2023-11-07T00:00:00",
+          "platform": "deviantart",
+          "site_name": "DeviantArt",
+          "score": 0.9500000000000001,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "http://www.deviantart.com/morelikethis/stalsky/462150355?page=5",
+          "date": "2026-01-01T00:00:00",
+          "platform": "deviantart",
+          "site_name": "DeviantArt",
+          "score": 0.9500000000000001,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.reddit.com/r/MortalKombat/comments/1u7iq70/remember_when_they_had_sonya_blade_was_rocking_a/",
+          "date": "2015-06-11T21:24:23.898000",
           "platform": "reddit",
-          "site_name": "Reddit · r/PUBATTLEGROUNDS",
+          "site_name": "Reddit · r/MortalKombat",
           "score": 0.7,
           "confidence": "confirmed"
         },
         {
-          "url": "https://www.roblox.com/catalog?taxonomy=&CreatorName=KC%3A+Tactical&CreatorType=Group&salesTypeFilter=1",
-          "date": "1999-01-01T00:00:00",
-          "platform": "x",
-          "site_name": "Roblox",
-          "score": 0.55,
+          "url": "https://www.youtube.com/watch?v=I76wvt0aEE4&vl=en",
+          "date": "2025-01-07T00:00:00",
+          "platform": "youtube",
+          "site_name": "YouTube · League of Legends",
+          "score": 0.9500000000000001,
           "confidence": "confirmed"
         },
         {
-          "url": "https://dayz.wiki.gg/wiki/Cargo_Pants",
-          "date": "2013-12-17T22:59:22",
-          "platform": "unknown",
-          "site_name": "wiki.gg",
-          "score": 0.7,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://sketchfab.com/elsismatei/collections/male-6c3c366ca6b341e59b01be77b8fe8ad9",
-          "date": "2019-11-16T00:00:00",
+          "url": "https://sketchfab.com/3d-models/sophie-937cd3dba1d04bd19572d18ec12fb2e3",
+          "date": "2025-06-16T00:00:00",
           "platform": "unknown",
           "site_name": "Sketchfab",
           "score": 0.75,
           "confidence": "confirmed"
         },
         {
-          "url": "https://www.ae.com/us/en/p/women/pants-sweatpants/cargo-pants/ae-low-rise-cozy-corduroy-cargo-pant/0316_6065_329",
-          "date": "2026-10-09T11:27:22",
-          "platform": "unknown",
-          "site_name": "American Eagle",
-          "score": 0.7,
+          "url": "https://www.instagram.com/p/DecQslcGpEu/",
+          "date": "2026-10-13T00:00:00",
+          "platform": "instagram",
+          "site_name": "Instagram · ncentineo",
+          "score": 0.75,
           "confidence": "confirmed"
         },
         {
-          "url": "https://dti-dress-to-impress.fandom.com/wiki/The_Takeover_Pants",
-          "date": "2026-10-14T10:26:59",
+          "url": "https://metalgear.fandom.com/wiki/EVA",
+          "date": "2026-07-10T07:21:37",
           "platform": "unknown",
-          "site_name": "Dress To Impress Wiki",
+          "site_name": "Metal Gear Wiki",
           "score": 0.5,
           "confidence": "provisional"
         },
         {
-          "url": "https://www.hollisterco.com/shop/us/mens-clearance",
+          "url": "https://www.keystoneco.gov/document/Attachments/639276136753564347.pdf",
           "date": null,
           "platform": "unknown",
-          "site_name": "Hollister",
+          "site_name": "keystoneco.gov",
           "score": null,
           "confidence": "pending"
         },
         {
-          "url": "https://www.rolimons.com/item/108698494613408",
+          "url": "https://www.callofduty.com/cdn/invite/west/system_en_US.html",
           "date": null,
           "platform": "unknown",
-          "site_name": "Rolimon's",
-          "score": null,
-          "confidence": "pending"
-        },
-        {
-          "url": "https://www.abercrombie.com/shop/us/mens-tops--1",
-          "date": null,
-          "platform": "unknown",
-          "site_name": "Abercrombie",
+          "site_name": "Call of Duty® | Best-Selling Video Game Franchise",
           "score": null,
           "confidence": "pending"
         }
       ],
       "obtained": {
-        "url": "https://www.reddit.com/r/PUBATTLEGROUNDS/comments/1pxnfmt/where_to_find_these_items/",
-        "date": "2022-02-22T12:03:41.948000",
-        "platform": "reddit",
-        "site_name": "Reddit · r/PUBATTLEGROUNDS",
-        "score": 0.7,
+        "url": "https://www.deviantart.com/morelikethis/MartinWalker1997/1239314858?page=2",
+        "date": "2023-11-07T00:00:00",
+        "platform": "deviantart",
+        "site_name": "DeviantArt",
+        "score": 0.9500000000000001,
         "confidence": "confirmed"
       },
       "evaluation": {
@@ -628,11 +629,11 @@
           "deviantart.com"
         ]
       },
-      "started_at": "2026-10-15T01:32:25.016403+00:00",
-      "search_id": "8e431281-ba72-4d9b-827b-1bd621d4d766",
+      "started_at": "2026-10-15T02:59:57.787120+00:00",
+      "search_id": "8a941afc-d862-412f-94b3-0785b508d1a1",
       "status": "done",
-      "response_time_seconds": 116.22,
-      "static_poll_seconds": 116.21,
+      "response_time_seconds": 100.23,
+      "static_poll_seconds": 100.22,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -688,7 +689,7 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F1333163%2FUHmNkqG4EFnwHvyh7v4lWA7957%2Forig&img_url=https%3A%2F%2Fsun9-40.vkuserphoto.ru%2Fs%2Fv1%2Fig2%2FfwsPxErISyychJvHuoxO7mjxWwb-G9rp7oeWGfReZA6T0wOteqtusCQevkzbvjm8bu4kZX2VoxskGZDBMA0XRnlK.jpg%3Fquality%3D96%26as%3D32x32%2C48x48%2C72x72%2C108x108%2C160x160%2C240x240%2C360x360%2C480x480%2C540x540%2C640x640%2C720x720%2C1024x1024%26from%3Dbu%26cs%3D640x0&search_client=unknown&rpt=imageview&lr=29646&cbir_id=1333163%2FUHmNkqG4EFnwHvyh7v4lWA7957",
+          "url": "https://yandex.com/images/search?cbir_page=similar&url=https%3A%2F%2Favatars.mds.yandex.net%2Fget-images-cbir%2F8260084%2FUHmNkqG4EFnwHvyh7v4lWA1889%2Forig&img_url=https%3A%2F%2Fsun9-40.vkuserphoto.ru%2Fs%2Fv1%2Fig2%2FfwsPxErISyychJvHuoxO7mjxWwb-G9rp7oeWGfReZA6T0wOteqtusCQevkzbvjm8bu4kZX2VoxskGZDBMA0XRnlK.jpg%3Fquality%3D96%26as%3D32x32%2C48x48%2C72x72%2C108x108%2C160x160%2C240x240%2C360x360%2C480x480%2C540x540%2C640x640%2C720x720%2C1024x1024%26from%3Dbu%26cs%3D640x0&search_client=unknown&rpt=imageview&lr=20751&cbir_id=8260084%2FUHmNkqG4EFnwHvyh7v4lWA1889",
           "date": "2014-03-28T00:00:00",
           "platform": "x",
           "site_name": "yandex.com",
@@ -751,11 +752,11 @@
           "davidrevoy.com"
         ]
       },
-      "started_at": "2026-10-15T01:34:21.233872+00:00",
-      "search_id": "49449dbc-b818-4fe9-a2a6-25c3f4afeda7",
+      "started_at": "2026-10-15T03:01:38.013424+00:00",
+      "search_id": "7ef925d8-d7f0-4077-884b-5bdefdc14991",
       "status": "done",
-      "response_time_seconds": 10.02,
-      "static_poll_seconds": 10.02,
+      "response_time_seconds": 8.02,
+      "static_poll_seconds": 8.02,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -819,8 +820,8 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://www.davidrevoy.com/article1056/when-world-collides-the-new-and-improved-peppercarrot-website",
-          "date": "2024-12-20T00:00:00",
+          "url": "https://www.davidrevoy.com/article586/making-of-the-second-cover-of-peppercarrot",
+          "date": "2016-11-16T00:00:00",
           "platform": "unknown",
           "site_name": "David Revoy",
           "score": 0.75,
@@ -866,17 +867,25 @@
           "davidrevoy.com"
         ]
       },
-      "started_at": "2026-10-15T01:34:31.255748+00:00",
-      "search_id": "e79a0afe-aff1-4ef6-a72e-e9e4dc6b9e4f",
+      "started_at": "2026-10-15T03:01:46.034313+00:00",
+      "search_id": "0556731d-7ba5-41a2-89d3-9ed5851566f7",
       "status": "done",
-      "response_time_seconds": 12.03,
-      "static_poll_seconds": 12.02,
+      "response_time_seconds": 8.02,
+      "static_poll_seconds": 8.02,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
       "timed_out": false,
       "result_count": 9,
       "top_results": [
+        {
+          "url": "https://www.peppercarrot.com/tp/webcomic/ep01_Potion-of-Flight.html",
+          "date": "2016-05-05T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
         {
           "url": "https://www.peppercarrot.com/th/webcomic/ep01_Potion-of-Flight__hd.html",
           "date": "2016-05-05T00:00:00",
@@ -886,7 +895,7 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://www.peppercarrot.com/tp/webcomic/ep01_Potion-of-Flight.html",
+          "url": "https://www.peppercarrot.com/ph/webcomic/ep01_Potion-of-Flight.html",
           "date": "2016-05-05T00:00:00",
           "platform": "unknown",
           "site_name": "Pepper&Carrot",
@@ -940,18 +949,10 @@
           "site_name": "Wikimedia Commons",
           "score": 0.7,
           "confidence": "confirmed"
-        },
-        {
-          "url": "https://www.amazon.com/Pepper-Carrot-1-Potions-denvol/dp/2344017259",
-          "date": "2025-01-01T00:00:00",
-          "platform": "unknown",
-          "site_name": "Amazon.com",
-          "score": 0.75,
-          "confidence": "confirmed"
         }
       ],
       "obtained": {
-        "url": "https://www.peppercarrot.com/th/webcomic/ep01_Potion-of-Flight__hd.html",
+        "url": "https://www.peppercarrot.com/tp/webcomic/ep01_Potion-of-Flight.html",
         "date": "2016-05-05T00:00:00",
         "platform": "unknown",
         "site_name": "Pepper&Carrot",
@@ -982,11 +983,11 @@
           "exblog.jp"
         ]
       },
-      "started_at": "2026-10-15T01:34:43.281321+00:00",
-      "search_id": "c0ce56b2-c82f-44ef-8603-d5e60b2d7067",
+      "started_at": "2026-10-15T03:01:54.054799+00:00",
+      "search_id": "8b0bd59e-ef6e-4ee3-adb5-c79952debdf6",
       "status": "done",
-      "response_time_seconds": 66.17,
-      "static_poll_seconds": 66.16,
+      "response_time_seconds": 60.26,
+      "static_poll_seconds": 60.26,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -995,10 +996,18 @@
       "top_results": [
         {
           "url": "https://www.reddit.com/r/popculturechat/comments/1czpefl/kabosu_the_shiba_inu_face_of_the_doge_meme_has/",
-          "date": "2019-02-15T15:42:21.521000",
+          "date": "2016-04-14T19:21:30.102000",
           "platform": "reddit",
           "site_name": "Reddit · r/popculturechat",
           "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.threads.com/@culturecrave/post/C7WthXDx_5-?hl=en",
+          "date": "2000-01-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "Threads · culturecrave",
+          "score": 0.75,
           "confidence": "confirmed"
         },
         {
@@ -1010,18 +1019,18 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://www.binance.com/en/square/post/8521419152114",
-          "date": "2024-05-24T07:09:56",
-          "platform": "unknown",
-          "site_name": "Binance",
-          "score": 0.7,
+          "url": "https://x.com/Dexerto/status/1793899911852798319",
+          "date": "2024-05-24T00:00:00",
+          "platform": "x",
+          "site_name": "X · Dexerto",
+          "score": 0.75,
           "confidence": "confirmed"
         },
         {
-          "url": "https://www.instagram.com/p/C7YeANFytGI/?hl=en",
+          "url": "https://www.instagram.com/p/DAg6271TuFJ/",
           "date": "2026-01-01T00:00:00",
           "platform": "instagram",
-          "site_name": "Instagram · ussfeeds",
+          "site_name": "Instagram · flyhysteria",
           "score": 0.75,
           "confidence": "confirmed"
         },
@@ -1034,33 +1043,25 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://x.com/ownthedoge/status/2092672932405227531",
-          "date": "2026-08-26T00:00:00",
-          "platform": "x",
-          "site_name": "X · ownthedoge",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://x.com/Reddit/status/2092622569069265385?lang=en",
-          "date": "2026-08-26T00:00:00",
-          "platform": "x",
-          "site_name": "X · Reddit",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
           "url": "https://www.washingtonpost.com/technology/2024/05/24/kabosu-doge-meme-shiba-inu-dead/",
           "date": null,
           "platform": "unknown",
           "site_name": "The Washington Post",
           "score": null,
           "confidence": "pending"
+        },
+        {
+          "url": "https://www.facebook.com/DogsAreFamily/photos/kabosu-the-shiba-inu-who-inspired-the-famous-dog-meme-and-appeared-as-the-face-o/505012165191402/",
+          "date": "2000-01-01T00:00:00",
+          "platform": "facebook",
+          "site_name": "Facebook · Dogs are family",
+          "score": 0.75,
+          "confidence": "confirmed"
         }
       ],
       "obtained": {
         "url": "https://www.reddit.com/r/popculturechat/comments/1czpefl/kabosu_the_shiba_inu_face_of_the_doge_meme_has/",
-        "date": "2019-02-15T15:42:21.521000",
+        "date": "2016-04-14T19:21:30.102000",
         "platform": "reddit",
         "site_name": "Reddit · r/popculturechat",
         "score": 0.7,
@@ -1090,11 +1091,11 @@
           "deviantart.com"
         ]
       },
-      "started_at": "2026-10-15T01:35:49.447077+00:00",
-      "search_id": "84db3514-7b8a-4b49-afd0-560c0c61bbe9",
+      "started_at": "2026-10-15T03:02:54.317647+00:00",
+      "search_id": "2bf903bc-bb1e-41e5-bd5e-48739bb1bedc",
       "status": "done",
-      "response_time_seconds": 36.13,
-      "static_poll_seconds": 36.13,
+      "response_time_seconds": 24.06,
+      "static_poll_seconds": 24.05,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -1110,11 +1111,19 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://www.reddit.com/r/spongebob/comments/1gtxpo1/does_anyone_know_where_this_image_of_plankton/",
-          "date": "2023-06-26T18:23:45.808000",
+          "url": "https://www.reddit.com/r/spongebob/comments/1h983tj/where_did_this_image_come_from_and_why_is_it_so/",
+          "date": "2017-12-01T20:25:29.286000",
           "platform": "reddit",
           "site_name": "Reddit · r/spongebob",
           "score": 0.7,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.youtube.com/watch?v=UjSOQFXlZks",
+          "date": "2023-09-20T00:00:00",
+          "platform": "youtube",
+          "site_name": "YouTube · BrookieIzDatYou",
+          "score": 0.9500000000000001,
           "confidence": "confirmed"
         },
         {
@@ -1126,42 +1135,34 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://x.com/Jlop_the_Chop/status/2028859523419763115",
-          "date": "2026-03-03T00:00:00",
+          "url": "https://x.com/tylermcbride/status/1883607231654191463",
+          "date": "2025-01-26T00:00:00",
           "platform": "x",
-          "site_name": "X · Jlop_the_Chop",
+          "site_name": "X · tylermcbride",
           "score": 0.75,
           "confidence": "confirmed"
         },
         {
-          "url": "https://x.com/BlackLanterrn/status/2105719136064295211",
-          "date": "2026-10-01T00:00:00",
+          "url": "https://x.com/GoodNightDrew/status/2102472912670503155/photo/1",
+          "date": "2026-09-22T00:00:00",
           "platform": "x",
-          "site_name": "X · BlackLanterrn",
+          "site_name": "X · GoodNightDrew",
           "score": 0.75,
           "confidence": "confirmed"
         },
         {
-          "url": "https://meme.fandom.com/wiki/Cursed_Plankton",
-          "date": null,
+          "url": "https://neutral-charactersfanon.fandom.com/wiki/Plankton_(Plankton_Got_Served)",
+          "date": "2026-12-10T20:02:17",
           "platform": "unknown",
-          "site_name": "Teh Meme Wiki",
-          "score": null,
-          "confidence": "pending"
+          "site_name": "Neutral Characters Fanon Wiki",
+          "score": 0.5,
+          "confidence": "provisional"
         },
         {
-          "url": "https://www.facebook.com/groups/240276054837740/posts/1106950908170246/",
-          "date": "2000-01-01T00:00:00",
-          "platform": "facebook",
-          "site_name": "Facebook · Wits, UP and UJ 2026™️",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
-          "url": "https://es.pinterest.com/pin/596656650674584970/",
-          "date": "2025-10-14T00:00:00",
+          "url": "https://knowyourmeme.com/photos/2677790-plankton-got-served",
+          "date": "2023-10-10T00:00:00",
           "platform": "unknown",
-          "site_name": "Pinterest · idaniakemi",
+          "site_name": "Know Your Meme",
           "score": 0.75,
           "confidence": "confirmed"
         }

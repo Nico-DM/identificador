@@ -4,7 +4,7 @@
 
 Dataset de regresión ejecutado con el motor `google_reverse_image` sobre URLs públicas definidas en el manifest. Cada caso corre fase estática y, si está disponible, búsqueda profunda.
 
-- **Fecha de ejecución:** 2026-10-15T01:36:25.579443+00:00
+- **Fecha de ejecución:** 2026-10-15T03:03:18.373414+00:00
 - **Backend evaluado:** `http://localhost:8000`
 - **Total de imágenes:** 10
 - **Ventana de evaluación:** top 10
@@ -28,15 +28,15 @@ Archivos relacionados:
 
 ## 3. Resultados por imagen
 
-### `photo-01` — Correcto
+### `photo-01` — Incorrecto
 
 - **Imagen:** [Success Kid / Why I oughta... (Laney Griner)](https://upload.wikimedia.org/wikipedia/en/f/ff/SuccessKid.jpg)
 - **Categoría:** Fotografía contemporánea
 - **Esperado:** Artista: Laney Griner; Fecha: 2007-08-31; Dominios esperados: flickr.com/photos/sammyjammy, flickr.com
-- **Coincidencia:** Flickr (posición 1)
-- **Fecha detectada:** 2007-08-31T00:00:00
-- **URL fuente:** [Flickr](https://www.flickr.com/photos/sammyjammy/1285612321)
-- **Notas:** Coincidencia en posición 1; búsqueda profunda: sí.
+- **Coincidencia:** — (posición —)
+- **Fecha detectada:** 2014-05-11T18:27:44.058000
+- **URL fuente:** —
+- **Notas:** Sin coincidencia en el top 10 (8 candidatos).
 
 ### `photo-02` — Correcto
 
@@ -63,10 +63,10 @@ Archivos relacionados:
 - **Imagen:** [The Watcher (David Revoy)](https://www.davidrevoy.com/data/images/blog/2012/10/2012-10-08_the-watcher_final_by_David_Revoy.jpg)
 - **Categoría:** Arte digital
 - **Esperado:** Artista: David Revoy; Fecha: 2012-10-08; Dominios esperados: deviantart.com/deevad, davidrevoy.com, deviantart.com
-- **Coincidencia:** David Revoy (posición 7)
+- **Coincidencia:** David Revoy (posición 8)
 - **Fecha detectada:** 2024-12-20T00:00:00
 - **URL fuente:** [David Revoy](https://www.davidrevoy.com/article1056/when-world-collides-the-new-and-improved-peppercarrot-website)
-- **Notas:** Coincidencia en posición 7; búsqueda profunda: sí.
+- **Notas:** Coincidencia en posición 8; búsqueda profunda: sí.
 
 ### `digital-02` — Incorrecto
 
@@ -74,7 +74,7 @@ Archivos relacionados:
 - **Categoría:** Arte digital
 - **Esperado:** Artista: Bleed; Fecha: 2014-03-23; Dominios esperados: opengameart.org/content/tmim-heroine, opengameart.org
 - **Coincidencia:** — (posición —)
-- **Fecha detectada:** 2022-02-22T12:03:41.948000
+- **Fecha detectada:** 2023-11-07T00:00:00
 - **URL fuente:** —
 - **Notas:** Sin coincidencia en el top 10 (9 candidatos).
 
@@ -105,7 +105,7 @@ Archivos relacionados:
 - **Esperado:** Artista: David Revoy; Fecha: 2014-05-10; Dominios esperados: peppercarrot.com, davidrevoy.com
 - **Coincidencia:** Pepper&Carrot (posición 1)
 - **Fecha detectada:** 2016-05-05T00:00:00
-- **URL fuente:** [Pepper&Carrot](https://www.peppercarrot.com/th/webcomic/ep01_Potion-of-Flight__hd.html)
+- **URL fuente:** [Pepper&Carrot](https://www.peppercarrot.com/tp/webcomic/ep01_Potion-of-Flight.html)
 - **Notas:** Coincidencia en posición 1; búsqueda profunda: sí.
 
 ### `meme-01` — Incorrecto
@@ -114,7 +114,7 @@ Archivos relacionados:
 - **Categoría:** Meme nativo (publicación original)
 - **Esperado:** Artista: Atsuko Sato; Fecha: 2010-02-13; Dominios esperados: kabosu112.exblog.jp, kabochan.blog.jp, exblog.jp
 - **Coincidencia:** — (posición —)
-- **Fecha detectada:** 2019-02-15T15:42:21.521000
+- **Fecha detectada:** 2016-04-14T19:21:30.102000
 - **URL fuente:** —
 - **Notas:** Sin coincidencia en el top 10 (8 candidatos).
 
@@ -133,36 +133,36 @@ Archivos relacionados:
 
 | Métrica | Valor |
 |---------|-------|
-| Precisión (Correcto / total) | **70.0%** (7/10) |
-| Casos correctos | 7 |
-| Casos incorrectos | 3 |
+| Precisión (Correcto / total) | **60.0%** (6/10) |
+| Casos correctos | 6 |
+| Casos incorrectos | 4 |
 | Búsqueda profunda ejecutada | 10/10 |
 | Imágenes con candidatos | 10 |
 | Imágenes sin candidatos | 0 |
-| Tiempo promedio de respuesta | 77.99 s |
-| Tiempo mínimo / máximo | 10.02 s / 248.48 s |
-| Posiciones de acierto | 1, 1, 7, 4, 1, 1, 1 |
+| Tiempo promedio de respuesta | 67.76 s |
+| Tiempo mínimo / máximo | 8.02 s / 238.5 s |
+| Posiciones de acierto | 1, 8, 4, 1, 1, 1 |
 | Tasa de error (fallas de API/excepción) | 0.0% |
 
 ### Desglose por veredicto
 
 | Veredicto | Cantidad |
 |-----------|----------|
-| Correcto | 7 |
-| Incorrecto | 3 |
+| Correcto | 6 |
+| Incorrecto | 4 |
 
 ### Motivos de evaluación
 
 | Motivo | Cantidad |
 |--------|----------|
-| Fuera del top N | 3 |
-| Coincide en el top N | 7 |
+| Fuera del top N | 4 |
+| Coincide en el top N | 6 |
 
 ### Desglose por categoría
 
 | Categoría | Total | Correctos |
 |-----------|-------|-----------|
 | Arte digital | 4 | 3 |
-| Fotografía contemporánea | 3 | 2 |
+| Fotografía contemporánea | 3 | 1 |
 | Meme nativo (publicación original) | 2 | 1 |
 | Webcomic | 1 | 1 |

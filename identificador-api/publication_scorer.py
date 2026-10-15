@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from db.cache import get_url_scrape_cache, set_url_scrape_cache
-from dynamic_scraper import fetch_dynamic_candidates
+from dynamic_scraper import ChromeDriverPool, fetch_dynamic_candidates
 from logging_config import get_logger
 from models import DateCandidate
 from scrape_config import (
@@ -302,6 +302,36 @@ def _confidence_for_score(score: float | None) -> str:
     return "provisional"
 
 
+def _needs_dynamic(platform: str, best_static: DateCandidate | None) -> bool:
+    """Decide whether Selenium is still required after the static phase."""
+    low_confidence = (
+        not best_static or best_static.score < SCRAPE_STATIC_CONFIDENCE_THRESHOLD
+    )
+    # Cache hit from a prior dynamic scrape: reuse without reopening Chrome.
+    if (
+        not low_confidence
+        and best_static is not None
+        and best_static.extractor == "dynamic"
+    ):
+        return False
+    # JS-heavy artist platforms always go to Selenium when dynamic scrape is enabled.
+    return platform_requires_js_render(platform) or low_confidence
+
+
+def _cache_best_candidate(
+    url: str, platform: str, best: DateCandidate
+) -> None:
+    set_url_scrape_cache(
+        url,
+        platform=platform,
+        date_utc=best.date,
+        score=best.score,
+        source=best.source,
+        extractor=best.extractor,
+        confidence=_confidence_for_score(best.score),
+    )
+
+
 def _candidate_from_cache(entry: dict, url: str) -> DateCandidate:
     date_value = entry["date_utc"]
     if isinstance(date_value, str):
@@ -338,15 +368,7 @@ def _score_static_candidates(
         candidate.score = score_candidate(candidate, platform, flags)
     best_static = select_best_candidate(candidates)
     if best_static:
-        set_url_scrape_cache(
-            url,
-            platform=platform,
-            date_utc=best_static.date,
-            score=best_static.score,
-            source=best_static.source,
-            extractor=best_static.extractor,
-            confidence=_confidence_for_score(best_static.score),
-        )
+        _cache_best_candidate(url, platform, best_static)
     return candidates, best_static
 
 
@@ -402,11 +424,7 @@ def _static_phase(result: dict) -> _StaticPhaseOutcome:
     )
 
     static_candidates, best_static = _score_static_candidates(url, platform)
-    low_confidence = (
-        not best_static or best_static.score < SCRAPE_STATIC_CONFIDENCE_THRESHOLD
-    )
-    # JS-heavy artist platforms always go to Selenium when dynamic scrape is enabled.
-    needs_dynamic = platform_requires_js_render(platform) or low_confidence
+    needs_dynamic = _needs_dynamic(platform, best_static)
 
     publication = None
     if best_static and not needs_dynamic:
@@ -449,7 +467,11 @@ def _static_phase(result: dict) -> _StaticPhaseOutcome:
     )
 
 
-def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> dict | None:
+def _resolve_with_dynamic(
+    outcome: _StaticPhaseOutcome,
+    *,
+    driver_pool: ChromeDriverPool | None = None,
+) -> dict | None:
     url = outcome.url
     platform = outcome.platform
     best_static = outcome.best_static
@@ -458,7 +480,7 @@ def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> dict | None:
         extra={"event": "dynamic_phase_url", "platform": platform, "url": url},
     )
 
-    dynamic = fetch_dynamic_candidates(url)
+    dynamic = fetch_dynamic_candidates(url, pool=driver_pool)
     flags = classify_context(url, platform)
     dynamic_scored: list[DateCandidate] = []
     for candidate in dynamic:
@@ -520,6 +542,7 @@ def _resolve_with_dynamic(outcome: _StaticPhaseOutcome) -> dict | None:
         )
         return None
 
+    _cache_best_candidate(url, platform, best)
     return _build_publication(
         outcome.result,
         url,
@@ -656,22 +679,29 @@ def run_dynamic_phase(
         },
     )
 
-    with ThreadPoolExecutor(max_workers=dynamic_workers) as pool:
-        futures = [
-            pool.submit(_resolve_with_dynamic, item) for item in pending_outcomes
-        ]
-        for future in as_completed(futures):
-            publication = future.result()
-            with lock:
-                processed += 1
-                if publication:
-                    updates.append(publication)
-                if on_progress:
-                    on_progress(
-                        static_processed + processed,
-                        static_total + total,
-                        list(updates),
-                    )
+    driver_pool = ChromeDriverPool(size=dynamic_workers)
+    try:
+        with ThreadPoolExecutor(max_workers=dynamic_workers) as pool:
+            futures = [
+                pool.submit(
+                    _resolve_with_dynamic, item, driver_pool=driver_pool
+                )
+                for item in pending_outcomes
+            ]
+            for future in as_completed(futures):
+                publication = future.result()
+                with lock:
+                    processed += 1
+                    if publication:
+                        updates.append(publication)
+                    if on_progress:
+                        on_progress(
+                            static_processed + processed,
+                            static_total + total,
+                            list(updates),
+                        )
+    finally:
+        driver_pool.shutdown()
 
     return updates
 

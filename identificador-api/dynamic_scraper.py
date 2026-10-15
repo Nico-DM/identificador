@@ -1,5 +1,7 @@
 import json
+import queue
 import re
+import threading
 import time
 from datetime import timezone
 
@@ -215,9 +217,7 @@ def extract_from_visible_text(driver, url):
     return candidates
 
 
-def fetch_dynamic_candidates(
-    url, headless=True, timeout=20, wait_for=8
-) -> list[DateCandidate]:
+def _build_chrome_options(*, headless: bool = True) -> Options:
     options = Options()
     if headless:
         options.add_argument("--headless")
@@ -229,10 +229,12 @@ def fetch_dynamic_candidates(
     options.add_argument(f"user-agent={ua}")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
     options.add_experimental_option("useAutomationExtension", False)
+    return options
 
-    driver = webdriver.Chrome(options=options)
+
+def create_chrome_driver(*, headless: bool = True, timeout: int = 20):
+    driver = webdriver.Chrome(options=_build_chrome_options(headless=headless))
     driver.set_page_load_timeout(timeout)
-
     try:
         driver.execute_cdp_cmd(
             "Page.addScriptToEvaluateOnNewDocument",
@@ -247,28 +249,123 @@ def fetch_dynamic_candidates(
     except WebDriverException:
         logger.debug(
             "Could not hide webdriver",
-            extra={"event": "dynamic_webdriver_hide_failed", "url": url},
+            extra={"event": "dynamic_webdriver_hide_failed"},
+            exc_info=True,
+        )
+    return driver
+
+
+def _safe_quit(driver) -> None:
+    try:
+        driver.quit()
+    except WebDriverException:
+        logger.debug(
+            "Could not close driver",
+            extra={"event": "dynamic_driver_close_failed"},
             exc_info=True,
         )
 
+
+class ChromeDriverPool:
+    """Thread-safe pool that reuses Chrome instances across dynamic scrapes."""
+
+    def __init__(
+        self,
+        size: int,
+        *,
+        headless: bool = True,
+        timeout: int = 20,
+    ):
+        if size < 1:
+            raise ValueError("ChromeDriverPool size must be >= 1")
+        self._size = size
+        self._headless = headless
+        self._timeout = timeout
+        self._available: queue.Queue = queue.Queue()
+        self._lock = threading.Lock()
+        self._created = 0
+        self._closed = False
+
+    def acquire(self):
+        if self._closed:
+            raise RuntimeError("ChromeDriverPool is closed")
+        try:
+            return self._available.get_nowait()
+        except queue.Empty:
+            pass
+
+        with self._lock:
+            if self._closed:
+                raise RuntimeError("ChromeDriverPool is closed")
+            if self._created < self._size:
+                driver = create_chrome_driver(
+                    headless=self._headless, timeout=self._timeout
+                )
+                self._created += 1
+                return driver
+
+        return self._available.get()
+
+    def release(self, driver, *, discard: bool = False) -> None:
+        if discard or self._closed:
+            _safe_quit(driver)
+            with self._lock:
+                self._created = max(0, self._created - 1)
+            return
+        self._available.put(driver)
+
+    def shutdown(self) -> None:
+        with self._lock:
+            self._closed = True
+        while True:
+            try:
+                driver = self._available.get_nowait()
+            except queue.Empty:
+                break
+            _safe_quit(driver)
+        with self._lock:
+            self._created = 0
+
+
+def _scrape_with_driver(
+    driver, url: str, *, wait_for: int = 8
+) -> list[DateCandidate]:
+    driver.get(url)
+    WebDriverWait(driver, wait_for).until(
+        EC.presence_of_element_located((By.TAG_NAME, "body"))
+    )
+
+    for _ in range(3):
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(1)
+
+    candidates: list[DateCandidate] = []
+    candidates += extract_from_dom(driver, url)
+    candidates += extract_dates_from_scripts(driver, url)
+    candidates += extract_from_visible_text(driver, url)
+    return candidates
+
+
+def fetch_dynamic_candidates(
+    url,
+    headless=True,
+    timeout=20,
+    wait_for=8,
+    *,
+    pool: ChromeDriverPool | None = None,
+) -> list[DateCandidate]:
+    borrowed = pool is not None
+    discard = False
+    if borrowed:
+        assert pool is not None
+        driver = pool.acquire()
+    else:
+        driver = create_chrome_driver(headless=headless, timeout=timeout)
+
     try:
-        driver.get(url)
-        WebDriverWait(driver, wait_for).until(
-            EC.presence_of_element_located((By.TAG_NAME, "body"))
-        )
-
-        for _ in range(3):
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(1)
-
-        candidates = []
-        candidates += extract_from_dom(driver, url)
-        candidates += extract_dates_from_scripts(driver, url)
-        candidates += extract_from_visible_text(driver, url)
-
-        return candidates
-
+        return _scrape_with_driver(driver, url, wait_for=wait_for)
     except WebDriverException:
+        discard = True
         logger.debug(
             "Dynamic scrape failed",
             extra={"event": "dynamic_scrape_failed", "url": url},
@@ -276,11 +373,8 @@ def fetch_dynamic_candidates(
         )
         return []
     finally:
-        try:
-            driver.quit()
-        except WebDriverException:
-            logger.debug(
-                "Could not close driver",
-                extra={"event": "dynamic_driver_close_failed", "url": url},
-                exc_info=True,
-            )
+        if borrowed:
+            assert pool is not None
+            pool.release(driver, discard=discard)
+        else:
+            _safe_quit(driver)
