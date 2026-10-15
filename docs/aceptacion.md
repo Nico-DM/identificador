@@ -1,6 +1,6 @@
 # Informe de pruebas de aceptación
 
-Generado automáticamente: 2026-10-15T04:32:24.080257+00:00
+Generado automáticamente: 2026-10-15T04:43:46.358598+00:00
 
 Cada fila es un test de `pytest -m acceptance`; un mismo criterio RF/RNF puede tener varias filas.
 
@@ -25,7 +25,7 @@ Cada fila es un test de `pytest -m acceptance`; un mismo criterio RF/RNF puede t
 | RF-010 | Caché de resultados para consultas repetidas | **PASS** | `tests/acceptance/test_rf_should_could.py::TestRF010Cache::test_memory_analysis_cache_roundtrip` |
 | RF-010 | Caché de resultados para consultas repetidas | **PASS** | `tests/acceptance/test_rf_should_could.py::TestRF010Cache::test_second_search_can_hit_cache` |
 | RF-011 | Logs detallados de búsqueda | **PASS** | `tests/acceptance/test_rf_should_could.py::TestRF011Logging::test_structured_logger_emits_event_extra` |
-| RNF-001 | Performance ≤ 30 s (parámetros + informe dataset) | **FAIL** | `tests/acceptance/test_rnf.py::TestRNF001Performance::test_average_response_under_30s` |
+| RNF-001 | Performance ≤ 30 s (parámetros + informe dataset) | **PASS** | `tests/acceptance/test_rnf.py::TestRNF001Performance::test_average_response_under_30s` |
 | RNF-001 | Performance ≤ 30 s (parámetros + informe dataset) | **PASS** | `tests/acceptance/test_rnf.py::TestRNF001Performance::test_dataset_report_records_timing` |
 | RNF-001 | Performance ≤ 30 s (parámetros + informe dataset) | **PASS** | `tests/acceptance/test_rnf.py::TestRNF001Performance::test_tunable_limits_exist` |
 | RNF-002 | Usabilidad web (UI disponible) | **PASS** | `tests/acceptance/test_rnf.py::TestRNF002Usability::test_live_web_serves_ui_if_up` |
@@ -36,7 +36,7 @@ Cada fila es un test de `pytest -m acceptance`; un mismo criterio RF/RNF puede t
 | RNF-005 | Portabilidad Python 3.11 / stack documentado | **PASS** | `tests/acceptance/test_rnf.py::TestRNF005Portability::test_runtime_is_python_311_plus` |
 | RNF-006 | API keys solo en variables de entorno | **PASS** | `tests/acceptance/test_rnf.py::TestRNF006Security::test_env_gitignored_and_example_has_no_real_secret` |
 
-**Resumen (por criterio):** 16 PASS · 1 FAIL · 0 SKIP · 29 tests (exitstatus=1)
+**Resumen (por criterio):** 17 PASS · 0 FAIL · 0 SKIP · 29 tests (exitstatus=0)
 
 Cómo regenerar:
 

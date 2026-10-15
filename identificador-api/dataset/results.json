@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15T04:21:08.402096+00:00",
+  "generated_at": "2026-10-15T04:41:34.986083+00:00",
   "base_url": "http://localhost:8000",
   "search_engine": "google_reverse_image",
   "evaluation_window": 10,
@@ -8,7 +8,7 @@
   "correct": 7,
   "precision": 0.7,
   "error_rate": 0.0,
-  "avg_response_time_seconds": 31.27,
+  "avg_response_time_seconds": 20.46,
   "by_category": {
     "arte_digital": {
       "total": 4,
@@ -41,11 +41,11 @@
           "flickr.com"
         ]
       },
-      "started_at": "2026-10-15T04:15:55.686812+00:00",
-      "search_id": "e96e5bc7-691f-4b6f-8816-bc37b763e2c0",
+      "started_at": "2026-10-15T04:38:10.408086+00:00",
+      "search_id": "a1afa454-7ac4-44cb-afaf-d04233154647",
       "status": "done",
-      "response_time_seconds": 22.06,
-      "static_poll_seconds": 22.05,
+      "response_time_seconds": 24.06,
+      "static_poll_seconds": 24.05,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -149,8 +149,8 @@
           "flickr.com"
         ]
       },
-      "started_at": "2026-10-15T04:16:17.749045+00:00",
-      "search_id": "d6ddd04b-f2c7-47d1-a461-f293904e5cec",
+      "started_at": "2026-10-15T04:38:34.471364+00:00",
+      "search_id": "f144b5b6-d5cd-4bcc-85c2-6ee485b887bc",
       "status": "batch_done",
       "response_time_seconds": 2.01,
       "static_poll_seconds": 2.01,
@@ -274,11 +274,11 @@
           "flickr.com"
         ]
       },
-      "started_at": "2026-10-15T04:16:19.757620+00:00",
-      "search_id": "a3a416ce-a054-4ca9-b9f3-d9fb19c2aba3",
+      "started_at": "2026-10-15T04:38:36.482367+00:00",
+      "search_id": "a588b873-a406-4b28-8631-3d93b0683ac5",
       "status": "batch_done",
-      "response_time_seconds": 78.13,
-      "static_poll_seconds": 78.13,
+      "response_time_seconds": 26.05,
+      "static_poll_seconds": 26.05,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -287,19 +287,43 @@
       "result_count": 10,
       "top_results": [
         {
-          "url": "https://pxhere.com/en/photo/207113",
+          "url": "https://pxhere.com/pl/photos?page=1032&color=000000&direction=horizontal&order=popular",
+          "date": "2000-01-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "pxhere.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://pxhere.com/id/tag/32080?order=popular",
           "date": "2017-01-03T00:00:00",
           "platform": "unknown",
           "site_name": "pxhere.com",
-          "score": 0.7,
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://pxhere.com/pl/photo/207113",
+          "date": "2017-03-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "pxhere.com",
+          "score": 0.75,
+          "confidence": "confirmed"
+        },
+        {
+          "url": "https://pxhere.com/en/photo/207113",
+          "date": "2017-03-01T00:00:00",
+          "platform": "unknown",
+          "site_name": "pxhere.com",
+          "score": 0.75,
           "confidence": "confirmed"
         },
         {
           "url": "https://pxhere.com/id/photo/207113",
-          "date": "2017-01-03T00:00:00",
+          "date": "2017-03-01T00:00:00",
           "platform": "unknown",
           "site_name": "pxhere.com",
-          "score": 0.7,
+          "score": 0.75,
           "confidence": "confirmed"
         },
         {
@@ -327,34 +351,10 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://pxhere.com/pl/photo/207113",
-          "date": "2026-10-15T00:00:00",
-          "platform": "unknown",
-          "site_name": "pxhere.com",
-          "score": 0.30000000000000004,
-          "confidence": "provisional"
-        },
-        {
           "url": "https://agii.ru/blog/tsvetok-lepestok-stebel",
           "date": null,
           "platform": "unknown",
           "site_name": "agii.ru",
-          "score": null,
-          "confidence": "pending"
-        },
-        {
-          "url": "https://pxhere.com/pl/photos?page=1032&color=000000&direction=horizontal&order=popular",
-          "date": null,
-          "platform": "unknown",
-          "site_name": "pxhere.com",
-          "score": null,
-          "confidence": "pending"
-        },
-        {
-          "url": "https://pxhere.com/id/tag/32080?order=popular",
-          "date": null,
-          "platform": "unknown",
-          "site_name": "pxhere.com",
           "score": null,
           "confidence": "pending"
         },
@@ -368,11 +368,11 @@
         }
       ],
       "obtained": {
-        "url": "https://pxhere.com/en/photo/207113",
-        "date": "2017-01-03T00:00:00",
+        "url": "https://pxhere.com/pl/photos?page=1032&color=000000&direction=horizontal&order=popular",
+        "date": "2000-01-01T00:00:00",
         "platform": "unknown",
         "site_name": "pxhere.com",
-        "score": 0.7,
+        "score": 0.75,
         "confidence": "confirmed"
       },
       "evaluation": {
@@ -400,11 +400,11 @@
           "deviantart.com"
         ]
       },
-      "started_at": "2026-10-15T04:17:37.886411+00:00",
-      "search_id": "116f1430-2732-4742-a54f-138a0522c488",
+      "started_at": "2026-10-15T04:39:02.535048+00:00",
+      "search_id": "2b6b7190-89fb-428a-b9f0-d9d09a87f832",
       "status": "done",
-      "response_time_seconds": 12.03,
-      "static_poll_seconds": 12.02,
+      "response_time_seconds": 10.02,
+      "static_poll_seconds": 10.02,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -516,11 +516,11 @@
           "opengameart.org"
         ]
       },
-      "started_at": "2026-10-15T04:17:49.912138+00:00",
-      "search_id": "ea382974-4849-464e-9ab0-f2f31136d464",
+      "started_at": "2026-10-15T04:39:12.559689+00:00",
+      "search_id": "f88c696e-eaa3-4fa6-a9b9-ec250ea7ec4f",
       "status": "done",
-      "response_time_seconds": 38.12,
-      "static_poll_seconds": 38.12,
+      "response_time_seconds": 22.17,
+      "static_poll_seconds": 22.17,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -634,11 +634,11 @@
           "deviantart.com"
         ]
       },
-      "started_at": "2026-10-15T04:18:28.031569+00:00",
-      "search_id": "7a86a8e2-592d-4fd8-8cff-3bd27af967f8",
+      "started_at": "2026-10-15T04:39:34.733197+00:00",
+      "search_id": "4a1fa554-170e-4153-8e8b-5aa29744c69d",
       "status": "batch_done",
-      "response_time_seconds": 40.07,
-      "static_poll_seconds": 40.06,
+      "response_time_seconds": 30.06,
+      "static_poll_seconds": 30.05,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -759,11 +759,11 @@
           "davidrevoy.com"
         ]
       },
-      "started_at": "2026-10-15T04:19:08.099400+00:00",
-      "search_id": "1ba7548a-a3e4-4f1f-a23a-68ff442d6b28",
+      "started_at": "2026-10-15T04:40:04.790587+00:00",
+      "search_id": "0ba18ac4-788a-46ab-9ffb-dfcf5515f245",
       "status": "done",
-      "response_time_seconds": 14.03,
-      "static_poll_seconds": 14.03,
+      "response_time_seconds": 8.02,
+      "static_poll_seconds": 8.02,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -820,20 +820,20 @@
           "confidence": "confirmed"
         },
         {
-          "url": "https://www.peppercarrot.com/br/viewer/artworks__2014-06-14_pepper_first-artwork_by-David-Revoy.html",
-          "date": "2014-06-14T00:00:00",
-          "platform": "unknown",
-          "site_name": "Pepper&Carrot",
-          "score": 0.75,
-          "confidence": "confirmed"
-        },
-        {
           "url": "https://www.davidrevoy.com/article586/making-of-the-second-cover-of-peppercarrot",
           "date": "2016-11-16T00:00:00",
           "platform": "unknown",
           "site_name": "David Revoy",
           "score": 0.75,
           "confidence": "confirmed"
+        },
+        {
+          "url": "https://www.peppercarrot.com/br/viewer/artworks__2014-06-14_pepper_first-artwork_by-David-Revoy.html",
+          "date": "2014-06-14T00:00:00",
+          "platform": "unknown",
+          "site_name": "Pepper&Carrot",
+          "score": 0.30000000000000004,
+          "confidence": "provisional"
         },
         {
           "url": "https://www.facebook.com/p/Pepper-Carrot-100069321226386/",
@@ -875,11 +875,11 @@
           "davidrevoy.com"
         ]
       },
-      "started_at": "2026-10-15T04:19:22.128490+00:00",
-      "search_id": "444f7676-afe0-4f7b-bc04-51eff441b513",
+      "started_at": "2026-10-15T04:40:12.809414+00:00",
+      "search_id": "a5e14a7c-77b3-4d5f-90e6-86b829f6eb4f",
       "status": "done",
-      "response_time_seconds": 12.03,
-      "static_poll_seconds": 12.02,
+      "response_time_seconds": 8.02,
+      "static_poll_seconds": 8.02,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -992,11 +992,11 @@
           "exblog.jp"
         ]
       },
-      "started_at": "2026-10-15T04:19:34.153745+00:00",
-      "search_id": "82e02a98-e9f6-443a-ab06-b7ba01638350",
+      "started_at": "2026-10-15T04:40:20.832793+00:00",
+      "search_id": "bf00b533-7770-4beb-beb9-e817a5eb6dee",
       "status": "done",
-      "response_time_seconds": 70.14,
-      "static_poll_seconds": 70.14,
+      "response_time_seconds": 52.11,
+      "static_poll_seconds": 52.1,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -1022,7 +1022,7 @@
         },
         {
           "url": "https://www.instagram.com/p/C7YeANFytGI/?hl=en",
-          "date": "2026-01-01T00:00:00",
+          "date": "2024-05-25T00:00:00",
           "platform": "instagram",
           "site_name": "Instagram · ussfeeds",
           "score": 0.75,
@@ -1101,11 +1101,11 @@
           "deviantart.com"
         ]
       },
-      "started_at": "2026-10-15T04:20:44.295996+00:00",
-      "search_id": "fb77ecbe-f3f4-40e9-9fa1-fb641bbf901a",
+      "started_at": "2026-10-15T04:41:12.938420+00:00",
+      "search_id": "ada51b0c-304c-4533-af35-19ea5be05d95",
       "status": "done",
-      "response_time_seconds": 24.11,
-      "static_poll_seconds": 24.1,
+      "response_time_seconds": 22.05,
+      "static_poll_seconds": 22.04,
       "deep_poll_seconds": 0.0,
       "deep_search_used": true,
       "deep_search_available": false,
@@ -1123,7 +1123,7 @@
         },
         {
           "url": "https://www.reddit.com/r/spongebob/comments/1h983tj/where_did_this_image_come_from_and_why_is_it_so/",
-          "date": "2017-12-01T20:25:29.286000",
+          "date": "2023-03-22T17:08:43.536000",
           "platform": "reddit",
           "site_name": "Reddit · r/spongebob",
           "score": 0.7,

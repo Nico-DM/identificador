@@ -4,7 +4,7 @@
 
 Dataset de regresión ejecutado con el motor `google_reverse_image` sobre URLs públicas definidas en el manifest. Cada caso corre fase estática y, si está disponible, búsqueda profunda.
 
-- **Fecha de ejecución:** 2026-10-15T04:21:08.402096+00:00
+- **Fecha de ejecución:** 2026-10-15T04:41:34.986083+00:00
 - **Backend evaluado:** `http://localhost:8000`
 - **Total de imágenes:** 10
 - **Ventana de evaluación:** top 10
@@ -54,7 +54,7 @@ Archivos relacionados:
 - **Categoría:** Fotografía contemporánea
 - **Esperado:** Artista: Alan Levine; Fecha: 2014-06-28; Dominios esperados: flickr.com/photos/cogdog, flickr.com
 - **Coincidencia:** — (posición —)
-- **Fecha detectada:** 2017-01-03T00:00:00
+- **Fecha detectada:** 2000-01-01T00:00:00
 - **URL fuente:** —
 - **Notas:** Límite de lotes alcanzado; se evaluaron los resultados disponibles (10 candidatos, status=batch_done).
 
@@ -139,8 +139,8 @@ Archivos relacionados:
 | Búsqueda profunda ejecutada | 9/10 |
 | Imágenes con candidatos | 10 |
 | Imágenes sin candidatos | 0 |
-| Tiempo promedio de respuesta | 31.27 s |
-| Tiempo mínimo / máximo | 2.01 s / 78.13 s |
+| Tiempo promedio de respuesta | 20.46 s |
+| Tiempo mínimo / máximo | 2.01 s / 52.11 s |
 | Posiciones de acierto | 1, 1, 7, 3, 1, 1, 1 |
 | Tasa de error (fallas de API/excepción) | 0.0% |
 
